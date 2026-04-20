@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: "API de Empresas - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Empresas en el sistema Management-Sport."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /empresas:
+    get:
+      tags:
+        - Empresas
+      summary: "Listar todas las empresas"
+      description: "Obtiene una lista de todas las empresas registradas en el sistema."
+      responses:
+        '200':
+          description: "Lista de empresas obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmpresaResponse'
+    post:
+      tags:
+        - Empresas
+      summary: "Crear una nueva empresa"
+      description: "Registra una nueva empresa en el sistema."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmpresaRequest'
+      responses:
+        '201':
+          description: "Empresa creada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmpresaResponse'
+        '400':
+          description: "Datos de entrada inválidos (ej. nombre duplicado, campos faltantes)."
+
+  /empresas/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "ID de la empresa a operar."
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags:
+        - Empresas
+      summary: "Obtener una empresa por su ID"
+      description: "Recupera los detalles de una empresa específica. Devuelve 404 si no se encuentra."
+      responses:
+        '200':
+          description: "Detalles de la empresa."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmpresaResponse'
+        '404':
+          description: "Empresa no encontrada."
+    put:
+      tags:
+        - Empresas
+      summary: "Actualizar una empresa existente"
+      description: "Actualiza los datos de una empresa específica. Solo se modifican los campos proporcionados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmpresaRequest'
+      responses:
+        '200':
+          description: "Empresa actualizada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmpresaResponse'
+        '400':
+          description: "Datos de entrada inválidos."
+        '404':
+          description: "Empresa no encontrada."
+    delete:
+      tags:
+        - Empresas
+      summary: "Eliminar una empresa"
+      description: "Elimina una empresa por su ID. Esta operación fallará si la empresa tiene sucursales asociadas."
+      responses:
+        '204':
+          description: "Empresa eliminada con éxito (sin contenido en la respuesta)."
+        '404':
+          description: "Empresa no encontrada."
+        '400':
+          description: "Error de negocio (ej. la empresa tiene dependencias)."
+
+components:
+  schemas:
+    EmpresaResponse:
+      type: object
+      properties:
+        empresaId:
+          type: integer
+          example: 1
+        nombreComercial:
+          type: string
+          example: "Canchas El Pelotero"
+        razonSocial:
+          type: string
+          example: "El Pelotero S.A.C."
+        logoUrl:
+          type: string
+          example: "https://example.com/logo.png"
+        emailContacto:
+          type: string
+          example: "contacto@pelotero.com"
+        telefonoPrincipal:
+          type: string
+          example: "987654321"
+
+    CreateEmpresaRequest:
+      type: object
+      required:
+        - nombreComercial
+        - razonSocial
+      properties:
+        nombreComercial:
+          type: string
+          example: "Canchas El Pelotero"
+        razonSocial:
+          type: string
+          example: "El Pelotero S.A.C."
+        logoUrl:
+          type: string
+          example: "https://example.com/logo.png"
+        emailContacto:
+          type: string
+          example: "contacto@pelotero.com"
+        telefonoPrincipal:
+          type: string
+          example: "987654321"
+
+    UpdateEmpresaRequest:
+      type: object
+      properties:
+        nombreComercial:
+          type: string
+          example: "Canchas El Pelotero Plus"
+        logoUrl:
+          type: string
+          example: "https://example.com/new_logo.png"
+        emailContacto:
+          type: string
+          example: "admin@pelotero.com"
+        telefonoPrincipal:
+          type: string
+          example: "999888777"

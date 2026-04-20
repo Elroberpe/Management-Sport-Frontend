@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: "API de Pagos - Management-Sport"
+  description: "Documentación de los endpoints para la gestión y consulta global de Pagos en el sistema."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /pagos:
+    get:
+      tags:
+        - Pagos
+      summary: "Obtener historial financiero global"
+      description: "Obtiene una lista paginada de todos los pagos registrados en el sistema, con filtros opcionales."
+      parameters:
+        - name: desde
+          in: query
+          description: "Fecha de inicio del rango de búsqueda."
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: hasta
+          in: query
+          description: "Fecha de fin del rango de búsqueda."
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: metodo
+          in: query
+          description: "Filtrar por método de pago."
+          schema:
+            $ref: '#/components/schemas/MetodoPago'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "fecha,desc"
+      responses:
+        '200':
+          description: "Historial de pagos obtenido con éxito."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PagoResponse'
+                  # ... (otras propiedades de paginación)
+
+  /pagos/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "ID del pago a operar."
+        schema:
+          type: integer
+    get:
+      tags:
+        - Pagos
+      summary: "Obtener el detalle de un pago"
+      description: "Recupera los detalles de un registro de pago específico por su ID."
+      responses:
+        '200':
+          description: "Detalles del pago."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagoResponse'
+        '404':
+          description: "Pago no encontrado."
+
+  /pagos/{id}/anular:
+    patch:
+      tags:
+        - Pagos
+      summary: "Anular un pago"
+      description: "Marca un pago como ANULADO y revierte los montos correspondientes en la reserva o evento asociado."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnularPagoRequest'
+      responses:
+        '204':
+          description: "Pago anulado con éxito."
+        '400':
+          description: "El pago ya ha sido anulado previamente."
+        '404':
+          description: "Pago no encontrado."
+
+components:
+  schemas:
+    MetodoPago:
+      type: string
+      enum: [EFECTIVO, TRANSFERENCIA, TARJETA, YAPE, PLIN]
+    TipoTransaccion:
+      type: string
+      enum: [INGRESO, SALIDA]
+    EstadoPago:
+      type: string
+      enum: [COMPLETADO, ANULADO]
+
+    PagoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        reservaId:
+          type: integer
+          nullable: true
+          example: 1
+        eventoId:
+          type: integer
+          nullable: true
+          example: null
+        fecha:
+          type: string
+          format: date
+          example: "2024-10-20"
+        monto:
+          type: number
+          format: double
+          example: 50.00
+        metodoPago:
+          $ref: '#/components/schemas/MetodoPago'
+        estado:
+          $ref: '#/components/schemas/EstadoPago'
+        tipoTransaccion:
+          $ref: '#/components/schemas/TipoTransaccion'
+        referencia:
+          type: string
+          nullable: true
+        nota:
+          type: string
+          nullable: true
+          example: "Adelanto de reserva"
+
+    AnularPagoRequest:
+      type: object
+      required:
+        - motivo
+      properties:
+        motivo:
+          type: string
+          maxLength: 250
+          example: "Pago duplicado por error."

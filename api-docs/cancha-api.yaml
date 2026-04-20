@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  title: "API de Canchas - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Canchas en el sistema Management-Sport."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /canchas:
+    get:
+      tags:
+        - Canchas
+      summary: "Listar todas las canchas"
+      description: "Obtiene una lista de todas las canchas, con filtros opcionales por sucursal y estado."
+      parameters:
+        - name: sucursalId
+          in: query
+          description: "ID de la sucursal para filtrar las canchas."
+          schema:
+            type: integer
+        - name: estado
+          in: query
+          description: "Estado de la cancha para filtrar (DISPONIBLE, MANTENIMIENTO, INACTIVA)."
+          schema:
+            type: string
+            enum: [DISPONIBLE, MANTENIMIENTO, INACTIVA]
+      responses:
+        '200':
+          description: "Lista de canchas obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CanchaResponse'
+    post:
+      tags:
+        - Canchas
+      summary: "Crear una nueva cancha"
+      description: "Registra una nueva cancha para una sucursal existente."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCanchaRequest'
+      responses:
+        '201':
+          description: "Cancha creada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanchaResponse'
+        '400':
+          description: "Datos de entrada inválidos (ej. nombre duplicado en la sucursal, sucursal no existe)."
+
+  /canchas/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "ID de la cancha a operar."
+        schema:
+          type: integer
+    get:
+      tags:
+        - Canchas
+      summary: "Obtener una cancha por su ID"
+      description: "Recupera los detalles de una cancha específica."
+      responses:
+        '200':
+          description: "Detalles de la cancha."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanchaResponse'
+        '404':
+          description: "Cancha no encontrada."
+    put:
+      tags:
+        - Canchas
+      summary: "Actualizar una cancha existente"
+      description: "Actualiza los datos de una cancha (nombre, precio). Solo se modifican los campos proporcionados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCanchaRequest'
+      responses:
+        '200':
+          description: "Cancha actualizada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanchaResponse'
+        '404':
+          description: "Cancha no encontrada."
+    delete:
+      tags:
+        - Canchas
+      summary: "Eliminar una cancha"
+      description: "Elimina una cancha por su ID. (Nota: Se recomienda usar el cambio de estado a INACTIVA en lugar de un borrado físico)."
+      responses:
+        '204':
+          description: "Cancha eliminada con éxito."
+        '404':
+          description: "Cancha no encontrada."
+
+  /canchas/{id}/estado:
+    patch:
+      tags:
+        - Canchas
+      summary: "Actualizar el estado de una cancha"
+      description: "Cambia el estado de una cancha (ej. de DISPONIBLE a MANTENIMIENTO)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEstadoCanchaRequest'
+      responses:
+        '200':
+          description: "Estado de la cancha actualizado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanchaResponse'
+        '404':
+          description: "Cancha no encontrada."
+
+components:
+  schemas:
+    CanchaResponse:
+      type: object
+      properties:
+        canchaId:
+          type: integer
+          example: 1
+        sucursalId:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Cancha 1 - Fútbol 5"
+        estadoCancha:
+          type: string
+          enum: [DISPONIBLE, MANTENIMIENTO, INACTIVA]
+          example: "DISPONIBLE"
+        precioHora:
+          type: number
+          format: double
+          example: 50.00
+
+    CreateCanchaRequest:
+      type: object
+      required:
+        - sucursalId
+        - nombre
+        - precioHora
+      properties:
+        sucursalId:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Cancha 2 - Vóley"
+        precioHora:
+          type: number
+          format: double
+          example: 35.50
+
+    UpdateCanchaRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Cancha 1 - Fútbol 5 (Renovada)"
+        precioHora:
+          type: number
+          format: double
+          example: 55.00
+
+    UpdateEstadoCanchaRequest:
+      type: object
+      required:
+        - estadoCancha
+      properties:
+        estadoCancha:
+          type: string
+          enum: [DISPONIBLE, MANTENIMIENTO, INACTIVA]
+          example: "MANTENIMIENTO"

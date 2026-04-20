@@ -1,0 +1,267 @@
+openapi: 3.0.3
+info:
+  title: "API de Eventos - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Eventos (torneos, alquileres corporativos, etc.)."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /eventos:
+    get:
+      tags:
+        - Eventos
+      summary: "Listar todos los eventos"
+      description: "Obtiene una lista paginada de todos los eventos."
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Lista de eventos obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventoResponse'
+    post:
+      tags:
+        - Eventos
+      summary: "Crear un nuevo evento"
+      description: "Crea un nuevo evento y orquesta la creación de todas las reservas asociadas para bloquear el calendario."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventoRequest'
+      responses:
+        '201':
+          description: "Evento creado con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '400':
+          description: "Datos inválidos o conflicto de horario en alguna de las canchas solicitadas."
+
+  /eventos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EventoId'
+    get:
+      tags:
+        - Eventos
+      summary: "Obtener un evento por su ID"
+      responses:
+        '200':
+          description: "Detalles del evento."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '404':
+          description: "Evento no encontrado."
+    put:
+      tags:
+        - Eventos
+      summary: "Actualizar datos de un evento"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventoRequest'
+      responses:
+        '200':
+          description: "Evento actualizado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '400':
+          description: "No se puede modificar un evento en estado final."
+        '404':
+          description: "Evento no encontrado."
+
+  /eventos/{id}/pagos:
+    parameters:
+      - $ref: '#/components/parameters/EventoId'
+    post:
+      tags:
+        - Pagos
+      summary: "Añadir un pago a un evento"
+      description: "Registra un pago directamente asociado a un evento."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPagoToEventoRequest'
+      responses:
+        '200':
+          description: "Pago registrado y evento actualizado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '400':
+          description: "El monto excede el saldo o el evento está cancelado."
+
+  /eventos/{id}/cancelar:
+    parameters:
+      - $ref: '#/components/parameters/EventoId'
+    patch:
+      tags:
+        - Eventos
+      summary: "Cancelar un evento"
+      description: "Cancela un evento y todas sus reservas asociadas. (Nota: La lógica de reembolso aún está pendiente)."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelEventoRequest'
+      responses:
+        '200':
+          description: "Evento cancelado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '400':
+          description: "El evento ya está en un estado final."
+
+  /eventos/{id}/reprogramar:
+    parameters:
+      - $ref: '#/components/parameters/EventoId'
+    post:
+      tags:
+        - Eventos
+      summary: "Reprogramar un evento"
+      description: "Mueve un evento a un nuevo conjunto de horarios. Valida la disponibilidad de todos los nuevos horarios antes de proceder."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReprogramarEventoRequest'
+      responses:
+        '200':
+          description: "Evento reprogramado con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoResponse'
+        '400':
+          description: "El nuevo horario no está disponible o el número de horarios no coincide."
+
+components:
+  parameters:
+    EventoId:
+      name: id
+      in: path
+      required: true
+      description: "ID del evento a operar."
+      schema:
+        type: integer
+
+  schemas:
+    TipoEvento:
+      type: string
+      enum: [RELAMPAGO, TORNEO, CORPORATIVO]
+    EstadoEvento:
+      type: string
+      enum: [PROGRAMADO, EN_CURSO, FINALIZADO, CANCELADO]
+    MetodoPago:
+      type: string
+      enum: [EFECTIVO, TRANSFERENCIA, TARJETA, YAPE, PLIN]
+
+    EventoResponse:
+      type: object
+      properties:
+        id: { type: integer }
+        sucursalId: { type: integer }
+        clienteId: { type: integer }
+        nombreCliente: { type: string }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        tipoEvento: { $ref: '#/components/schemas/TipoEvento' }
+        montoPactado: { type: number, format: double }
+        montoPagado: { type: number, format: double }
+        saldoPendiente: { type: number, format: double }
+        fechaInicio: { type: string, format: date }
+        fechaFin: { type: string, format: date }
+        estado: { $ref: '#/components/schemas/EstadoEvento' }
+        reservasAsociadas:
+          type: array
+          items:
+            type: object
+            properties:
+              reservaId: { type: integer }
+              canchaId: { type: integer }
+              nombreCancha: { type: string }
+              fecha: { type: string, format: date }
+              horario: { type: string, example: "18:00:00 - 22:00:00" }
+
+    CreateEventoRequest:
+      type: object
+      properties:
+        sucursalId: { type: integer }
+        clienteId: { type: integer }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        tipoEvento: { $ref: '#/components/schemas/TipoEvento' }
+        montoPactado: { type: number, format: double }
+        fechaInicio: { type: string, format: date }
+        fechaFin: { type: string, format: date }
+        horarios:
+          type: array
+          items:
+            type: object
+            properties:
+              canchaId: { type: integer }
+              fecha: { type: string, format: date }
+              horaInicio: { type: string, format: time }
+              horaFin: { type: string, format: time }
+
+    UpdateEventoRequest:
+      type: object
+      properties:
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        tipoEvento: { $ref: '#/components/schemas/TipoEvento' }
+        montoPactado: { type: number, format: double }
+        fechaInicio: { type: string, format: date }
+        fechaFin: { type: string, format: date }
+
+    CancelEventoRequest:
+      type: object
+      properties:
+        motivo: { type: string }
+
+    AddPagoToEventoRequest:
+      type: object
+      properties:
+        monto: { type: number, format: double }
+        metodoPago: { $ref: '#/components/schemas/MetodoPago' }
+
+    ReprogramarEventoRequest:
+      type: object
+      properties:
+        nuevosHorarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateEventoRequest/properties/horarios/items'

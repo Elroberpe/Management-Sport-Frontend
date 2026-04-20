@@ -1,0 +1,309 @@
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h2>Pitch Pro</h2>
+        <span id="sidebar-role-label">CARGANDO...</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+        <!-- Items rendered by role -->
+        <a href="#/dashboard/inicio" class="nav-item active" data-module="inicio" data-roles="superadmin,admin,recepcionista">
+            <i class='bx bxs-dashboard'></i> Dashboard
+        </a>
+        <a href="#/dashboard/sedes" class="nav-item" data-module="sedes" data-roles="superadmin">
+            <i class='bx bx-buildings'></i> Sedes
+        </a>
+        <a href="#/dashboard/canchas" class="nav-item" data-module="canchas" data-roles="superadmin,admin">
+            <i class='bx bx-map'></i> Canchas
+        </a>
+        <a href="#/dashboard/calendario" class="nav-item" data-module="calendario" data-roles="superadmin,admin,recepcionista">
+            <i class='bx bx-calendar'></i> Calendario
+        </a>
+        <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
+            <i class='bx bx-group'></i> Clientes
+        </a>
+        <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
+            <i class='bx bx-wallet'></i> Pagos
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="#" class="nav-item" id="sidebar-settings"><i class='bx bx-cog'></i> Ajustes</a>
+        <a href="#" class="nav-item" id="sidebar-logout">
+            <i class='bx bx-log-out'></i> Cerrar Sesión
+        </a>
+    </div>
+</aside>
+
+<!-- Main Shell -->
+<div class="main-wrapper">
+    
+    <!-- Top Navbar -->
+    <header class="top-nav">
+        <div class="nav-left">
+            <div class="search-bar">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Buscar reservas...">
+            </div>
+            <!-- Branch Selector con Dropdown -->
+            <div class="branch-selector-wrap" id="branch-selector-wrap">
+                <div class="branch-selector" id="branch-selector-btn">
+                    <i class='bx bx-map pin-icon'></i>
+                    <span id="header-sede-label">Cargando...</span>
+                    <i class='bx bx-chevron-down' id="branch-chevron"></i>
+                </div>
+                <!-- Dropdown -->
+                <div class="sede-dropdown" id="sede-dropdown">
+                    <div class="sede-dropdown-header">SELECCIONAR SEDE</div>
+                    <div id="sede-dropdown-list">
+                        <div class="sede-dropdown-loading"><i class='bx bx-loader-alt bx-spin'></i> Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-icon"><i class='bx bx-bell'></i><span class="badg"></span></div>
+            <div class="nav-icon"><i class='bx bx-question-mark' style="border: 2px solid currentColor; border-radius: 50%; padding: 2px;"></i></div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <strong id="header-user-name">—</strong>
+                    <span id="header-user-role">—</span>
+                </div>
+                <div class="user-avatar" style="cursor:pointer;" id="header-avatar-btn" title="Cerrar sesión">
+                    <img id="header-avatar-img" src="https://i.pravatar.cc/150?img=11" alt="User">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Módulo dinámico del Dashboard cargará aquí -->
+    <div class="content-area">
+        <div id="module-content" class="module active" style="opacity: 0; transition: opacity 0.3s ease;">
+            <!-- Contenido dinámico inyectado -->
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ---- Branch Selector Dropdown ---- */
+    .branch-selector-wrap {
+        position: relative;
+    }
+    .branch-selector {
+        border-radius: 20px;
+        transition: background 0.2s;
+        user-select: none;
+    }
+    .branch-selector:hover,
+    .branch-selector-wrap.open .branch-selector {
+        background: #f1f4f9;
+    }
+    #branch-chevron {
+        transition: transform 0.25s ease;
+        color: #8a9bb3;
+    }
+    .branch-selector-wrap.open #branch-chevron {
+        transform: rotate(180deg);
+    }
+    .sede-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        min-width: 240px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        border: 1px solid #eef2f6;
+        z-index: 999;
+        overflow: hidden;
+        animation: dropIn 0.2s ease;
+    }
+    @keyframes dropIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .branch-selector-wrap.open .sede-dropdown {
+        display: block;
+    }
+    .sede-dropdown-header {
+        padding: 12px 16px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .sede-dropdown-loading {
+        padding: 16px;
+        font-size: 13px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sede-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #334155;
+        transition: background 0.15s;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .sede-dropdown-item:last-child { border-bottom: none; }
+    .sede-dropdown-item:hover { background: #f0fdf4; }
+    .sede-dropdown-item.selected { background: #f0fdf4; color: #126c2e; font-weight: 700; }
+    .sede-dropdown-item i { font-size: 16px; color: #94a3b8; flex-shrink: 0; }
+    .sede-dropdown-item.selected i { color: #126c2e; }
+    .sede-dot {
+        width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        margin-left: auto;
+    }
+    .sede-dot.active  { background: #22c55e; }
+    .sede-dot.inactive { background: #cbd5e1; }
+    .sede-dropdown-error {
+        padding: 14px 16px;
+        font-size: 12px;
+        color: #ef4444;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<script>
+(function () {
+    var BASE_URL = 'http://localhost:8080/api/v1';
+    var session = window.Auth ? window.Auth.getSession() : null;
+    if (!session) {
+        window.location.hash = '#/login';
+        return;
+    }
+
+    /* ---- Poblar datos del usuario en la UI ---- */
+    document.getElementById('header-user-name').textContent   = session.nombre;
+    document.getElementById('header-user-role').textContent   = session.rolLabel;
+    document.getElementById('sidebar-role-label').textContent = session.rolLabel;
+    var avatarImg = document.getElementById('header-avatar-img');
+    if (session.avatar) avatarImg.src = session.avatar;
+
+    /* ---- Filtrar sidebar según rol ---- */
+    var navItems = document.querySelectorAll('#sidebar-nav .nav-item[data-roles]');
+    navItems.forEach(function (item) {
+        var allowedRoles = item.getAttribute('data-roles').split(',');
+        if (!allowedRoles.includes(session.rol)) {
+            item.style.display = 'none';
+        }
+    });
+
+    /* ---- Cerrar sesión ---- */
+    document.getElementById('sidebar-logout').addEventListener('click', function (e) {
+        e.preventDefault();
+        window.Auth.logout();
+    });
+    document.getElementById('header-avatar-btn').addEventListener('click', function () {
+        if (confirm('¿Cerrar sesión?')) window.Auth.logout();
+    });
+
+    /* ======================================== */
+    /*        BRANCH SELECTOR DROPDOWN          */
+    /* ======================================== */
+    var wrap         = document.getElementById('branch-selector-wrap');
+    var btn          = document.getElementById('branch-selector-btn');
+    var dropdown     = document.getElementById('sede-dropdown');
+    var list         = document.getElementById('sede-dropdown-list');
+    var sedeLabel    = document.getElementById('header-sede-label');
+
+    // Estado seleccionado: null = todas las sedes
+    window._selectedSucursalId = null;
+
+    // Abrir / cerrar al hacer click en el selector
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+    });
+
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', function () {
+        wrap.classList.remove('open');
+    });
+    dropdown.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    // ---- Construir item del dropdown ----
+    function buildItem(label, icon, sucursalId, activo, isSelected) {
+        var item = document.createElement('div');
+        item.className = 'sede-dropdown-item' + (isSelected ? ' selected' : '');
+        item.innerHTML = [
+            "<i class='bx " + icon + "'></i>",
+            "<span>" + label + "</span>",
+            activo !== null ? "<span class='sede-dot " + (activo ? 'active' : 'inactive') + "'></span>" : ''
+        ].join('');
+        item.addEventListener('click', function () {
+            window._selectedSucursalId = sucursalId;
+            sedeLabel.textContent = label;
+            // Marcar como seleccionado
+            list.querySelectorAll('.sede-dropdown-item').forEach(function (el) {
+                el.classList.remove('selected');
+            });
+            item.classList.add('selected');
+            wrap.classList.remove('open');
+        });
+        return item;
+    }
+
+    // ---- Cargar sedes según rol ----
+    function cargarSedesDropdown() {
+        var isSuperAdmin = session.rol === 'superadmin';
+
+        if (!isSuperAdmin) {
+            // Admin / recepcionista: solo muestra su sede, sin dropdown funcional
+            sedeLabel.textContent = session.sucursalNombre || 'Mi Sede';
+            list.innerHTML = '';
+            var item = buildItem(session.sucursalNombre || 'Mi Sede', 'bx-map-pin', session.sucursalId, true, true);
+            list.appendChild(item);
+            return;
+        }
+
+        // SuperAdmin: fetch todas las sedes
+        sedeLabel.textContent = 'Todas las Sedes';
+        list.innerHTML = "<div class='sede-dropdown-loading'><i class='bx bx-loader-alt bx-spin'></i> Cargando...</div>";
+
+        fetch(BASE_URL + '/sucursales')
+            .then(function (res) {
+                if (!res.ok) throw new Error('Error ' + res.status);
+                return res.json();
+            })
+            .then(function (sucursales) {
+                list.innerHTML = '';
+
+                // Opción "Todas las Sedes"
+                var allItem = buildItem('Todas las Sedes', 'bxs-grid-alt', null, null, true);
+                list.appendChild(allItem);
+
+                sucursales.forEach(function (s) {
+                    var item = buildItem(s.nombre, 'bx-map-pin', s.sucursalId, s.activo, false);
+                    list.appendChild(item);
+                });
+            })
+            .catch(function () {
+                // Si la API no responde, mostrar sedes de ejemplo
+                list.innerHTML = '';
+                var allItem = buildItem('Todas las Sedes', 'bxs-grid-alt', null, null, true);
+                list.appendChild(allItem);
+                [
+                    { sucursalId: 1, nombre: 'Sede Central', activo: true },
+                    { sucursalId: 2, nombre: 'Sede Norte',   activo: true },
+                    { sucursalId: 3, nombre: 'Sede Sur',     activo: false }
+                ].forEach(function (s) {
+                    list.appendChild(buildItem(s.nombre, 'bx-map-pin', s.sucursalId, s.activo, false));
+                });
+            });
+    }
+
+    cargarSedesDropdown();
+})();
+</script>

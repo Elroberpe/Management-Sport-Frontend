@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: "API de Mantenimientos - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Mantenimientos de canchas."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /mantenimientos:
+    get:
+      tags:
+        - Mantenimientos
+      summary: "Listar todos los mantenimientos"
+      description: "Obtiene una lista paginada de todos los mantenimientos programados o en curso."
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "horaInicio,desc"
+      responses:
+        '200':
+          description: "Lista de mantenimientos obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MantenimientoResponse'
+                  # ... (otras propiedades de paginación)
+    post:
+      tags:
+        - Mantenimientos
+      summary: "Programar un nuevo mantenimiento"
+      description: "Crea un nuevo registro de mantenimiento para una cancha, bloqueando el calendario. El sistema valida que no haya conflictos con reservas o eventos existentes."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMantenimientoRequest'
+      responses:
+        '201':
+          description: "Mantenimiento programado con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MantenimientoResponse'
+        '400':
+          description: "Datos inválidos o conflicto de horario con una reserva/evento."
+
+  /mantenimientos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/MantenimientoId'
+    get:
+      tags:
+        - Mantenimientos
+      summary: "Obtener un mantenimiento por su ID"
+      responses:
+        '200':
+          description: "Detalles del mantenimiento."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MantenimientoResponse'
+        '404':
+          description: "Mantenimiento no encontrado."
+    put:
+      tags:
+        - Mantenimientos
+      summary: "Actualizar un mantenimiento"
+      description: "Actualiza los detalles de un mantenimiento programado."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMantenimientoRequest'
+      responses:
+        '200':
+          description: "Mantenimiento actualizado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MantenimientoResponse'
+        '400':
+          description: "No se puede modificar un mantenimiento en estado final."
+        '404':
+          description: "Mantenimiento no encontrado."
+
+  /mantenimientos/cancha/{canchaId}:
+    get:
+      tags:
+        - Mantenimientos
+      summary: "Listar mantenimientos por cancha"
+      parameters:
+        - name: canchaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Lista de mantenimientos para la cancha especificada."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MantenimientoResponse'
+        '404':
+          description: "Cancha no encontrada."
+
+  /mantenimientos/{id}/estado:
+    patch:
+      tags:
+        - Mantenimientos
+      summary: "Actualizar el estado de un mantenimiento"
+      description: "Cambia el estado de un mantenimiento (ej. de PROGRAMADO a EN_PROCESO)."
+      parameters:
+        - $ref: '#/components/parameters/MantenimientoId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEstadoMantenimientoRequest'
+      responses:
+        '200':
+          description: "Estado actualizado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MantenimientoResponse'
+        '404':
+          description: "Mantenimiento no encontrado."
+
+  /mantenimientos/{id}/cancelar:
+    patch:
+      tags:
+        - Mantenimientos
+      summary: "Cancelar un mantenimiento"
+      description: "Cambia el estado de un mantenimiento a CANCELADO."
+      parameters:
+        - $ref: '#/components/parameters/MantenimientoId'
+      responses:
+        '200':
+          description: "Mantenimiento cancelado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MantenimientoResponse'
+        '400':
+          description: "El mantenimiento ya está en un estado final."
+        '404':
+          description: "Mantenimiento no encontrado."
+
+components:
+  parameters:
+    MantenimientoId:
+      name: id
+      in: path
+      required: true
+      description: "ID del mantenimiento a operar."
+      schema:
+        type: integer
+
+  schemas:
+    TipoMantenimiento:
+      type: string
+      enum: [PREVENTIVO, CORRECTIVO, URGENTE]
+    EstadoMantenimiento:
+      type: string
+      enum: [PROGRAMADO, EN_PROCESO, COMPLETADO, CANCELADO]
+
+    MantenimientoResponse:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        canchaId: { type: integer, example: 1 }
+        nombreCancha: { type: string, example: "Cancha A" }
+        horaInicio: { type: string, format: date-time, example: "2024-10-29T10:00:00Z" }
+        horaFin: { type: string, format: date-time, example: "2024-10-29T12:00:00Z" }
+        tipoMantenimiento: { $ref: '#/components/schemas/TipoMantenimiento' }
+        estadoMantenimiento: { $ref: '#/components/schemas/EstadoMantenimiento' }
+        motivo: { type: string, example: "Pintado de líneas" }
+
+    CreateMantenimientoRequest:
+      type: object
+      required: [canchaId, horaInicio, horaFin, tipoMantenimiento, motivo]
+      properties:
+        canchaId: { type: integer }
+        horaInicio: { type: string, format: date-time }
+        horaFin: { type: string, format: date-time }
+        tipoMantenimiento: { $ref: '#/components/schemas/TipoMantenimiento' }
+        motivo: { type: string, maxLength: 200 }
+
+    UpdateMantenimientoRequest:
+      type: object
+      properties:
+        horaInicio: { type: string, format: date-time }
+        horaFin: { type: string, format: date-time }
+        tipoMantenimiento: { $ref: '#/components/schemas/TipoMantenimiento' }
+        motivo: { type: string, maxLength: 200 }
+
+    UpdateEstadoMantenimientoRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado: { $ref: '#/components/schemas/EstadoMantenimiento' }

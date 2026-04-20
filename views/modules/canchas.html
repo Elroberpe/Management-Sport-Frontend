@@ -1,0 +1,463 @@
+<div class="canchas-module">
+
+    <!-- Header -->
+    <div class="page-header" style="align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 class="page-title">Gestión de Canchas</h1>
+            <p class="page-subtitle" id="canchas-subtitle">Configura, monitorea y gestiona tus canchas.</p>
+        </div>
+        <button class="btn btn-primary new-booking-btn" style="padding: 12px 24px;">
+            <i class='bx bx-plus-circle' style="font-size: 20px;"></i> Añadir Nueva Cancha
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-cards-row">
+        <div class="stat-card minimal stat-canchas">
+            <div class="icon-top"><i class='bx bx-football text-green'></i></div>
+            <p class="stat-label">TOTAL CANCHAS</p>
+            <h2 class="stat-value" id="stat-total">—</h2>
+        </div>
+        <div class="stat-card minimal stat-canchas active-stat border-bottom-green">
+            <div class="icon-top"><i class='bx bx-check-circle text-green'></i></div>
+            <p class="stat-label">DISPONIBLES</p>
+            <h2 class="stat-value text-green" id="stat-disponibles">—</h2>
+        </div>
+        <div class="stat-card minimal stat-canchas">
+            <div class="icon-top"><i class='bx bx-wrench' style="color:#BA8510;"></i></div>
+            <p class="stat-label">MANTENIMIENTO</p>
+            <h2 class="stat-value" id="stat-mantenimiento">—</h2>
+        </div>
+        <div class="stat-card minimal stat-canchas stat-dark-green">
+            <div class="icon-top" style="color:#fff;"><i class='bx bx-block'></i></div>
+            <p class="stat-label" style="color:rgba(255,255,255,0.8);">INACTIVAS</p>
+            <h2 class="stat-value" style="color:#fff;" id="stat-inactivas">—</h2>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="panel table-container-full" style="padding:0; overflow:hidden; margin-bottom:40px;">
+
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+            <div class="toolbar-left">
+                <div class="search-wrap">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="canchas-search" placeholder="Buscar canchas...">
+                </div>
+                <div class="select-wrap">
+                    <select id="canchas-filter-estado">
+                        <option value="">Estado: Todos</option>
+                        <option value="DISPONIBLE">Disponible</option>
+                        <option value="MANTENIMIENTO">Mantenimiento</option>
+                        <option value="INACTIVA">Inactiva</option>
+                    </select>
+                </div>
+            </div>
+            <div class="toolbar-right">
+                <div class="view-toggle">
+                    <button class="active" id="btn-view-tabla">Tabla</button>
+                    <button id="btn-view-grilla">Grilla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado: cargando -->
+        <div id="canchas-loading" style="display:flex; align-items:center; justify-content:center; gap:12px; padding:50px; color:#94a3b8; font-size:14px;">
+            <div class="spinner-circle"></div> Cargando canchas...
+        </div>
+
+        <!-- Estado: error -->
+        <div id="canchas-error" style="display:none; flex-direction:column; align-items:center; padding:50px; gap:12px; color:#ef4444; font-size:14px;">
+            <i class='bx bx-error-circle' style="font-size:36px;"></i>
+            <span id="canchas-error-msg">No se pudo conectar con el servidor.</span>
+            <button class="btn btn-primary" id="btn-canchas-retry" style="padding:10px 24px; margin-top:4px;">
+                <i class='bx bx-refresh'></i> Reintentar
+            </button>
+        </div>
+
+        <!-- Vista Tabla -->
+        <table class="canchas-table" id="canchas-table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>NOMBRE DE CANCHA</th>
+                    <th>PRECIO / HORA</th>
+                    <th>ESTADO</th>
+                    <th>DISPONIBILIDAD</th>
+                    <th style="text-align:right;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody id="canchas-tbody">
+            </tbody>
+        </table>
+
+        <!-- Vista Grilla -->
+        <div id="canchas-grilla" style="display:none; padding:24px;">
+            <div id="canchas-grilla-inner" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:16px;">
+            </div>
+        </div>
+
+        <!-- Sin resultados -->
+        <div id="canchas-empty" style="display:none; text-align:center; padding:50px; color:#94a3b8; font-size:14px;">
+            <i class='bx bx-search-alt' style="font-size:36px; display:block; margin-bottom:10px;"></i>
+            No se encontraron canchas con ese filtro.
+        </div>
+
+        <!-- Footer -->
+        <div class="pagination-footer" id="canchas-footer" style="display:none;">
+            <span id="canchas-count-label">Mostrando <strong>0</strong> canchas</span>
+        </div>
+    </div>
+
+    <!-- Quick Schedule (estático por ahora) -->
+    <div class="quick-schedule">
+        <h3 class="qs-title"><i class='bx bx-calendar'></i> Vista Rápida de Horarios</h3>
+        <div class="qs-days">
+            <div class="day-col"><span class="d-name">LUN</span>
+                <div class="day-circle border-green"><span>18 Cupos</span><div class="fill green" style="height:15%"></div></div>
+            </div>
+            <div class="day-col"><span class="d-name">MAR</span>
+                <div class="day-circle bg-blue-tint"><span>12 Cupos</span><div class="fill light-blue" style="height:5%"></div></div>
+            </div>
+            <div class="day-col"><span class="d-name">MIE</span>
+                <div class="day-circle border-green"><span>20 Cupos</span><div class="fill green" style="height:25%"></div></div>
+            </div>
+            <div class="day-col"><span class="d-name">JUE</span>
+                <div class="day-circle border-green"><span>15 Cupos</span><div class="fill green" style="height:12%"></div></div>
+            </div>
+            <div class="day-col"><span class="d-name">VIE</span>
+                <div class="day-circle border-brown bg-brown-tint"><span style="font-weight:700;">Festivo</span></div>
+            </div>
+            <div class="day-col"><span class="d-name">SAB</span>
+                <div class="day-circle bg-dark-green"><span class="text-white" style="font-weight:700;">LLENO</span></div>
+            </div>
+            <div class="day-col"><span class="d-name">DOM</span>
+                <div class="day-circle border-green"><span>24 Cupos</span><div class="fill green" style="height:30%"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .spinner-circle {
+        width: 32px; height: 32px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #126c2e;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Grilla card */
+    .cancha-grid-card {
+        background: #fff;
+        border: 1px solid #eef2f6;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cancha-grid-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .cgc-header { display: flex; align-items: center; gap: 12px; }
+    .cgc-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .cgc-name { font-size: 14px; font-weight: 700; color: #1e293b; }
+    .cgc-precio { font-size: 12px; color: #64748b; }
+    .cgc-estado-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 12px; border-radius: 20px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+        width: fit-content;
+    }
+    .cgc-estado-badge::before {
+        content: ''; width: 6px; height: 6px; border-radius: 50%;
+    }
+    .cgc-badge-disponible  { background: #dcfce7; color: #166534; }
+    .cgc-badge-disponible::before  { background: #22c55e; }
+    .cgc-badge-mantenimiento { background: #fef9c3; color: #854d0e; }
+    .cgc-badge-mantenimiento::before { background: #eab308; }
+    .cgc-badge-inactiva    { background: #f1f5f9; color: #64748b; }
+    .cgc-badge-inactiva::before    { background: #94a3b8; }
+
+    /* Estado select inline */
+    .estado-select {
+        border: none;
+        border-radius: 20px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        cursor: pointer;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 24px;
+    }
+    .estado-select.s-disponible    { background-color: #dcfce7; color: #166534; }
+    .estado-select.s-mantenimiento { background-color: #fef9c3; color: #854d0e; }
+    .estado-select.s-inactiva      { background-color: #f1f5f9; color: #64748b; }
+</style>
+
+<script>
+(function () {
+    var BASE_URL = 'http://localhost:8080/api/v1';
+    var session  = window.Auth ? window.Auth.getSession() : null;
+
+    // Subtitle con sede del usuario
+    var subtitleEl = document.getElementById('canchas-subtitle');
+    if (session && session.sucursalNombre) {
+        subtitleEl.innerHTML = 'Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">' + session.sucursalNombre + '</span>.';
+    }
+
+    // Filtro por sucursal según rol
+    var sucursalFiltro = (session && session.rol !== 'superadmin') ? session.sucursalId : null;
+
+    /* ---- Refs DOM ---- */
+    var loading  = document.getElementById('canchas-loading');
+    var errBox   = document.getElementById('canchas-error');
+    var errMsg   = document.getElementById('canchas-error-msg');
+    var btnRetry = document.getElementById('btn-canchas-retry');
+    var table    = document.getElementById('canchas-table');
+    var tbody    = document.getElementById('canchas-tbody');
+    var grilla   = document.getElementById('canchas-grilla');
+    var grillaIn = document.getElementById('canchas-grilla-inner');
+    var emptyEl  = document.getElementById('canchas-empty');
+    var footer   = document.getElementById('canchas-footer');
+    var countLbl = document.getElementById('canchas-count-label');
+    var searchIn = document.getElementById('canchas-search');
+    var filterEs = document.getElementById('canchas-filter-estado');
+    var btnTabla  = document.getElementById('btn-view-tabla');
+    var btnGrilla = document.getElementById('btn-view-grilla');
+
+    var COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
+    var vistaActual = 'tabla'; // 'tabla' | 'grilla'
+    var todasCanchas = [];
+
+    /* ---- Helpers estado ---- */
+    var ESTADO_META = {
+        DISPONIBLE:    { cls: 'green',  dotCls: 'green',  label: 'Disponible',    badgeCls: 'cgc-badge-disponible' },
+        MANTENIMIENTO: { cls: 'yellow', dotCls: 'yellow', label: 'Mantenimiento', badgeCls: 'cgc-badge-mantenimiento' },
+        INACTIVA:      { cls: 'gray',   dotCls: 'gray',   label: 'Inactiva',      badgeCls: 'cgc-badge-inactiva' },
+    };
+
+    function statsActualizar(canchas) {
+        document.getElementById('stat-total').textContent         = canchas.length;
+        document.getElementById('stat-disponibles').textContent   = canchas.filter(function(c){ return c.estadoCancha === 'DISPONIBLE'; }).length;
+        document.getElementById('stat-mantenimiento').textContent = canchas.filter(function(c){ return c.estadoCancha === 'MANTENIMIENTO'; }).length;
+        document.getElementById('stat-inactivas').textContent     = canchas.filter(function(c){ return c.estadoCancha === 'INACTIVA'; }).length;
+    }
+
+    /* ---- Cambiar estado via API ---- */
+    function cambiarEstado(canchaId, nuevoEstado, selectEl) {
+        var prev = selectEl.value;
+        fetch(BASE_URL + '/canchas/' + canchaId + '/estado', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estadoCancha: nuevoEstado })
+        })
+        .then(function (res) {
+            if (!res.ok) throw new Error('Error ' + res.status);
+            return res.json();
+        })
+        .then(function (updated) {
+            // Actualizar en el arreglo local
+            var idx = todasCanchas.findIndex(function(c){ return c.canchaId == canchaId; });
+            if (idx !== -1) todasCanchas[idx].estadoCancha = updated.estadoCancha;
+            renderVista(filtrar());
+            statsActualizar(todasCanchas);
+        })
+        .catch(function (err) {
+            alert('No se pudo cambiar el estado: ' + err.message);
+            selectEl.value = prev; // revertir
+            actualizarClaseSelect(selectEl);
+        });
+    }
+
+    function actualizarClaseSelect(sel) {
+        sel.className = 'estado-select s-' + sel.value.toLowerCase();
+    }
+
+    /* ---- Construir fila tabla ---- */
+    function buildFila(c) {
+        var meta  = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
+        var color = COLORS[c.canchaId % COLORS.length];
+        var initials = c.nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
+
+        var tr = document.createElement('tr');
+        tr.innerHTML = [
+            "<td>",
+                "<div class='cancha-name-cell'>",
+                    "<div style='width:44px;height:44px;border-radius:50%;background:" + color + ";display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;'>",
+                        initials,
+                    "</div>",
+                    "<div>",
+                        "<strong>" + c.nombre + "</strong>",
+                        "<span>ID: " + c.canchaId + " · Sede " + c.sucursalId + "</span>",
+                    "</div>",
+                "</div>",
+            "</td>",
+            "<td class='price-col'>S/ " + Number(c.precioHora).toFixed(2) + "</td>",
+            "<td>",
+                "<select class='estado-select s-" + c.estadoCancha.toLowerCase() + "' data-id='" + c.canchaId + "'>",
+                    "<option value='DISPONIBLE'" + (c.estadoCancha==='DISPONIBLE' ? ' selected' : '') + ">Disponible</option>",
+                    "<option value='MANTENIMIENTO'" + (c.estadoCancha==='MANTENIMIENTO' ? ' selected' : '') + ">Mantenimiento</option>",
+                    "<option value='INACTIVA'" + (c.estadoCancha==='INACTIVA' ? ' selected' : '') + ">Inactiva</option>",
+                "</select>",
+            "</td>",
+            "<td><span class='dot-status " + meta.dotCls + "'>" + meta.label + "</span></td>",
+            "<td style='text-align:right;'>",
+                "<div class='actions-col' style='justify-content:flex-end;'>",
+                    "<button class='btn-edit-cancha' data-id='" + c.canchaId + "' title='Editar'><i class='bx bx-pencil'></i></button>",
+                    "<button class='btn-delete-cancha' data-id='" + c.canchaId + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
+                "</div>",
+            "</td>"
+        ].join('');
+
+        // Bind estado change
+        var sel = tr.querySelector('.estado-select');
+        sel.addEventListener('change', function () {
+            actualizarClaseSelect(sel);
+            cambiarEstado(c.canchaId, sel.value, sel);
+        });
+
+        return tr;
+    }
+
+    /* ---- Construir card grilla ---- */
+    function buildCard(c) {
+        var meta  = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
+        var color = COLORS[c.canchaId % COLORS.length];
+        var initials = c.nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
+
+        var card = document.createElement('div');
+        card.className = 'cancha-grid-card';
+        card.innerHTML = [
+            "<div class='cgc-header'>",
+                "<div class='cgc-icon' style='background:" + color + ";'>" + initials + "</div>",
+                "<div>",
+                    "<div class='cgc-name'>" + c.nombre + "</div>",
+                    "<div class='cgc-precio'>S/ " + Number(c.precioHora).toFixed(2) + " / hr</div>",
+                "</div>",
+            "</div>",
+            "<span class='cgc-estado-badge " + meta.badgeCls + "'>" + meta.label + "</span>",
+            "<div style='display:flex;gap:8px;margin-top:4px;'>",
+                "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;'><i class='bx bx-pencil'></i></button>",
+                "<select class='estado-select s-" + c.estadoCancha.toLowerCase() + "' data-id='" + c.canchaId + "' style='flex:2;'>",
+                    "<option value='DISPONIBLE'" + (c.estadoCancha==='DISPONIBLE' ? ' selected' : '') + ">Disponible</option>",
+                    "<option value='MANTENIMIENTO'" + (c.estadoCancha==='MANTENIMIENTO' ? ' selected' : '') + ">Mantenimiento</option>",
+                    "<option value='INACTIVA'" + (c.estadoCancha==='INACTIVA' ? ' selected' : '') + ">Inactiva</option>",
+                "</select>",
+            "</div>"
+        ].join('');
+
+        var sel = card.querySelector('.estado-select');
+        sel.addEventListener('change', function () {
+            actualizarClaseSelect(sel);
+            cambiarEstado(c.canchaId, sel.value, sel);
+        });
+
+        return card;
+    }
+
+    /* ---- Filtrar localmente ---- */
+    function filtrar() {
+        var texto = searchIn.value.toLowerCase();
+        var estado = filterEs.value;
+        return todasCanchas.filter(function (c) {
+            var matchTexto = !texto || c.nombre.toLowerCase().includes(texto);
+            var matchEstado = !estado || c.estadoCancha === estado;
+            return matchTexto && matchEstado;
+        });
+    }
+
+    /* ---- Render según vista ---- */
+    function renderVista(canchas) {
+        tbody.innerHTML = '';
+        grillaIn.innerHTML = '';
+
+        if (canchas.length === 0) {
+            table.style.display = 'none';
+            grilla.style.display = 'none';
+            emptyEl.style.display = 'block';
+            footer.style.display = 'none';
+            return;
+        }
+
+        emptyEl.style.display = 'none';
+        footer.style.display = 'flex';
+        countLbl.innerHTML = 'Mostrando <strong>' + canchas.length + '</strong> de ' + todasCanchas.length + ' canchas';
+
+        if (vistaActual === 'tabla') {
+            table.style.display = '';
+            grilla.style.display = 'none';
+            canchas.forEach(function (c) { tbody.appendChild(buildFila(c)); });
+        } else {
+            table.style.display = 'none';
+            grilla.style.display = '';
+            canchas.forEach(function (c) { grillaIn.appendChild(buildCard(c)); });
+        }
+    }
+
+    /* ---- Cargar desde API ---- */
+    function cargarCanchas() {
+        loading.style.display  = 'flex';
+        errBox.style.display   = 'none';
+        table.style.display    = 'none';
+        grilla.style.display   = 'none';
+        emptyEl.style.display  = 'none';
+        footer.style.display   = 'none';
+        todasCanchas = [];
+
+        var url = BASE_URL + '/canchas';
+        if (sucursalFiltro) url += '?sucursalId=' + sucursalFiltro;
+
+        fetch(url)
+            .then(function (res) {
+                if (!res.ok) throw new Error('Error ' + res.status + ' del servidor');
+                return res.json();
+            })
+            .then(function (data) {
+                todasCanchas = data;
+                statsActualizar(todasCanchas);
+                loading.style.display = 'none';
+                renderVista(filtrar());
+            })
+            .catch(function (err) {
+                loading.style.display  = 'none';
+                errMsg.textContent = 'No se pudo conectar con el servidor. (' + err.message + ')';
+                errBox.style.display = 'flex';
+            });
+    }
+
+    /* ---- Event listeners ---- */
+    btnRetry.addEventListener('click', cargarCanchas);
+
+    searchIn.addEventListener('input', function () { renderVista(filtrar()); });
+    filterEs.addEventListener('change', function () { renderVista(filtrar()); });
+
+    btnTabla.addEventListener('click', function () {
+        vistaActual = 'tabla';
+        btnTabla.classList.add('active');
+        btnGrilla.classList.remove('active');
+        renderVista(filtrar());
+    });
+    btnGrilla.addEventListener('click', function () {
+        vistaActual = 'grilla';
+        btnGrilla.classList.add('active');
+        btnTabla.classList.remove('active');
+        renderVista(filtrar());
+    });
+
+    /* ---- Init ---- */
+    cargarCanchas();
+})();
+</script>

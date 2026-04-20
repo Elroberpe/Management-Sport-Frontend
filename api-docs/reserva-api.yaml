@@ -1,0 +1,302 @@
+openapi: 3.0.3
+info:
+  title: "API de Reservas - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Reservas, Pagos y Reprogramaciones."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /reservas:
+    get:
+      tags:
+        - Reservas
+      summary: "Listar y filtrar reservas"
+      description: "Obtiene una lista paginada de reservas, con filtros opcionales."
+      parameters:
+        - name: fecha
+          in: query
+          schema:
+            type: string
+            format: date
+            example: "2024-10-28"
+        - name: canchaId
+          in: query
+          schema:
+            type: integer
+        - name: clienteId
+          in: query
+          schema:
+            type: integer
+        - name: estado
+          in: query
+          schema:
+            $ref: '#/components/schemas/EstadoReserva'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Lista de reservas obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReservaResponse'
+    post:
+      tags:
+        - Reservas
+      summary: "Crear una nueva reserva"
+      description: "Crea una nueva reserva regular. El sistema valida la disponibilidad contra otras reservas, eventos y mantenimientos."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservaRequest'
+      responses:
+        '201':
+          description: "Reserva creada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: "Datos inválidos o conflicto de horario."
+
+  /reservas/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ReservaId'
+    get:
+      tags:
+        - Reservas
+      summary: "Obtener una reserva por su ID"
+      responses:
+        '200':
+          description: "Detalles de la reserva."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '404':
+          description: "Reserva no encontrada."
+    put:
+      tags:
+        - Reservas
+      summary: "Actualizar datos administrativos de una reserva"
+      description: "Permite actualizar campos limitados como el cliente asociado."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReservaRequest'
+      responses:
+        '200':
+          description: "Reserva actualizada."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '404':
+          description: "Reserva no encontrada."
+    delete:
+      tags:
+        - Reservas
+      summary: "Eliminar una reserva"
+      description: "Elimina una reserva solo si no tiene pagos asociados. Se recomienda cancelar en su lugar."
+      responses:
+        '204':
+          description: "Reserva eliminada."
+        '400':
+          description: "La reserva tiene pagos y no puede ser eliminada."
+        '404':
+          description: "Reserva no encontrada."
+
+  /reservas/{id}/pagos:
+    parameters:
+      - $ref: '#/components/parameters/ReservaId'
+    get:
+      tags:
+        - Pagos
+      summary: "Obtener historial de pagos de una reserva"
+      responses:
+        '200':
+          description: "Lista de pagos de la reserva."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PagoResponse'
+    post:
+      tags:
+        - Pagos
+      summary: "Añadir un pago a una reserva"
+      description: "Registra un pago (parcial o total). El sistema actualiza el saldo y el estado de la reserva."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPagoToReservaRequest'
+      responses:
+        '200':
+          description: "Pago registrado y reserva actualizada."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: "El monto excede el saldo o la reserva está cancelada."
+
+  /reservas/{id}/cancelar:
+    parameters:
+      - $ref: '#/components/parameters/ReservaId'
+    patch:
+      tags:
+        - Reservas
+      summary: "Cancelar una reserva"
+      description: "Cancela una reserva. Si la reserva tenía pagos, se genera una transacción de reembolso y el estado cambia a REEMBOLSADO."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelReservaRequest'
+      responses:
+        '200':
+          description: "Reserva cancelada/reembolsada."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: "La reserva ya está en un estado final."
+
+  /reservas/{id}/reprogramar:
+    parameters:
+      - $ref: '#/components/parameters/ReservaId'
+    post:
+      tags:
+        - Reservas
+      summary: "Reprogramar una reserva"
+      description: "Cancela la reserva original y crea una nueva con el nuevo horario, transfiriendo los pagos existentes."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReprogramarReservaRequest'
+      responses:
+        '200':
+          description: "Reserva reprogramada con éxito. La respuesta contiene la nueva reserva."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: "El nuevo horario no está disponible."
+
+components:
+  parameters:
+    ReservaId:
+      name: id
+      in: path
+      required: true
+      description: "ID de la reserva a operar."
+      schema:
+        type: integer
+
+  schemas:
+    EstadoReserva:
+      type: string
+      enum: [PENDIENTE, PAGADA, COMPLETADO, CANCELADO, REEMBOLSADO]
+    MetodoPago:
+      type: string
+      enum: [EFECTIVO, TRANSFERENCIA, TARJETA, YAPE, PLIN]
+    TipoTransaccion:
+      type: string
+      enum: [INGRESO, SALIDA]
+
+    ReservaResponse:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        canchaId: { type: integer, example: 1 }
+        nombreCancha: { type: string, example: "Cancha A" }
+        clienteId: { type: integer, example: 1 }
+        nombreCliente: { type: string, example: "Juan Pérez" }
+        usuarioId: { type: integer, example: 1 }
+        nombreUsuario: { type: string, example: "admin" }
+        eventoId: { type: integer, nullable: true, example: null }
+        tipoReserva: { type: string, enum: [REGULAR, EVENTO] }
+        fecha: { type: string, format: date }
+        horaInicio: { type: string, format: time, example: "19:00:00" }
+        horaFin: { type: string, format: time, example: "20:00:00" }
+        montoTotal: { type: number, format: double, example: 80.00 }
+        montoPagado: { type: number, format: double, example: 80.00 }
+        saldoPendiente: { type: number, format: double, example: 0.00 }
+        estadoReserva: { $ref: '#/components/schemas/EstadoReserva' }
+
+    CreateReservaRequest:
+      type: object
+      required: [canchaId, clienteId, fecha, horaInicio, horaFin]
+      properties:
+        canchaId: { type: integer }
+        clienteId: { type: integer }
+        fecha: { type: string, format: date }
+        horaInicio: { type: string, format: time }
+        horaFin: { type: string, format: time }
+
+    UpdateReservaRequest:
+      type: object
+      properties:
+        clienteId: { type: integer }
+
+    AddPagoToReservaRequest:
+      type: object
+      required: [monto, metodoPago]
+      properties:
+        monto: { type: number, format: double, minimum: 0.01 }
+        metodoPago: { $ref: '#/components/schemas/MetodoPago' }
+
+    CancelReservaRequest:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, maxLength: 250 }
+
+    ReprogramarReservaRequest:
+      type: object
+      required: [nuevaFecha, nuevaHoraInicio, nuevaHoraFin]
+      properties:
+        nuevaFecha: { type: string, format: date }
+        nuevaHoraInicio: { type: string, format: time }
+        nuevaHoraFin: { type: string, format: time }
+
+    PagoResponse:
+      type: object
+      properties:
+        id: { type: integer }
+        reservaId: { type: integer }
+        eventoId: { type: integer, nullable: true }
+        fecha: { type: string, format: date }
+        monto: { type: number, format: double }
+        metodoPago: { $ref: '#/components/schemas/MetodoPago' }
+        estado: { type: string, enum: [COMPLETADO, ANULADO] }
+        tipoTransaccion: { $ref: '#/components/schemas/TipoTransaccion' }
+        referencia: { type: string, nullable: true }
+        nota: { type: string, nullable: true }

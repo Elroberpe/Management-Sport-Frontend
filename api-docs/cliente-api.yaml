@@ -1,0 +1,215 @@
+openapi: 3.0.3
+info:
+  title: "API de Clientes - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Clientes en el sistema Management-Sport."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /clientes:
+    get:
+      tags:
+        - Clientes
+      summary: "Listar y buscar clientes"
+      description: "Obtiene una lista paginada de clientes. Permite filtrar por nombre o documento."
+      parameters:
+        - name: nombre
+          in: query
+          description: "Nombre del cliente para buscar (búsqueda parcial)."
+          schema:
+            type: string
+        - name: documento
+          in: query
+          description: "Número de documento del cliente para buscar (búsqueda parcial)."
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: "Número de la página a obtener."
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: "Número de clientes por página."
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: "Criterio de ordenación (ej. 'nombre,asc' o 'documento,desc')."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Lista de clientes obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClienteResponse'
+                  # ... (otras propiedades de paginación)
+    post:
+      tags:
+        - Clientes
+      summary: "Crear un nuevo cliente"
+      description: "Registra un nuevo cliente en el sistema."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClienteRequest'
+      responses:
+        '201':
+          description: "Cliente creado con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '400':
+          description: "Datos de entrada inválidos (ej. documento duplicado)."
+
+  /clientes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "ID del cliente a operar."
+        schema:
+          type: integer
+    get:
+      tags:
+        - Clientes
+      summary: "Obtener un cliente por su ID"
+      description: "Recupera los detalles de un cliente específico."
+      responses:
+        '200':
+          description: "Detalles del cliente."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '404':
+          description: "Cliente no encontrado."
+    put:
+      tags:
+        - Clientes
+      summary: "Actualizar un cliente existente"
+      description: "Actualiza los datos de un cliente. Solo se modifican los campos proporcionados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClienteRequest'
+      responses:
+        '200':
+          description: "Cliente actualizado con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '404':
+          description: "Cliente no encontrado."
+    delete:
+      tags:
+        - Clientes
+      summary: "Eliminar un cliente"
+      description: "Elimina un cliente por su ID."
+      responses:
+        '204':
+          description: "Cliente eliminado con éxito."
+        '404':
+          description: "Cliente no encontrado."
+
+  /clientes/documento/{documento}:
+    get:
+      tags:
+        - Clientes
+      summary: "Buscar un cliente por su número de documento"
+      description: "Obtiene los detalles de un cliente buscando por su número de documento exacto."
+      parameters:
+        - name: documento
+          in: path
+          required: true
+          description: "Número de documento exacto del cliente."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Cliente encontrado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '404':
+          description: "Cliente no encontrado."
+
+components:
+  schemas:
+    ClienteResponse:
+      type: object
+      properties:
+        clienteId:
+          type: integer
+          example: 1
+        tipoDocumento:
+          type: string
+          enum: [DNI, RUC, PASAPORTE]
+          example: "DNI"
+        documento:
+          type: string
+          example: "76543210"
+        nombre:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          example: "juan.perez@example.com"
+        telefono:
+          type: string
+          example: "987654321"
+
+    CreateClienteRequest:
+      type: object
+      required:
+        - tipoDocumento
+        - documento
+        - nombre
+      properties:
+        tipoDocumento:
+          type: string
+          enum: [DNI, RUC, PASAPORTE]
+          example: "DNI"
+        documento:
+          type: string
+          example: "76543210"
+        nombre:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          example: "juan.perez@example.com"
+        telefono:
+          type: string
+          example: "987654321"
+
+    UpdateClienteRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Juan Alberto Pérez"
+        email:
+          type: string
+          example: "juan.perez.new@example.com"
+        telefono:
+          type: string
+          example: "999888777"

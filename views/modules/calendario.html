@@ -1,0 +1,444 @@
+<div class="calendario-module">
+
+    <!-- Header -->
+    <div class="page-header calendar-header">
+        <div class="ch-left">
+            <h1 class="page-title">Horario de Reservas</h1>
+            <p class="page-subtitle" id="cal-semana-label">Cargando...</p>
+        </div>
+        <div class="ch-center">
+            <div class="date-navigator">
+                <button class="nav-btn" id="cal-prev"><i class='bx bx-chevron-left'></i></button>
+                <button class="nav-btn" id="cal-hoy" style="padding:6px 14px; font-size:12px; font-weight:700;">HOY</button>
+                <button class="nav-btn" id="cal-next"><i class='bx bx-chevron-right'></i></button>
+            </div>
+        </div>
+        <div class="ch-right">
+            <div class="select-wrap" style="margin-right:8px;">
+                <select id="cal-filter-estado" style="padding:8px 28px 8px 14px; border-radius:20px; border:none; background:#f1f4f9; font-size:13px; font-weight:600; color:#334155; cursor:pointer; outline:none; appearance:none; background-image:url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\"); background-repeat:no-repeat; background-position:right 10px center;">
+                    <option value="">Todos los estados</option>
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="PAGADA">Pagada</option>
+                    <option value="COMPLETADO">Completada</option>
+                    <option value="CANCELADO">Cancelada</option>
+                </select>
+            </div>
+            <button class="btn btn-primary new-booking-btn"><i class='bx bx-plus'></i> Nueva Reserva</button>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="calendar-legend">
+        <div class="legend-item bg-blue-tint text-blue"><span class="dot bg-blue"></span> Pagada</div>
+        <div class="legend-item bg-yellow-tint text-yellow"><span class="dot bg-yellow"></span> Pendiente</div>
+        <div class="legend-item" style="background:#f0fdf4;color:#166534;"><span class="dot" style="background:#22c55e;"></span> Completada</div>
+        <div class="legend-item bg-gray-tint text-gray-d"><span class="dot bg-gray"></span> Cancelada</div>
+    </div>
+
+    <!-- Loading / Error -->
+    <div id="cal-loading" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:60px;color:#94a3b8;font-size:14px;">
+        <div class="spinner-circle"></div> Cargando reservas...
+    </div>
+    <div id="cal-error" style="display:none;flex-direction:column;align-items:center;padding:60px;gap:12px;color:#ef4444;font-size:14px;">
+        <i class='bx bx-error-circle' style="font-size:38px;"></i>
+        <span id="cal-error-msg">No se pudo conectar.</span>
+        <button class="btn btn-primary" id="cal-retry" style="padding:10px 24px;margin-top:4px;"><i class='bx bx-refresh'></i> Reintentar</button>
+    </div>
+
+    <!-- Calendar Grid Panel -->
+    <div class="calendar-panel" id="cal-panel" style="display:none;">
+
+        <!-- Day Headers -->
+        <div class="cg-headers-row">
+            <div class="cg-corner"></div>
+            <div class="cg-day-header" id="cal-h-0"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-1"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-2"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-3"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-4"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-5"><span></span><strong></strong></div>
+            <div class="cg-day-header" id="cal-h-6"><span></span><strong></strong></div>
+        </div>
+
+        <div class="cg-body-wrapper">
+            <!-- Time Axis (08:00 - 22:00 = 14 horas) -->
+            <div class="cg-time-axis" id="cal-time-axis"></div>
+
+            <div class="cg-grid-system" id="cal-grid">
+                <!-- Líneas horizontales -->
+                <div class="cg-lines-bg" id="cal-lines"></div>
+
+                <!-- Columnas días -->
+                <div class="cg-col" id="cal-col-0" data-day="0"></div>
+                <div class="cg-col" id="cal-col-1" data-day="1"></div>
+                <div class="cg-col" id="cal-col-2" data-day="2"></div>
+                <div class="cg-col" id="cal-col-3" data-day="3"></div>
+                <div class="cg-col" id="cal-col-4" data-day="4"></div>
+                <div class="cg-col" id="cal-col-5" data-day="5"></div>
+                <div class="cg-col" id="cal-col-6" data-day="6"></div>
+
+                <!-- Divisores verticales -->
+                <div class="cg-col-divider" style="left:14.28%"></div>
+                <div class="cg-col-divider" style="left:28.56%"></div>
+                <div class="cg-col-divider" style="left:42.84%"></div>
+                <div class="cg-col-divider" style="left:57.12%"></div>
+                <div class="cg-col-divider" style="left:71.40%"></div>
+                <div class="cg-col-divider" style="left:85.68%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Stats Cards -->
+    <div class="calendar-bottom-row" id="cal-bottom" style="display:none;">
+        <div class="cal-bottom-card">
+            <span class="cbc-label">RESERVAS ESTA SEMANA</span>
+            <div class="cbc-big-stat">
+                <h2 id="cal-stat-total">0</h2>
+                <span class="cbc-trend text-green" id="cal-stat-sub">esta semana</span>
+            </div>
+            <div class="cbc-progress-bg">
+                <div class="cbc-progress-fill" id="cal-stat-bar" style="width:0%;"></div>
+            </div>
+        </div>
+        <div class="cal-bottom-card">
+            <span class="cbc-label">RESUMEN DE ESTADOS</span>
+            <div class="cbc-list" id="cal-estado-list"></div>
+        </div>
+        <div class="cal-bottom-card box-bg-blue">
+            <span class="cbc-label">ACCIONES RÁPIDAS</span>
+            <div class="cbc-actions-grid">
+                <button class="btn-pill-white" id="cal-btn-export">Exportar CSV</button>
+                <button class="btn-pill-white" id="cal-btn-hoy-2">Ir a Hoy</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .spinner-circle {
+        width:32px;height:32px;border:3px solid #e2e8f0;
+        border-top-color:#126c2e;border-radius:50%;
+        animation:spin 0.8s linear infinite;flex-shrink:0;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* Tooltip de reserva */
+    .cal-card { cursor:pointer; }
+    .cal-card:hover { filter:brightness(0.95); transform:scale(1.01); }
+    .cal-card .cc-cancel-btn {
+        display:none; position:absolute; top:4px; right:4px;
+        width:16px;height:16px;font-size:12px;
+        background:rgba(0,0,0,0.15);border:none;border-radius:50%;
+        cursor:pointer;color:inherit;line-height:16px;text-align:center;
+    }
+    .cal-card:hover .cc-cancel-btn { display:block; }
+</style>
+
+<script>
+(function () {
+    var BASE_URL = 'http://localhost:8080/api/v1';
+    var session  = window.Auth ? window.Auth.getSession() : null;
+
+    /* ---- Configuración temporal del calendario ---- */
+    var HORA_INICIO = 8;   // 08:00
+    var HORA_FIN    = 22;  // 22:00
+    var TOTAL_HORAS = HORA_FIN - HORA_INICIO; // 14
+
+    var DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    var DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    var MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    /* ---- Estado ---- */
+    var semanaOffset = 0;   // 0 = semana actual
+    var reservasSemana = [];
+    var filtroEstado = '';
+
+    /* ---- DOM refs ---- */
+    var loading  = document.getElementById('cal-loading');
+    var errBox   = document.getElementById('cal-error');
+    var errMsg   = document.getElementById('cal-error-msg');
+    var panel    = document.getElementById('cal-panel');
+    var bottom   = document.getElementById('cal-bottom');
+    var semLabel = document.getElementById('cal-semana-label');
+    var filterEl = document.getElementById('cal-filter-estado');
+
+    /* ---- Utils de fecha ---- */
+    function getLunes(offset) {
+        var hoy   = new Date();
+        var dia   = hoy.getDay(); // 0=Dom
+        var diff  = (dia === 0) ? -6 : 1 - dia; // hacia el lunes
+        var lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() + diff + (offset * 7));
+        lunes.setHours(0, 0, 0, 0);
+        return lunes;
+    }
+
+    function toISO(date) {
+        var y = date.getFullYear();
+        var m = String(date.getMonth() + 1).padStart(2, '0');
+        var d = String(date.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + d;
+    }
+
+    function formatHora(timeStr) {
+        // "19:00:00" → "19:00"
+        return timeStr ? timeStr.substring(0, 5) : '';
+    }
+
+    /* ---- Color por estado ---- */
+    var ESTADO_STYLE = {
+        PAGADA:     { cls: 'c-blue',        label: 'Pagada',     dot: '#3b82f6' },
+        PENDIENTE:  { cls: 'c-yellow',      label: 'Pendiente',  dot: '#eab308' },
+        COMPLETADO: { cls: 'c-green-light', label: 'Completada', dot: '#22c55e' },
+        CANCELADO:  { cls: 'c-gray',        label: 'Cancelada',  dot: '#94a3b8' },
+        REEMBOLSADO:{ cls: 'c-gray',        label: 'Reembolsado',dot: '#94a3b8' },
+    };
+
+    /* ---- Calcular posición vertical (%) ---- */
+    function posYPct(horaStr) {
+        var parts = horaStr.split(':');
+        var horas = parseInt(parts[0]) + parseInt(parts[1] || 0) / 60;
+        return ((horas - HORA_INICIO) / TOTAL_HORAS) * 100;
+    }
+    function altPct(ini, fin) {
+        var a = posYPct(ini);
+        var b = posYPct(fin);
+        return Math.max(b - a, 5); // mínimo 5% visibilidad
+    }
+
+    /* ---- Construir ejes de tiempo ---- */
+    function buildEjes() {
+        var axis  = document.getElementById('cal-time-axis');
+        var lines = document.getElementById('cal-lines');
+        axis.innerHTML = '';
+        lines.innerHTML = '';
+        for (var h = HORA_INICIO; h <= HORA_FIN; h++) {
+            var pct = ((h - HORA_INICIO) / TOTAL_HORAS) * 100;
+            var label = (h < 12) ? h + ':00 AM' : (h === 12 ? '12:00 PM' : (h - 12) + ':00 PM');
+            var slot  = document.createElement('div');
+            slot.className = 'time-slot';
+            slot.style.top = pct + '%';
+            slot.textContent = label;
+            axis.appendChild(slot);
+
+            var line = document.createElement('div');
+            line.className = 'line-h';
+            line.style.top = pct + '%';
+            lines.appendChild(line);
+        }
+    }
+
+    /* ---- Construir headers de días ---- */
+    function buildHeaders(lunes) {
+        var hoy = new Date(); hoy.setHours(0,0,0,0);
+        for (var i = 0; i < 7; i++) {
+            var dia = new Date(lunes); dia.setDate(lunes.getDate() + i);
+            var h   = document.getElementById('cal-h-' + i);
+            var esHoy = dia.getTime() === hoy.getTime();
+            h.className = 'cg-day-header' + (esHoy ? ' today-active' : '');
+            h.querySelector('span').textContent  = DIAS_ES[dia.getDay()].toUpperCase();
+            h.querySelector('strong').textContent = dia.getDate();
+        }
+        // Label de semana
+        var fin = new Date(lunes); fin.setDate(lunes.getDate() + 6);
+        semLabel.textContent =
+            lunes.getDate() + ' ' + MESES_ES[lunes.getMonth()].substring(0,3) +
+            ' - ' + fin.getDate() + ' ' + MESES_ES[fin.getMonth()].substring(0,3) +
+            ', ' + fin.getFullYear();
+    }
+
+    /* ---- Construir card de reserva ---- */
+    function buildCard(r) {
+        var meta  = ESTADO_STYLE[r.estadoReserva] || ESTADO_STYLE['PENDIENTE'];
+        var top   = posYPct(r.horaInicio);
+        var alt   = altPct(r.horaInicio, r.horaFin);
+
+        var div = document.createElement('div');
+        div.className = 'cal-card ' + meta.cls;
+        div.style.top    = top + '%';
+        div.style.height = alt + '%';
+        div.setAttribute('title', r.nombreCliente + ' · ' + r.nombreCancha + '\n' + formatHora(r.horaInicio) + ' - ' + formatHora(r.horaFin) + '\nEstado: ' + meta.label);
+
+        var mostrarSub = alt >= 10;
+        div.innerHTML = [
+            "<span class='cc-time'>" + formatHora(r.horaInicio) + ' - ' + formatHora(r.horaFin) + "</span>",
+            "<span class='cc-title'>" + (r.nombreCliente || 'Sin cliente') + "</span>",
+            mostrarSub ? "<span class='cc-sub'><i class='bx bx-map-pin'></i> " + (r.nombreCancha || 'Cancha') + "</span>" : '',
+            r.saldoPendiente > 0 ? "<span class='cc-sub'>⚠ Saldo: S/" + Number(r.saldoPendiente).toFixed(2) + "</span>" : '',
+        ].join('');
+
+        return div;
+    }
+
+    /* ---- Render semana ---- */
+    function renderSemana(lunes, reservas) {
+        // Limpiar columnas
+        for (var i = 0; i < 7; i++) {
+            var col = document.getElementById('cal-col-' + i);
+            // Quitar col-today-bg
+            col.classList.remove('col-today-bg');
+            // Remover solo las cards (no los dividers)
+            Array.from(col.children).forEach(function(c){ c.remove(); });
+        }
+
+        var hoy = new Date(); hoy.setHours(0,0,0,0);
+
+        // Marcar hoy
+        for (var j = 0; j < 7; j++) {
+            var dj = new Date(lunes); dj.setDate(lunes.getDate() + j);
+            if (dj.getTime() === hoy.getTime()) {
+                document.getElementById('cal-col-' + j).classList.add('col-today-bg');
+            }
+        }
+
+        // Agrupar reservas por día de la semana
+        var porDia = {};
+        reservas.forEach(function (r) {
+            var fecha = new Date(r.fecha + 'T00:00:00');
+            var diff  = Math.round((fecha - lunes) / (1000 * 60 * 60 * 24));
+            if (diff >= 0 && diff < 7) {
+                if (!porDia[diff]) porDia[diff] = [];
+                porDia[diff].push(r);
+            }
+        });
+
+        Object.keys(porDia).forEach(function (diaIdx) {
+            var col      = document.getElementById('cal-col-' + diaIdx);
+            var resEnDia = porDia[diaIdx];
+
+            // Aplicar filtro de estado
+            if (filtroEstado) {
+                resEnDia = resEnDia.filter(function(r){ return r.estadoReserva === filtroEstado; });
+            }
+
+            resEnDia.forEach(function (r) {
+                col.appendChild(buildCard(r));
+            });
+        });
+    }
+
+    /* ---- Bottom stats ---- */
+    function renderBottomStats(reservas) {
+        document.getElementById('cal-stat-total').textContent = reservas.length;
+        var maxPosible = 50;
+        var pct = Math.min((reservas.length / maxPosible) * 100, 100);
+        document.getElementById('cal-stat-bar').style.width = pct + '%';
+
+        // Resumen de estados
+        var counts = {};
+        reservas.forEach(function(r){ counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; });
+        var listEl = document.getElementById('cal-estado-list');
+        listEl.innerHTML = '';
+        Object.keys(counts).forEach(function(est) {
+            var meta = ESTADO_STYLE[est] || { label: est, dot: '#ccc' };
+            var item = document.createElement('div');
+            item.className = 'cbc-item';
+            item.innerHTML = [
+                "<strong style='display:flex;align-items:center;gap:6px;'>",
+                    "<span style='width:8px;height:8px;border-radius:50%;background:" + meta.dot + ";display:inline-block;'></span>",
+                    meta.label,
+                "</strong>",
+                "<span class='cbc-badge' style='background:#f1f5f9;color:#334155;'>" + counts[est] + "</span>"
+            ].join('');
+            listEl.appendChild(item);
+        });
+        if (Object.keys(counts).length === 0) {
+            listEl.innerHTML = '<p style="font-size:13px;color:#94a3b8;padding:8px 0;">Sin reservas esta semana.</p>';
+        }
+    }
+
+    /* ---- Cargar reservas de la semana completa ---- */
+    function cargarSemana() {
+        var lunes = getLunes(semanaOffset);
+        buildHeaders(lunes);
+
+        loading.style.display = 'flex';
+        errBox.style.display  = 'none';
+        panel.style.display   = 'none';
+        bottom.style.display  = 'none';
+
+        // Pedimos los 7 días en paralelo
+        var promesas = [];
+        for (var i = 0; i < 7; i++) {
+            var dia = new Date(lunes);
+            dia.setDate(lunes.getDate() + i);
+            var url = BASE_URL + '/reservas?fecha=' + toISO(dia) + '&size=100';
+            if (session && session.rol !== 'superadmin' && session.sucursalId) {
+                // No hay filtro por sucursal en reservas directamente, 
+                // filtramos por lo que devuelva el backend
+            }
+            promesas.push(
+                fetch(url)
+                    .then(function(res){ if (!res.ok) throw new Error('Error ' + res.status); return res.json(); })
+                    .then(function(data){ return Array.isArray(data) ? data : (data.content || []); })
+                    .catch(function(){ return []; }) // Si un día falla, devuelve vacío
+            );
+        }
+
+        Promise.all(promesas).then(function (resultados) {
+            reservasSemana = [];
+            resultados.forEach(function(r){ reservasSemana = reservasSemana.concat(r); });
+
+            buildEjes();
+            renderSemana(lunes, reservasSemana);
+            renderBottomStats(reservasSemana);
+
+            loading.style.display = 'none';
+            panel.style.display   = '';
+            bottom.style.display  = '';
+        }).catch(function (err) {
+            loading.style.display = 'none';
+            errMsg.textContent    = 'Error al cargar reservas: ' + err.message;
+            errBox.style.display  = 'flex';
+        });
+    }
+
+    /* ---- Navegación ---- */
+    document.getElementById('cal-prev').addEventListener('click', function () {
+        semanaOffset--;
+        cargarSemana();
+    });
+    document.getElementById('cal-next').addEventListener('click', function () {
+        semanaOffset++;
+        cargarSemana();
+    });
+    document.getElementById('cal-hoy').addEventListener('click', function () {
+        semanaOffset = 0;
+        cargarSemana();
+    });
+    document.getElementById('cal-btn-hoy-2').addEventListener('click', function () {
+        semanaOffset = 0;
+        cargarSemana();
+    });
+
+    /* ---- Filtro de estado (re-render local sin nueva llamada) ---- */
+    filterEl.addEventListener('change', function () {
+        filtroEstado = filterEl.value;
+        renderSemana(getLunes(semanaOffset), reservasSemana);
+        renderBottomStats(filtroEstado
+            ? reservasSemana.filter(function(r){ return r.estadoReserva === filtroEstado; })
+            : reservasSemana
+        );
+    });
+
+    /* ---- Exportar CSV de la semana ---- */
+    document.getElementById('cal-btn-export').addEventListener('click', function () {
+        var rows = [['ID','Cancha','Cliente','Fecha','Inicio','Fin','Estado','Monto','Saldo']];
+        reservasSemana.forEach(function(r){
+            rows.push([r.id, r.nombreCancha, r.nombreCliente, r.fecha, formatHora(r.horaInicio), formatHora(r.horaFin), r.estadoReserva, r.montoTotal, r.saldoPendiente]);
+        });
+        var csv  = rows.map(function(r){ return r.join(','); }).join('\n');
+        var blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a'); a.href = url; a.download = 'reservas.csv'; a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    /* ---- Retry ---- */
+    document.getElementById('cal-retry').addEventListener('click', cargarSemana);
+
+    /* ---- Init ---- */
+    cargarSemana();
+})();
+</script>

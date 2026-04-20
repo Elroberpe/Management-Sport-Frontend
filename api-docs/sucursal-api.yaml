@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: "API de Sucursales - Management-Sport"
+  description: "Documentación de los endpoints para la gestión de Sucursales en el sistema Management-Sport."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /sucursales:
+    get:
+      tags:
+        - Sucursales
+      summary: "Listar todas las sucursales"
+      description: "Obtiene una lista de todas las sucursales registradas. Opcionalmente, se puede filtrar por empresa."
+      parameters:
+        - name: empresaId
+          in: query
+          description: "ID de la empresa para filtrar las sucursales."
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Lista de sucursales obtenida con éxito."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SucursalResponse'
+    post:
+      tags:
+        - Sucursales
+      summary: "Crear una nueva sucursal"
+      description: "Registra una nueva sucursal para una empresa existente."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSucursalRequest'
+      responses:
+        '201':
+          description: "Sucursal creada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SucursalResponse'
+        '400':
+          description: "Datos de entrada inválidos (ej. nombre duplicado, empresa no existe)."
+
+  /sucursales/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "ID de la sucursal a operar."
+        schema:
+          type: integer
+    get:
+      tags:
+        - Sucursales
+      summary: "Obtener una sucursal por su ID"
+      description: "Recupera los detalles de una sucursal específica. Devuelve 404 si no se encuentra."
+      responses:
+        '200':
+          description: "Detalles de la sucursal."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SucursalResponse'
+        '404':
+          description: "Sucursal no encontrada."
+    put:
+      tags:
+        - Sucursales
+      summary: "Actualizar una sucursal existente"
+      description: "Actualiza los datos de una sucursal específica. Solo se modifican los campos proporcionados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSucursalRequest'
+      responses:
+        '200':
+          description: "Sucursal actualizada con éxito."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SucursalResponse'
+        '404':
+          description: "Sucursal no encontrada."
+    delete:
+      tags:
+        - Sucursales
+      summary: "Eliminar una sucursal"
+      description: "Elimina una sucursal por su ID. Esta operación fallará si la sucursal tiene canchas asociadas."
+      responses:
+        '204':
+          description: "Sucursal eliminada con éxito."
+        '404':
+          description: "Sucursal no encontrada."
+        '400':
+          description: "Error de negocio (ej. la sucursal tiene dependencias)."
+
+  /sucursales/{id}/activar:
+    patch:
+      tags:
+        - Sucursales
+      summary: "Activar una sucursal"
+      description: "Marca una sucursal como activa."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Sucursal activada."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SucursalResponse'
+        '404':
+          description: "Sucursal no encontrada."
+
+  /sucursales/{id}/desactivar:
+    patch:
+      tags:
+        - Sucursales
+      summary: "Desactivar una sucursal"
+      description: "Marca una sucursal como inactiva."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Sucursal desactivada."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SucursalResponse'
+        '404':
+          description: "Sucursal no encontrada."
+
+components:
+  schemas:
+    SucursalResponse:
+      type: object
+      properties:
+        sucursalId:
+          type: integer
+          example: 1
+        empresaId:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Sede Miraflores"
+        direccion:
+          type: string
+          example: "Av. Larco 456, Miraflores"
+        telefono:
+          type: string
+          example: "014455667"
+        activo:
+          type: boolean
+          example: true
+
+    CreateSucursalRequest:
+      type: object
+      required:
+        - empresaId
+        - nombre
+        - direccion
+      properties:
+        empresaId:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Sede San Isidro"
+        direccion:
+          type: string
+          example: "Av. Javier Prado 123, San Isidro"
+        telefono:
+          type: string
+          example: "012233445"
+
+    UpdateSucursalRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Sede Principal - San Isidro"
+        direccion:
+          type: string
+          example: "Av. Javier Prado Este 123, San Isidro"
+        telefono:
+          type: string
+          example: "987654321"
+        activo:
+          type: boolean
+          example: false

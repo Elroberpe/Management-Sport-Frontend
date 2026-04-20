@@ -1,0 +1,171 @@
+<!-- Header con placeholders que el script actualiza -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title" id="inicio-greeting">Bienvenido</h1>
+        <p class="page-subtitle" id="inicio-subtitle">Resumen de operaciones del día.</p>
+    </div>
+    <button class="btn btn-primary new-booking-btn">
+        <i class='bx bx-plus'></i> Nueva Reserva
+    </button>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-light-green"><i class='bx bx-calendar-check text-green'></i></div>
+        <span class="trend positive">+12%</span>
+        <p class="stat-label">RESERVAS DE HOY</p>
+        <h2 class="stat-value">42</h2>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-light-yellow"><i class='bx bx-dollar text-yellow'></i></div>
+        <span class="trend positive">+8.4%</span>
+        <p class="stat-label">INGRESOS TOTALES</p>
+        <h2 class="stat-value">$3,840.00</h2>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-light-blue"><i class='bx bx-bar-chart-alt-2 text-blue'></i></div>
+        <span class="trend neutral">Óptimo</span>
+        <p class="stat-label">TASA DE OCUPACIÓN</p>
+        <h2 class="stat-value">86.4%</h2>
+    </div>
+    <div class="stat-card" id="inicio-stat-sedes">
+        <div class="stat-icon bg-light-green"><i class='bx bx-building-house text-green'></i></div>
+        <span class="trend neutral-text">EN VIVO</span>
+        <p class="stat-label">SEDES ACTIVAS</p>
+        <h2 class="stat-value">12</h2>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="dashboard-content-grid">
+    <!-- Left Col -->
+    <div class="main-column">
+        <div class="panel chart-panel">
+            <div class="panel-header">
+                <h3>Actividad de Reservas</h3>
+                <div class="pill-toggles">
+                    <span class="active">Últ. 7 Días</span>
+                    <span>Últ. 30 Días</span>
+                </div>
+            </div>
+            <div class="mock-chart">
+                <div class="bar-group"><div class="bar h-40"></div><span>LUN</span></div>
+                <div class="bar-group"><div class="bar h-80 bg-primary"></div><span>MAR</span></div>
+                <div class="bar-group"><div class="bar h-30"></div><span>MIE</span></div>
+                <div class="bar-group"><div class="bar h-60"></div><span>JUE</span></div>
+                <div class="bar-group"><div class="bar h-90 bg-primary"></div><span>VIE</span></div>
+                <div class="bar-group"><div class="bar h-40"></div><span>SAB</span></div>
+                <div class="bar-group"><div class="bar h-50"></div><span>DOM</span></div>
+            </div>
+        </div>
+
+        <div class="panel table-panel">
+            <div class="panel-header">
+                <h3>Reservas Recientes</h3>
+                <a href="#" class="view-all">Ver Todo</a>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>CANCHA / SEDE</th>
+                        <th>HORA</th>
+                        <th>ESTADO</th>
+                        <th>MONTO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div class="cell-user"><div class="avatar-sm">JP</div> Juan Pérez</div></td>
+                        <td>Cancha #2<br><span class="muted">Sede Central</span></td>
+                        <td>18:00 - 19:30</td>
+                        <td><span class="badge badge-confirmed">Confirmada</span></td>
+                        <td>$120.00</td>
+                    </tr>
+                    <tr>
+                        <td><div class="cell-user"><div class="avatar-sm" style="background:#e0e7ff;color:#4f46e5;">MG</div> María G.</div></td>
+                        <td>Cancha #1<br><span class="muted">Sede Norte</span></td>
+                        <td>20:00 - 21:00</td>
+                        <td><span class="badge badge-confirmed">Confirmada</span></td>
+                        <td>$80.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Col -->
+    <div class="side-column">
+        <div class="panel">
+            <div class="panel-header">
+                <h3>Estado de Sedes</h3>
+                <i class='bx bx-dots-vertical-rounded'></i>
+            </div>
+            <div class="branch-list">
+                <div class="branch-item">
+                    <div class="b-icon"><i class='bx bx-map'></i></div>
+                    <div class="b-info">
+                        <h4>Sede Central <span class="dot green"></span></h4>
+                        <p>8/10 Canchas Activas <span class="pct">80%</span></p>
+                        <div class="progress-bg"><div class="progress-fill" style="width: 80%;"></div></div>
+                    </div>
+                </div>
+                <div class="branch-item">
+                    <div class="b-icon bg-dark"><i class='bx bx-moon'></i></div>
+                    <div class="b-info">
+                        <h4>Complejo Río <span class="dot green"></span></h4>
+                        <p>12/12 Canchas Activas <span class="pct">100%</span></p>
+                        <div class="progress-bg"><div class="progress-fill" style="width: 100%;"></div></div>
+                    </div>
+                </div>
+                <div class="branch-item grayed">
+                    <div class="b-icon bg-gray"><i class='bx bx-wrench'></i></div>
+                    <div class="b-info">
+                        <h4>Arena Sur <span class="dot yellow"></span></h4>
+                        <p>En Mantenimiento <span class="pct">0%</span></p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outlined btn-full mt-4" id="inicio-btn-add-sede">
+                <i class='bx bx-plus'></i> Añadir Sede
+            </button>
+        </div>
+
+        <div class="alert-card yellow-alert">
+            <h4><i class='bx bx-error'></i> ALERTA MANTENIMIENTO</h4>
+            <p>La iluminación de Cancha 1 requiere inspección.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var session = window.Auth ? window.Auth.getSession() : null;
+
+    /* --- Saludo personalizado --- */
+    var nombre  = session ? session.nombre.split(' ')[0] : 'Bienvenido';
+    var hora    = new Date().getHours();
+    var saludo  = hora < 12 ? 'Buenos Días' : hora < 19 ? 'Buenas Tardes' : 'Buenas Noches';
+
+    var subtitulo = (session && session.rol === 'superadmin')
+        ? 'Esto es lo que está pasando en todas tus sedes hoy.'
+        : (session && session.sucursalNombre)
+            ? 'Actividad de tu sede: ' + session.sucursalNombre
+            : 'Resumen de operaciones del día.';
+
+    var greetingEl = document.getElementById('inicio-greeting');
+    var subtitleEl = document.getElementById('inicio-subtitle');
+    if (greetingEl) greetingEl.textContent = saludo + ', ' + nombre;
+    if (subtitleEl) subtitleEl.textContent = subtitulo;
+
+    /* --- Ocultar widgets de sedes para roles que no son superadmin --- */
+    if (!session || session.rol !== 'superadmin') {
+        var statSedes = document.getElementById('inicio-stat-sedes');
+        if (statSedes) statSedes.style.display = 'none';
+
+        var btnAddSede = document.getElementById('inicio-btn-add-sede');
+        if (btnAddSede) btnAddSede.style.display = 'none';
+    }
+})();
+</script>
