@@ -217,8 +217,94 @@
 
 <!-- Toast de éxito -->
 <div class="nc-toast" id="nc-toast" style="display:none;">
+<div class="nc-toast" id="nc-toast" style="display:none;">
     <i class='bx bx-check-circle'></i>
     <span id="nc-toast-msg">¡Cancha creada con éxito!</span>
+</div>
+
+<!-- ===== MODAL: PROGRAMAR MANTENIMIENTO ===== -->
+<div id="modal-mant" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-mant-title">
+    <div class="pm-modal">
+
+        <!-- Header -->
+        <div class="pm-header">
+            <div class="pm-header-icon"><i class='bx bx-wrench'></i></div>
+            <div>
+                <h2 class="pm-title" id="modal-mant-title">Programar Mantenimiento</h2>
+                <p class="pm-subtitle" id="pm-cancha-label">Cancha seleccionada</p>
+            </div>
+            <button class="pm-close" id="btn-pm-close" title="Cerrar"><i class='bx bx-x'></i></button>
+        </div>
+
+        <!-- Body -->
+        <div class="pm-body">
+
+            <!-- Error general -->
+            <div class="pm-alert-error" id="pm-error-general" style="display:none;">
+                <i class='bx bx-error-circle'></i>
+                <span id="pm-error-general-msg">Ha ocurrido un error.</span>
+            </div>
+
+            <!-- Fila: Inicio / Fin -->
+            <div class="pm-row-2">
+                <div class="pm-field">
+                    <label class="pm-label" for="pm-inicio">
+                        <i class='bx bx-calendar-plus'></i> Inicio del Mantenimiento <span class="pm-required">*</span>
+                    </label>
+                    <input type="datetime-local" id="pm-inicio" class="pm-input">
+                    <span class="pm-field-error" id="pm-err-inicio"></span>
+                </div>
+                <div class="pm-field">
+                    <label class="pm-label" for="pm-fin">
+                        <i class='bx bx-calendar-check'></i> Fin del Mantenimiento <span class="pm-required">*</span>
+                    </label>
+                    <input type="datetime-local" id="pm-fin" class="pm-input">
+                    <span class="pm-field-error" id="pm-err-fin"></span>
+                </div>
+            </div>
+
+            <!-- Tipo -->
+            <div class="pm-field">
+                <label class="pm-label" for="pm-tipo">
+                    <i class='bx bx-category'></i> Tipo <span class="pm-required">*</span>
+                </label>
+                <div class="pm-select-wrap">
+                    <select id="pm-tipo" class="pm-input pm-select">
+                        <option value="">— Seleccionar tipo —</option>
+                        <option value="PREVENTIVO">Preventivo</option>
+                        <option value="CORRECTIVO">Correctivo</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                    <i class='bx bx-chevron-down pm-select-arrow'></i>
+                </div>
+                <span class="pm-field-error" id="pm-err-tipo"></span>
+            </div>
+
+            <!-- Motivo -->
+            <div class="pm-field">
+                <label class="pm-label" for="pm-motivo">
+                    <i class='bx bx-note'></i> Motivo del Mantenimiento <span class="pm-required">*</span>
+                </label>
+                <textarea id="pm-motivo" class="pm-input pm-textarea" maxlength="200"
+                    placeholder="Ej: Pintado de líneas, reparación de red, etc."></textarea>
+                <div class="pm-input-footer">
+                    <span class="pm-field-error" id="pm-err-motivo"></span>
+                    <span class="pm-char-count" id="pm-char-motivo">0/200</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="pm-footer">
+            <button class="pm-btn-cancel" id="btn-pm-cancel">Cancelar</button>
+            <button class="pm-btn-submit" id="btn-pm-submit">
+                <span id="pm-submit-text"><i class='bx bx-calendar-event'></i> Programar</span>
+                <span id="pm-submit-loader" style="display:none;"><div class="pm-spinner"></div> Programando...</span>
+            </button>
+        </div>
+
+    </div>
 </div>
 
 <style>
@@ -423,6 +509,120 @@
     }
     .nc-toast i { font-size: 20px; }
     @keyframes nc-toast-in { from { opacity:0; transform: translateX(-50%) translateY(16px) } to { opacity:1; transform: translateX(-50%) translateY(0) } }
+
+    /* ======================================
+       MODAL PROGRAMAR MANTENIMIENTO
+    ====================================== */
+    .pm-overlay {
+        position: fixed; inset: 0; z-index: 1050;
+        background: rgba(15,23,42,0.6);
+        backdrop-filter: blur(4px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px;
+        animation: nc-fade-in 0.2s ease;
+    }
+    .pm-modal {
+        background: #fff; border-radius: 20px;
+        width: 100%; max-width: 540px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+        overflow: hidden;
+        animation: nc-slide-up 0.25s cubic-bezier(.4,0,.2,1);
+        max-height: 90vh; overflow-y: auto;
+    }
+    .pm-header {
+        display: flex; align-items: center; gap: 14px;
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        position: sticky; top: 0; background: #fff; z-index: 1;
+    }
+    .pm-header-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: linear-gradient(135deg, #92400e, #d97706);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; color: #fff; flex-shrink: 0;
+    }
+    .pm-title  { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
+    .pm-subtitle { font-size: 12px; color: #64748b; margin: 0; font-weight: 600; }
+    .pm-close {
+        margin-left: auto; background: #f8fafc; border: none;
+        width: 36px; height: 36px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; color: #64748b; cursor: pointer;
+        transition: background 0.15s, color 0.15s; flex-shrink: 0;
+    }
+    .pm-close:hover { background: #fee2e2; color: #dc2626; }
+
+    .pm-body  { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+    .pm-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .pm-row-2 { grid-template-columns: 1fr; } }
+
+    .pm-alert-error {
+        display: flex; align-items: flex-start; gap: 10px;
+        background: #fef2f2; border: 1px solid #fecaca;
+        border-radius: 10px; padding: 12px 14px;
+        font-size: 13px; color: #dc2626; line-height: 1.4;
+    }
+    .pm-alert-error i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    .pm-field { display: flex; flex-direction: column; gap: 5px; }
+    .pm-label {
+        font-size: 13px; font-weight: 600; color: #374151;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .pm-required { color: #ef4444; }
+
+    .pm-input {
+        width: 100%; padding: 10px 13px;
+        border: 1.5px solid #e2e8f0; border-radius: 10px;
+        font-size: 13.5px; font-family: inherit; color: #1e293b;
+        background: #f8fafc; outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-sizing: border-box;
+    }
+    .pm-input:focus { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.12); background: #fff; }
+    .pm-input.pm-input-error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+
+    .pm-select-wrap { position: relative; }
+    .pm-select { appearance: none; padding-right: 36px; cursor: pointer; }
+    .pm-select-arrow {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%); font-size: 18px;
+        color: #94a3b8; pointer-events: none;
+    }
+    .pm-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+
+    .pm-input-footer { display: flex; justify-content: space-between; align-items: center; min-height: 16px; }
+    .pm-field-error { font-size: 12px; color: #ef4444; min-height: 16px; }
+    .pm-char-count  { font-size: 11px; color: #94a3b8; flex-shrink: 0; }
+
+    .pm-footer {
+        display: flex; gap: 12px; padding: 18px 24px;
+        border-top: 1px solid #f1f5f9;
+        position: sticky; bottom: 0; background: #fff;
+    }
+    .pm-btn-cancel {
+        flex: 1; padding: 11px; border-radius: 10px;
+        border: 1.5px solid #e2e8f0; background: #fff;
+        font-size: 14px; font-weight: 600; color: #64748b;
+        cursor: pointer; transition: background 0.15s;
+    }
+    .pm-btn-cancel:hover { background: #f8fafc; }
+    .pm-btn-submit {
+        flex: 2; padding: 11px; border-radius: 10px;
+        border: none; background: linear-gradient(135deg, #92400e, #d97706);
+        font-size: 14px; font-weight: 700; color: #fff;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: opacity 0.15s, transform 0.1s;
+    }
+    .pm-btn-submit:hover { opacity: 0.9; }
+    .pm-btn-submit:active { transform: scale(0.98); }
+    .pm-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .pm-spinner {
+        width: 15px; height: 15px;
+        border: 2px solid rgba(255,255,255,0.35);
+        border-top-color: #fff; border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
 </style>
 
 <script>
@@ -532,7 +732,8 @@
             "</td>",
             "<td><span class='dot-status " + meta.dotCls + "'>" + meta.label + "</span></td>",
             "<td style='text-align:right;'>",
-                "<div class='actions-col' style='justify-content:flex-end;'>",
+                "<div class='actions-col' style='justify-content:flex-end;gap:6px;'>",
+                    "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' title='Programar Mantenimiento' style='background:#fef9c3;color:#854d0e;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:background 0.15s;'><i class='bx bx-wrench'></i> Mantenimiento</button>",
                     "<button class='btn-edit-cancha' data-id='" + c.canchaId + "' title='Editar'><i class='bx bx-pencil'></i></button>",
                     "<button class='btn-delete-cancha' data-id='" + c.canchaId + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
                 "</div>",
@@ -542,10 +743,18 @@
         // Bind estado change
         var sel = tr.querySelector('.estado-select');
         sel.addEventListener('change', function () {
-            var estadoAnterior = c.estadoCancha; // valor real antes del cambio
+            var estadoAnterior = c.estadoCancha;
             actualizarClaseSelect(sel);
             cambiarEstado(c.canchaId, sel.value, estadoAnterior, sel);
         });
+
+        // Bind mantenimiento
+        var btnMant = tr.querySelector('.btn-mant-cancha');
+        if (btnMant) {
+            btnMant.addEventListener('click', function() {
+                abrirModalMant(c.canchaId, c.nombre);
+            });
+        }
 
         return tr;
     }
@@ -567,7 +776,8 @@
                 "</div>",
             "</div>",
             "<span class='cgc-estado-badge " + meta.badgeCls + "'>" + meta.label + "</span>",
-            "<div style='display:flex;gap:8px;margin-top:4px;'>",
+            "<div style='display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;'>",
+                "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' style='flex:1;min-width:100%;background:#fef9c3;color:#854d0e;border:none;border-radius:8px;padding:7px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;'><i class='bx bx-wrench'></i> Programar Mantenimiento</button>",
                 "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;'><i class='bx bx-pencil'></i></button>",
                 "<select class='estado-select s-" + c.estadoCancha.toLowerCase() + "' data-id='" + c.canchaId + "' style='flex:2;'>",
                     "<option value='DISPONIBLE'" + (c.estadoCancha==='DISPONIBLE' ? ' selected' : '') + ">Disponible</option>",
@@ -579,10 +789,17 @@
 
         var sel = card.querySelector('.estado-select');
         sel.addEventListener('change', function () {
-            var estadoAnterior = c.estadoCancha; // valor real antes del cambio
+            var estadoAnterior = c.estadoCancha;
             actualizarClaseSelect(sel);
             cambiarEstado(c.canchaId, sel.value, estadoAnterior, sel);
         });
+
+        var btnMantCard = card.querySelector('.btn-mant-cancha');
+        if (btnMantCard) {
+            btnMantCard.addEventListener('click', function() {
+                abrirModalMant(c.canchaId, c.nombre);
+            });
+        }
 
         return card;
     }
@@ -889,6 +1106,196 @@
     ncNombre.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') crearCancha();
     });
+
+    /* ========================================
+       MODAL PROGRAMAR MANTENIMIENTO
+    ======================================== */
+    var modalMant      = document.getElementById('modal-mant');
+    var btnPmClose     = document.getElementById('btn-pm-close');
+    var btnPmCancel    = document.getElementById('btn-pm-cancel');
+    var btnPmSubmit    = document.getElementById('btn-pm-submit');
+    var pmSubmitText   = document.getElementById('pm-submit-text');
+    var pmSubmitLoader = document.getElementById('pm-submit-loader');
+    var pmCancha       = document.getElementById('pm-cancha-label');
+    var pmInicio       = document.getElementById('pm-inicio');
+    var pmFin          = document.getElementById('pm-fin');
+    var pmTipo         = document.getElementById('pm-tipo');
+    var pmMotivo       = document.getElementById('pm-motivo');
+    var pmErrInicio    = document.getElementById('pm-err-inicio');
+    var pmErrFin       = document.getElementById('pm-err-fin');
+    var pmErrTipo      = document.getElementById('pm-err-tipo');
+    var pmErrMotivo    = document.getElementById('pm-err-motivo');
+    var pmCharMotivo   = document.getElementById('pm-char-motivo');
+    var pmErrGen       = document.getElementById('pm-error-general');
+    var pmErrGenMsg    = document.getElementById('pm-error-general-msg');
+
+    var _pmCanchaId   = null;
+    var _pmCanchaNombre = null;
+
+    /* -- Helpers datetime -- */
+    function toLocalDatetimeValue(date) {
+        // Convierte Date a 'YYYY-MM-DDTHH:MM' para el input datetime-local
+        var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+        return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate())
+             + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+    }
+    function toISO(datetimeLocalVal) {
+        // Convierte 'YYYY-MM-DDTHH:MM' a 'YYYY-MM-DDTHH:MM:00' (sin zona)
+        return datetimeLocalVal + ':00';
+    }
+
+    /* -- Abrir modal -- */
+    function abrirModalMant(canchaId, nombreCancha) {
+        _pmCanchaId    = canchaId;
+        _pmCanchaNombre = nombreCancha;
+
+        // Reset
+        pmCancha.textContent = '\uD83D\uDCCC ' + nombreCancha;
+        pmInicio.value = '';
+        pmFin.value    = '';
+        pmTipo.value   = '';
+        pmMotivo.value = '';
+        pmCharMotivo.textContent = '0/200';
+        pmLimpiarErrores();
+        pmSetLoading(false);
+
+        // Pre-llenar inicio con ahora (redondeado a próxima hora)
+        var ahora = new Date();
+        ahora.setMinutes(0, 0, 0);
+        ahora.setHours(ahora.getHours() + 1);
+        pmInicio.value = toLocalDatetimeValue(ahora);
+        pmInicio.min   = toLocalDatetimeValue(new Date());
+
+        var fin = new Date(ahora);
+        fin.setHours(fin.getHours() + 2);
+        pmFin.value = toLocalDatetimeValue(fin);
+        pmFin.min   = pmInicio.value;
+
+        modalMant.style.display = 'flex';
+        pmMotivo.focus();
+    }
+
+    /* -- Cerrar -- */
+    function cerrarModalMant() {
+        modalMant.style.display = 'none';
+    }
+
+    function pmLimpiarErrores() {
+        [pmErrInicio, pmErrFin, pmErrTipo, pmErrMotivo].forEach(function(el){ el.textContent = ''; });
+        [pmInicio, pmFin, pmTipo, pmMotivo].forEach(function(el){ el.classList.remove('pm-input-error'); });
+        pmErrGen.style.display = 'none';
+    }
+
+    function pmSetError(inputEl, errEl, msg) {
+        inputEl.classList.add('pm-input-error');
+        errEl.textContent = msg;
+    }
+
+    function pmSetLoading(on) {
+        btnPmSubmit.disabled = on;
+        pmSubmitText.style.display = on ? 'none' : 'flex';
+        pmSubmitLoader.style.display = on ? 'flex' : 'none';
+    }
+
+    /* -- Sincronizar min de fin con inicio -- */
+    pmInicio.addEventListener('change', function() {
+        if (pmInicio.value) {
+            pmFin.min = pmInicio.value;
+            // Si fin < inicio, ajustar fin
+            if (pmFin.value && pmFin.value <= pmInicio.value) {
+                var newFin = new Date(pmInicio.value);
+                newFin.setHours(newFin.getHours() + 1);
+                pmFin.value = toLocalDatetimeValue(newFin);
+            }
+        }
+    });
+
+    /* -- Contador motivo -- */
+    pmMotivo.addEventListener('input', function() {
+        var len = pmMotivo.value.length;
+        pmCharMotivo.textContent = len + '/200';
+        pmCharMotivo.style.color = len > 180 ? '#ef4444' : '#94a3b8';
+    });
+
+    /* -- Validar -- */
+    function pmValidar() {
+        pmLimpiarErrores();
+        var ok = true;
+        var ahora = new Date();
+
+        if (!pmInicio.value) {
+            pmSetError(pmInicio, pmErrInicio, 'Selecciona la fecha de inicio.');
+            ok = false;
+        } else if (new Date(pmInicio.value) < ahora) {
+            pmSetError(pmInicio, pmErrInicio, 'La fecha de inicio no puede ser en el pasado.');
+            ok = false;
+        }
+        if (!pmFin.value) {
+            pmSetError(pmFin, pmErrFin, 'Selecciona la fecha de fin.');
+            ok = false;
+        } else if (pmInicio.value && pmFin.value <= pmInicio.value) {
+            pmSetError(pmFin, pmErrFin, 'El fin debe ser posterior al inicio.');
+            ok = false;
+        }
+        if (!pmTipo.value) {
+            pmSetError(pmTipo, pmErrTipo, 'Selecciona el tipo de mantenimiento.');
+            ok = false;
+        }
+        var motivo = pmMotivo.value.trim();
+        if (!motivo) {
+            pmSetError(pmMotivo, pmErrMotivo, 'El motivo no puede estar vacío.');
+            ok = false;
+        }
+        return ok;
+    }
+
+    /* -- Enviar -- */
+    function programarMantenimiento() {
+        if (!pmValidar()) return;
+
+        var payload = {
+            canchaId:          _pmCanchaId,
+            horaInicio:        toISO(pmInicio.value),
+            horaFin:           toISO(pmFin.value),
+            tipoMantenimiento: pmTipo.value,
+            motivo:            pmMotivo.value.trim()
+        };
+
+        pmSetLoading(true);
+
+        fetch(BASE_URL + '/mantenimientos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) {
+            if (res.status === 201) return res.json();
+            return res.json().then(function(err) {
+                var msg = err.message || err.error || 'Error al programar el mantenimiento.';
+                throw { tipo: res.status === 400 ? 'conflicto' : 'servidor', mensaje: msg };
+            });
+        })
+        .then(function() {
+            cerrarModalMant();
+            mostrarToast('¡Mantenimiento programado para "' + _pmCanchaNombre + '"!');
+        })
+        .catch(function(err) {
+            pmSetLoading(false);
+            pmErrGenMsg.textContent = (err && err.mensaje) || 'No se pudo conectar con el servidor.';
+            pmErrGen.style.display = 'flex';
+        });
+    }
+
+    /* -- Event listeners -- */
+    btnPmClose.addEventListener('click', cerrarModalMant);
+    btnPmCancel.addEventListener('click', cerrarModalMant);
+    modalMant.addEventListener('click', function(e) {
+        if (e.target === modalMant) cerrarModalMant();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalMant.style.display !== 'none') cerrarModalMant();
+    });
+    btnPmSubmit.addEventListener('click', programarMantenimiento);
 
 })();
 </script>
