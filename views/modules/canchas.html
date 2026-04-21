@@ -257,12 +257,9 @@
     }
 
     /* ---- Cambiar estado via API ---- */
-    function cambiarEstado(canchaId, nuevoEstado, selectEl) {
-        var prev = selectEl.value;
-        fetch(BASE_URL + '/canchas/' + canchaId + '/estado', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: nuevoEstado })
+    function cambiarEstado(canchaId, nuevoEstado, estadoAnterior, selectEl) {
+        fetch(BASE_URL + '/canchas/' + canchaId + '/estado?estadoCancha=' + encodeURIComponent(nuevoEstado), {
+            method: 'PATCH'
         })
         .then(function (res) {
             if (!res.ok) throw new Error('Error ' + res.status);
@@ -277,7 +274,7 @@
         })
         .catch(function (err) {
             alert('No se pudo cambiar el estado: ' + err.message);
-            selectEl.value = prev; // revertir
+            selectEl.value = estadoAnterior; // revertir al valor previo real
             actualizarClaseSelect(selectEl);
         });
     }
@@ -325,8 +322,9 @@
         // Bind estado change
         var sel = tr.querySelector('.estado-select');
         sel.addEventListener('change', function () {
+            var estadoAnterior = c.estadoCancha; // valor real antes del cambio
             actualizarClaseSelect(sel);
-            cambiarEstado(c.canchaId, sel.value, sel);
+            cambiarEstado(c.canchaId, sel.value, estadoAnterior, sel);
         });
 
         return tr;
@@ -361,8 +359,9 @@
 
         var sel = card.querySelector('.estado-select');
         sel.addEventListener('change', function () {
+            var estadoAnterior = c.estadoCancha; // valor real antes del cambio
             actualizarClaseSelect(sel);
-            cambiarEstado(c.canchaId, sel.value, sel);
+            cambiarEstado(c.canchaId, sel.value, estadoAnterior, sel);
         });
 
         return card;
