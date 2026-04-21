@@ -217,7 +217,6 @@
 
 <!-- Toast de éxito -->
 <div class="nc-toast" id="nc-toast" style="display:none;">
-<div class="nc-toast" id="nc-toast" style="display:none;">
     <i class='bx bx-check-circle'></i>
     <span id="nc-toast-msg">¡Cancha creada con éxito!</span>
 </div>
@@ -623,6 +622,25 @@
         border-top-color: #fff; border-radius: 50%;
         animation: spin 0.7s linear infinite;
     }
+
+    /* Boton Programar Mantenimiento en canchas */
+    .btn-mant-cancha {
+        background: #fef9c3;
+        color: #854d0e;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background 0.15s, border-color 0.15s;
+        white-space: nowrap;
+    }
+    .btn-mant-cancha:hover { background: #fde68a; border-color: #f59e0b; }
+    .btn-mant-full { width: 100%; justify-content: center; margin-bottom: 4px; }
 </style>
 
 <script>
@@ -733,7 +751,7 @@
             "<td><span class='dot-status " + meta.dotCls + "'>" + meta.label + "</span></td>",
             "<td style='text-align:right;'>",
                 "<div class='actions-col' style='justify-content:flex-end;gap:6px;'>",
-                    "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' title='Programar Mantenimiento' style='background:#fef9c3;color:#854d0e;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:background 0.15s;'><i class='bx bx-wrench'></i> Mantenimiento</button>",
+                    "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' title='Programar Mantenimiento'><i class='bx bx-wrench'></i> Mantenimiento</button>",
                     "<button class='btn-edit-cancha' data-id='" + c.canchaId + "' title='Editar'><i class='bx bx-pencil'></i></button>",
                     "<button class='btn-delete-cancha' data-id='" + c.canchaId + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
                 "</div>",
@@ -777,7 +795,7 @@
             "</div>",
             "<span class='cgc-estado-badge " + meta.badgeCls + "'>" + meta.label + "</span>",
             "<div style='display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;'>",
-                "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' style='flex:1;min-width:100%;background:#fef9c3;color:#854d0e;border:none;border-radius:8px;padding:7px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;'><i class='bx bx-wrench'></i> Programar Mantenimiento</button>",
+                "<button class='btn-mant-cancha btn-mant-full' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "'><i class='bx bx-wrench'></i> Programar Mantenimiento</button>",
                 "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;'><i class='bx bx-pencil'></i></button>",
                 "<select class='estado-select s-" + c.estadoCancha.toLowerCase() + "' data-id='" + c.canchaId + "' style='flex:2;'>",
                     "<option value='DISPONIBLE'" + (c.estadoCancha==='DISPONIBLE' ? ' selected' : '') + ">Disponible</option>",
