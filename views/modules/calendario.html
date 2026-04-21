@@ -200,9 +200,9 @@
     var session  = window.Auth ? window.Auth.getSession() : null;
 
     /* ---- Configuración temporal del calendario ---- */
-    var HORA_INICIO = 8;   // 08:00
-    var HORA_FIN    = 22;  // 22:00
-    var TOTAL_HORAS = HORA_FIN - HORA_INICIO; // 14
+    var HORA_INICIO = 7;   // 07:00
+    var HORA_FIN    = 24;  // 24:00 (Media noche)
+    var TOTAL_HORAS = HORA_FIN - HORA_INICIO; // 17
 
     var DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     var DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -275,7 +275,7 @@
         lines.innerHTML = '';
         for (var h = HORA_INICIO; h <= HORA_FIN; h++) {
             var pct = ((h - HORA_INICIO) / TOTAL_HORAS) * 100;
-            var label = (h < 12) ? h + ':00 AM' : (h === 12 ? '12:00 PM' : (h - 12) + ':00 PM');
+            var label = (h < 12) ? h + ':00 AM' : (h === 12 ? '12:00 PM' : (h === 24 ? '12:00 AM' : (h - 12) + ':00 PM'));
             var slot  = document.createElement('div');
             slot.className = 'time-slot';
             slot.style.top = pct + '%';

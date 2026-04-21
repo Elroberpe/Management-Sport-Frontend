@@ -151,7 +151,7 @@
     display: grid;
     grid-template-columns: 80px 1fr;
     position: relative;
-    height: 700px; /* Base height for 10 hours */
+    height: 1200px; /* 17 horas × 70px aprox */
 }
 
 /* Time axis */
@@ -212,49 +212,104 @@
     background: #f8fcf9;
 }
 
-/* Cards */
+/* Cards — Google Calendar style */
 .cal-card {
     position: absolute;
-    left: 8px; right: 8px;
-    border-radius: 12px;
-    padding: 12px;
+    left: 4px; right: 4px;
+    border-radius: 10px;
+    padding: 7px 10px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid transparent;
+    box-sizing: border-box;
 }
-.cal-card:hover { transform: scale(1.02); z-index: 10; }
+.cal-card:hover {
+    transform: translateY(-1px) scale(1.015);
+    z-index: 10;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
 
-.cc-time { font-size: 10px; font-weight: 700; margin-bottom: 4px; color: rgba(255,255,255,0.9); }
-.cc-title { font-size: 11px; font-weight: 700; color: #fff; line-height: 1.3; }
-.cc-sub { font-size: 9px; color: rgba(255,255,255,0.7); margin-top: auto; display: flex; align-items: center; gap: 4px; }
-.mt-0 { margin-top: 0; }
-.text-dark { color: #334155; }
-.text-white { color: #fff; }
-.block { display: block; }
-.center-vertical { margin: auto 0; }
+/* Texto de tarjeta */
+.cc-time  { font-size: 11px; font-weight: 700; margin-bottom: 3px; opacity: .85; }
+.cc-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.cc-sub   { font-size: 11px; margin-top: 3px; display: flex; align-items: center; gap: 4px; opacity: .7; }
 
-.c-blue { background: #6b7a99; }
-.c-gray { background: #cbd5e1; color: #334155; }
+/* ---- Paleta de estados (fondo claro + borde color) ---- */
+
+/* PAGADA — azul */
+.c-blue {
+    background: #eff6ff;
+    border-left-color: #3b82f6;
+    color: #1e3a5f;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.10);
+}
+.c-blue .cc-time  { color: #2563eb; }
+.c-blue .cc-title { color: #1e3a5f; }
+.c-blue .cc-sub   { color: #3b82f6; }
+
+/* PENDIENTE — ámbar/naranja */
+.c-yellow {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+    color: #78350f;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.10);
+}
+.c-yellow .cc-time  { color: #d97706; }
+.c-yellow .cc-title { color: #78350f; }
+.c-yellow .cc-sub   { color: #d97706; }
+
+/* COMPLETADA — verde */
+.c-green-light {
+    background: #f0fdf4;
+    border-left-color: #22c55e;
+    color: #14532d;
+    box-shadow: 0 2px 8px rgba(34,197,94,0.10);
+}
+.c-green-light .cc-time  { color: #16a34a; }
+.c-green-light .cc-title { color: #14532d; }
+.c-green-light .cc-sub   { color: #16a34a; }
+
+/* CANCELADA — gris */
+.c-gray {
+    background: #f8fafc;
+    border-left-color: #94a3b8;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(148,163,184,0.08);
+    opacity: .75;
+}
+.c-gray .cc-time  { color: #64748b; }
 .c-gray .cc-title { color: #334155; }
-.c-green-dark { background: #16a34a; }
-.c-yellow { background: #fcd34d; }
-.c-yellow-dark { background: #ca8a04; }
+.c-gray .cc-sub   { color: #94a3b8; }
 
-.cc-live {
-    margin-top: auto;
-    font-size: 8px;
-    font-weight: 800;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+/* REEMBOLSADO — gris-púrpura */
+.c-gray-purple {
+    background: #faf5ff;
+    border-left-color: #a78bfa;
+    color: #4c1d95;
 }
-.dot-red {
-    width: 6px; height: 6px; border-radius: 50%; background: #ef4444; flex-shrink: 0;
+
+/* MANTENIMIENTO — naranja oscuro (ya definido en calendario.html) */
+.cal-card-mant {
+    background: #fff7ed !important;
+    border-left-color: #ea580c !important;
+    color: #9a3412 !important;
+    box-shadow: 0 2px 8px rgba(234,88,12,0.12) !important;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 6px,
+        rgba(234,88,12,0.04) 6px,
+        rgba(234,88,12,0.04) 12px
+    ) !important;
 }
+.cal-card-mant .cc-time  { color: #c2410c !important; font-weight: 800; }
+.cal-card-mant .cc-title { color: #7c2d12 !important; font-weight: 700; }
+.cal-card-mant .cc-sub   { color: #c2410c !important; opacity: .85; }
+
+
 
 /* Insight Banner */
 .insight-banner {
