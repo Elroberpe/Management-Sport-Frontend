@@ -61,7 +61,7 @@ paths:
       - name: id
         in: path
         required: true
-        description: "ID de la cancha a operar."
+        description: "ID numérico de la cancha a operar."
         schema:
           type: integer
     get:
@@ -76,6 +76,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CanchaResponse'
+        '400':
+          description: "El ID proporcionado no es un número válido."
         '404':
           description: "Cancha no encontrada."
     put:
@@ -96,6 +98,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CanchaResponse'
+        '400':
+          description: "El ID proporcionado no es un número válido o los datos del cuerpo son incorrectos."
         '404':
           description: "Cancha no encontrada."
     delete:
@@ -106,6 +110,8 @@ paths:
       responses:
         '204':
           description: "Cancha eliminada con éxito."
+        '400':
+          description: "El ID proporcionado no es un número válido."
         '404':
           description: "Cancha no encontrada."
 
@@ -119,6 +125,7 @@ paths:
         - name: id
           in: path
           required: true
+          description: "ID numérico de la cancha a operar."
           schema:
             type: integer
       requestBody:
@@ -134,6 +141,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CanchaResponse'
+        '400':
+          description: "El ID proporcionado no es un número válido o el estado enviado es incorrecto."
         '404':
           description: "Cancha no encontrada."
 

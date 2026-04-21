@@ -1,0 +1,157 @@
+export const pagosTemplate = () => `
+<div class="pagos-module">
+    <!-- Header -->
+    <div class="page-header" style="align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 class="page-title">Análisis de Ingresos</h1>
+            <p class="page-subtitle">Resumen de salud financiera para Sede Sur</p>
+        </div>
+        <div class="pay-range-picker">
+            <button class="active">Últimos 30 Días</button>
+            <button>Trimestral</button>
+            <button>Rango Personalizado</button>
+            <button class="icon-only"><i class='bx bx-filter-alt'></i></button>
+        </div>
+    </div>
+
+    <!-- 3 Big Cards Row -->
+    <div class="pay-stats-row">
+        <!-- Card 1 -->
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-green-tint text-green"><i class='bx bx-money'></i></div>
+                <span class="pay-badge bg-green-tint text-green">+12.5%</span>
+            </div>
+            <p class="pay-stat-label">INGRESOS MENSUALES</p>
+            <h2 class="pay-stat-value">$42,850.00</h2>
+            <div class="pay-prog-track"><div class="pay-prog-fill bg-dark-green" style="width: 50%;"></div></div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-yellow-tint text-yellow-d"><i class='bx bx-receipt'></i></div>
+                <span class="pay-badge bg-red-tint text-red">-4.2%</span>
+            </div>
+            <p class="pay-stat-label">SALDO PENDIENTE</p>
+            <h2 class="pay-stat-value">$3,120.50</h2>
+            <div class="pay-prog-track"><div class="pay-prog-fill bg-yellow-d" style="width: 15%;"></div></div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-gray-tint text-gray-d"><i class='bx bx-archive-in'></i></div>
+                <span class="pay-badge bg-green-tint text-green" style="background:#eefdf4;">Estable</span>
+            </div>
+            <p class="pay-stat-label">TASA DE REEMBOLSOS</p>
+            <h2 class="pay-stat-value">1.8%</h2>
+            <p class="pay-stat-sub">Promedio de industria: 2.4%</p>
+        </div>
+    </div>
+
+    <!-- Graph Panel Placeholder -->
+    <div class="pay-graph-panel">
+        <div class="pay-graph-header">
+            <h3>Velocidad de Ganancias</h3>
+            <div class="pay-graph-legend">
+                <span><div class="dot bg-dark-green"></div> Este Mes</span>
+                <span><div class="dot bg-blue-light"></div> Mes Pasado</span>
+            </div>
+        </div>
+        
+        <div class="pay-chart-area">
+            <!-- Simulated X axis labels line at bottom -->
+            <div class="pay-chart-axis">
+                <span>LUN</span>
+                <span>MAR</span>
+                <span>MIE</span>
+                <span>JUE</span>
+                <span>VIE</span>
+                <span>SAB</span>
+                <span>DOM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Panel -->
+    <div class="panel table-container-full pay-table-panel" style="padding: 0; position:relative; border-radius: 20px; margin-bottom:40px;">
+        <!-- Header -->
+        <div class="table-toolbar pay-toolbar" style="border-radius: 20px 20px 0 0;">
+            <div class="toolbar-left">
+                <h3 style="font-size: 16px; font-weight: 800; color: var(--text-main);">Transacciones Recientes</h3>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-outlined text-green border-none pay-btn-dl"><i class='bx bx-download'></i> Descargar CSV</button>
+            </div>
+        </div>
+
+        <table class="canchas-table pay-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>CLIENTE</th>
+                    <th>FECHA</th>
+                    <th>MÉTODO</th>
+                    <th>ESTADO</th>
+                    <th style="text-align:right;">MONTO</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1 -->
+                <tr>
+                    <td class="text-gray-d" style="font-weight:600; font-size:12px;">#TX-9482</td>
+                    <td>
+                        <div class="pay-user-cell">
+                            <div class="pay-avatar bg-green-tint text-green">MD</div>
+                            <strong style="font-size:13px; color:var(--text-main);">Marcus Rashford</strong>
+                        </div>
+                    </td>
+                    <td style="color:#64748b; font-size:13px;">Oct 24, 2023</td>
+                    <td><div class="pay-method-cell"><i class='bx bx-devices'></i> Online</div></td>
+                    <td><span class="cli-status-badge badge-green">PAGADO</span></td>
+                    <td style="text-align:right;"><strong style="font-size:14px; color:var(--text-main);">$120.00</strong></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr>
+                    <td class="text-gray-d" style="font-weight:600; font-size:12px;">#TX-9481</td>
+                    <td>
+                        <div class="pay-user-cell">
+                            <div class="pay-avatar bg-gray-tint text-gray-d" style="background:#f1f5f9; color:#64748b;">JS</div>
+                            <strong style="font-size:13px; color:var(--text-main);">Jadon Sancho</strong>
+                        </div>
+                    </td>
+                    <td style="color:#64748b; font-size:13px;">Oct 24, 2023</td>
+                    <td><div class="pay-method-cell"><i class='bx bx-money'></i> Efectivo</div></td>
+                    <td><span class="cli-status-badge badge-yellow" style="background:#fef9c3; color:#b45309;">PENDIENTE</span></td>
+                    <td style="text-align:right;"><strong style="font-size:14px; color:var(--text-main);">$85.00</strong></td>
+                </tr>
+                <!-- Row 3 -->
+                <tr>
+                    <td class="text-gray-d" style="font-weight:600; font-size:12px;">#TX-9480</td>
+                    <td>
+                        <div class="pay-user-cell">
+                            <div class="pay-avatar bg-green-tint text-green">HA</div>
+                            <strong style="font-size:13px; color:var(--text-main);">Harry Amis</strong>
+                        </div>
+                    </td>
+                    <td style="color:#64748b; font-size:13px;">Oct 23, 2023</td>
+                    <td><div class="pay-method-cell"><i class='bx bx-credit-card-alt'></i> Tarjeta</div></td>
+                    <td><span class="cli-status-badge badge-green">PAGADO</span></td>
+                    <td style="text-align:right;"><strong style="font-size:14px; color:var(--text-main);">$240.00</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Table View All Link -->
+        <div class="pay-table-footer" style="padding: 20px; text-align: center; border-radius: 0 0 20px 20px;">
+            <a href="#" style="text-decoration:none; font-size:12px; font-weight:800; color:#475e8a;">Ver Todas las Transacciones</a>
+        </div>
+
+        <!-- FAB Circular -->
+        <button class="fab-btn pay-fab-circle">
+            <i class='bx bx-credit-card-front'></i>
+        </button>
+    </div>
+</div>
+`;
