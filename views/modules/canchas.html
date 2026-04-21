@@ -426,7 +426,14 @@
                 return res.json();
             })
             .then(function (data) {
-                todasCanchas = data;
+                // Normalizar: si la API devuelve 'id' en lugar de 'canchaId'
+                console.log('[Canchas] Primer item recibido de la API:', data[0]);
+                todasCanchas = data.map(function(c) {
+                    if (c.canchaId === undefined && c.id !== undefined) {
+                        c.canchaId = c.id;
+                    }
+                    return c;
+                });
                 statsActualizar(todasCanchas);
                 loading.style.display = 'none';
                 renderVista(filtrar());
