@@ -1,0 +1,873 @@
+<div class="mant-module">
+
+    <!-- ===== HEADER ===== -->
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+        <div>
+            <h1 class="page-title" style="margin:0 0 4px;">Gestión de Mantenimientos</h1>
+            <p class="page-subtitle" style="margin:0;">Administra y supervisa todos los mantenimientos programados</p>
+        </div>
+    </div>
+
+    <!-- ===== STATS CARDS ===== -->
+    <div class="mant-stats-grid" id="mant-stats-grid">
+        <div class="mant-stat-card">
+            <div class="msc-icon" style="background:linear-gradient(135deg,#0f172a,#334155);">
+                <i class='bx bx-list-ul'></i>
+            </div>
+            <div class="msc-data">
+                <span class="msc-label">TOTAL</span>
+                <strong class="msc-value" id="stat-total">—</strong>
+            </div>
+        </div>
+        <div class="mant-stat-card">
+            <div class="msc-icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
+                <i class='bx bx-calendar-check'></i>
+            </div>
+            <div class="msc-data">
+                <span class="msc-label">PROGRAMADOS</span>
+                <strong class="msc-value" id="stat-programados">—</strong>
+            </div>
+        </div>
+        <div class="mant-stat-card">
+            <div class="msc-icon" style="background:linear-gradient(135deg,#92400e,#d97706);">
+                <i class='bx bx-loader-alt'></i>
+            </div>
+            <div class="msc-data">
+                <span class="msc-label">EN PROCESO</span>
+                <strong class="msc-value" id="stat-enproceso">—</strong>
+            </div>
+        </div>
+        <div class="mant-stat-card">
+            <div class="msc-icon" style="background:linear-gradient(135deg,#14532d,#16a34a);">
+                <i class='bx bx-check-circle'></i>
+            </div>
+            <div class="msc-data">
+                <span class="msc-label">COMPLETADOS</span>
+                <strong class="msc-value" id="stat-completados">—</strong>
+            </div>
+        </div>
+        <div class="mant-stat-card">
+            <div class="msc-icon" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
+                <i class='bx bx-x-circle'></i>
+            </div>
+            <div class="msc-data">
+                <span class="msc-label">CANCELADOS</span>
+                <strong class="msc-value" id="stat-cancelados">—</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FILTERS TOOLBAR ===== -->
+    <div class="mant-toolbar">
+        <div class="mant-filters">
+            <div class="mf-group">
+                <label class="mf-label">Cancha</label>
+                <div class="mf-select-wrap">
+                    <select id="mf-cancha" class="mf-select">
+                        <option value="">Todas las canchas</option>
+                    </select>
+                    <i class='bx bx-chevron-down mf-arrow'></i>
+                </div>
+            </div>
+            <div class="mf-group">
+                <label class="mf-label">Estado</label>
+                <div class="mf-select-wrap">
+                    <select id="mf-estado" class="mf-select">
+                        <option value="">Todos</option>
+                        <option value="PROGRAMADO">Programado</option>
+                        <option value="EN_PROCESO">En Proceso</option>
+                        <option value="COMPLETADO">Completado</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                    <i class='bx bx-chevron-down mf-arrow'></i>
+                </div>
+            </div>
+            <div class="mf-group">
+                <label class="mf-label">Desde</label>
+                <input type="date" id="mf-desde" class="mf-date">
+            </div>
+            <div class="mf-group">
+                <label class="mf-label">Hasta</label>
+                <input type="date" id="mf-hasta" class="mf-date">
+            </div>
+            <button class="btn btn-primary mf-btn-apply" id="mf-apply">
+                <i class='bx bx-filter-alt'></i> Aplicar
+            </button>
+            <button class="mf-btn-clear" id="mf-clear" title="Limpiar filtros">
+                <i class='bx bx-x'></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== LOADING / ERROR ===== -->
+    <div id="mant-loading" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:60px;color:#94a3b8;font-size:14px;">
+        <div class="spinner-circle"></div> Cargando mantenimientos...
+    </div>
+    <div id="mant-error" style="display:none;flex-direction:column;align-items:center;padding:48px;gap:10px;color:#ef4444;text-align:center;">
+        <i class='bx bx-error-circle' style="font-size:42px;"></i>
+        <span id="mant-error-msg">No se pudo cargar.</span>
+        <button class="btn btn-primary" id="mant-retry" style="padding:10px 24px;margin-top:4px;"><i class='bx bx-refresh'></i> Reintentar</button>
+    </div>
+
+    <!-- ===== EMPTY STATE ===== -->
+    <div id="mant-empty" style="display:none;flex-direction:column;align-items:center;padding:64px;gap:12px;color:#94a3b8;">
+        <i class='bx bx-wrench' style="font-size:52px;opacity:0.3;"></i>
+        <strong style="font-size:15px;color:#64748b;">Sin mantenimientos</strong>
+        <span style="font-size:13px;">No hay mantenimientos con los filtros seleccionados.</span>
+    </div>
+
+    <!-- ===== TABLE ===== -->
+    <div id="mant-table-wrap" style="display:none;">
+        <div style="overflow-x:auto;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <table class="mant-table">
+                <thead>
+                    <tr>
+                        <th>Cancha</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Motivo</th>
+                        <th style="text-align:right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="mant-tbody"></tbody>
+            </table>
+        </div>
+        <div id="mant-footer" style="padding:14px 4px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#94a3b8;">
+            <span id="mant-count-label"></span>
+        </div>
+    </div>
+
+</div><!-- /mant-module -->
+
+<!-- ===== MODAL EDITAR MANTENIMIENTO ===== -->
+<div id="modal-mant-edit" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="pm-modal">
+        <div class="pm-header">
+            <div class="pm-header-icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
+                <i class='bx bx-edit-alt'></i>
+            </div>
+            <div>
+                <h2 class="pm-title">Editar Mantenimiento</h2>
+                <p class="pm-subtitle" id="edit-cancha-label">Cancha seleccionada</p>
+            </div>
+            <button class="pm-close" id="btn-edit-close"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="pm-body">
+            <div class="pm-alert-error" id="edit-error-box" style="display:none;">
+                <i class='bx bx-error-circle'></i>
+                <span id="edit-error-msg">Error</span>
+            </div>
+            <div class="pm-row-2">
+                <div class="pm-field">
+                    <label class="pm-label"><i class='bx bx-calendar-plus'></i> Inicio <span class="pm-required">*</span></label>
+                    <input type="datetime-local" id="edit-inicio" class="pm-input">
+                    <span class="pm-field-error" id="edit-err-inicio"></span>
+                </div>
+                <div class="pm-field">
+                    <label class="pm-label"><i class='bx bx-calendar-check'></i> Fin <span class="pm-required">*</span></label>
+                    <input type="datetime-local" id="edit-fin" class="pm-input">
+                    <span class="pm-field-error" id="edit-err-fin"></span>
+                </div>
+            </div>
+            <div class="pm-field">
+                <label class="pm-label"><i class='bx bx-category'></i> Tipo <span class="pm-required">*</span></label>
+                <div class="pm-select-wrap">
+                    <select id="edit-tipo" class="pm-input pm-select">
+                        <option value="">— Seleccionar tipo —</option>
+                        <option value="PREVENTIVO">Preventivo</option>
+                        <option value="CORRECTIVO">Correctivo</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                    <i class='bx bx-chevron-down pm-select-arrow'></i>
+                </div>
+                <span class="pm-field-error" id="edit-err-tipo"></span>
+            </div>
+            <div class="pm-field">
+                <label class="pm-label"><i class='bx bx-note'></i> Motivo <span class="pm-required">*</span></label>
+                <textarea id="edit-motivo" class="pm-input pm-textarea" maxlength="200" placeholder="Describe el motivo del mantenimiento..."></textarea>
+                <div class="pm-input-footer">
+                    <span class="pm-field-error" id="edit-err-motivo"></span>
+                    <span class="pm-char-count" id="edit-char-motivo">0/200</span>
+                </div>
+            </div>
+        </div>
+        <div class="pm-footer">
+            <button class="pm-btn-cancel" id="btn-edit-cancel">Cancelar</button>
+            <button class="pm-btn-submit" id="btn-edit-submit" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
+                <span id="edit-submit-text"><i class='bx bx-save'></i> Guardar Cambios</span>
+                <span id="edit-submit-loader" style="display:none;"><div class="pm-spinner"></div> Guardando...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL CAMBIAR ESTADO ===== -->
+<div id="modal-mant-estado" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="pm-modal" style="max-width:380px;">
+        <div class="pm-header">
+            <div class="pm-header-icon" style="background:linear-gradient(135deg,#0f172a,#334155);">
+                <i class='bx bx-transfer-alt'></i>
+            </div>
+            <div>
+                <h2 class="pm-title">Cambiar Estado</h2>
+                <p class="pm-subtitle" id="estado-mant-label">Mantenimiento</p>
+            </div>
+            <button class="pm-close" id="btn-estado-close"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="pm-body">
+            <p style="font-size:13px;color:#64748b;margin:0;">Selecciona el nuevo estado para este mantenimiento:</p>
+            <div class="mant-estado-options" id="mant-estado-options">
+                <!-- Renderizado dinámicamente -->
+            </div>
+        </div>
+        <div class="pm-footer">
+            <button class="pm-btn-cancel" id="btn-estado-cancel">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CONFIRM CANCELAR ===== -->
+<div id="modal-mant-confirm" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="pm-modal" style="max-width:380px;">
+        <div class="pm-header">
+            <div class="pm-header-icon" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
+                <i class='bx bx-trash-alt'></i>
+            </div>
+            <div>
+                <h2 class="pm-title">Cancelar Mantenimiento</h2>
+                <p class="pm-subtitle">Esta acción no se puede deshacer</p>
+            </div>
+            <button class="pm-close" id="btn-confirm-close"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="pm-body">
+            <p id="mant-confirm-msg" style="font-size:13.5px;color:#374151;margin:0;line-height:1.6;"></p>
+        </div>
+        <div class="pm-footer">
+            <button class="pm-btn-cancel" id="btn-confirm-no">No, volver</button>
+            <button class="pm-btn-submit" id="btn-confirm-yes" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
+                <span id="confirm-text"><i class='bx bx-x-circle'></i> Sí, cancelar</span>
+                <span id="confirm-loader" style="display:none;"><div class="pm-spinner"></div> Cancelando...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="nc-toast" id="mant-toast" style="display:none;">
+    <i class='bx bx-check-circle'></i>
+    <span id="mant-toast-msg">Operación exitosa</span>
+</div>
+
+<style>
+    /* ---- Stats grid ---- */
+    .mant-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .mant-stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .mant-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+    .mant-stat-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .msc-icon {
+        width: 46px; height: 46px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; color: #fff; flex-shrink: 0;
+    }
+    .msc-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: #94a3b8; }
+    .msc-value { font-size: 26px; font-weight: 800; color: #0f172a; display: block; line-height: 1.1; }
+
+    /* ---- Toolbar ---- */
+    .mant-toolbar {
+        background: #fff;
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .mant-filters {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .mf-group { display: flex; flex-direction: column; gap: 5px; }
+    .mf-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: .5px; }
+    .mf-select-wrap { position: relative; }
+    .mf-select {
+        appearance: none;
+        padding: 8px 32px 8px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 13px; font-family: inherit;
+        color: #1e293b; background: #f8fafc;
+        cursor: pointer; outline: none;
+        transition: border-color .15s;
+    }
+    .mf-select:focus { border-color: #126c2e; }
+    .mf-arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; font-size: 16px; }
+    .mf-date {
+        padding: 8px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 13px; font-family: inherit;
+        color: #1e293b; background: #f8fafc;
+        outline: none; transition: border-color .15s;
+    }
+    .mf-date:focus { border-color: #126c2e; }
+    .mf-btn-apply { padding: 8px 18px !important; font-size: 13px !important; }
+    .mf-btn-clear {
+        width: 36px; height: 36px; border-radius: 10px;
+        border: 1.5px solid #e2e8f0; background: #f8fafc;
+        color: #64748b; cursor: pointer; font-size: 18px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background .15s, border-color .15s;
+    }
+    .mf-btn-clear:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+
+    /* ---- Table ---- */
+    .mant-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        background: #fff;
+    }
+    .mant-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 11px; font-weight: 700; letter-spacing: .6px;
+        color: #94a3b8; background: #f8fafc;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .mant-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f8fafc;
+        color: #334155;
+        vertical-align: middle;
+    }
+    .mant-table tr:last-child td { border-bottom: none; }
+    .mant-table tr:hover td { background: #fafcff; }
+
+    .mant-cancha-cell { display: flex; align-items: center; gap: 10px; }
+    .mant-cancha-avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .mant-cancha-name { font-weight: 600; color: #0f172a; }
+    .mant-cancha-sub  { font-size: 11px; color: #94a3b8; }
+
+    .mant-tipo-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 11px; font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+    .tipo-preventivo { background: #eff6ff; color: #1d4ed8; }
+    .tipo-correctivo { background: #fef3c7; color: #92400e; }
+    .tipo-urgente    { background: #fef2f2; color: #b91c1c; }
+
+    .mant-estado-badge {
+        display: inline-flex;
+        align-items: center; gap: 5px;
+        font-size: 11px; font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .est-programado { background: #dbeafe; color: #1d4ed8; }
+    .est-en_proceso { background: #fef3c7; color: #92400e; }
+    .est-completado { background: #dcfce7; color: #166534; }
+    .est-cancelado  { background: #fee2e2; color: #991b1b; }
+
+    .mant-motivo-cell { max-width: 200px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Botones acciones fila */
+    .mant-actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+    .mant-btn {
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: none;
+        font-size: 12px; font-weight: 600;
+        cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        transition: opacity .15s;
+        white-space: nowrap;
+    }
+    .mant-btn:hover { opacity: .8; }
+    .mant-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .mb-edit    { background: #eff6ff; color: #1d4ed8; }
+    .mb-estado  { background: #f0fdf4; color: #166534; }
+    .mb-cancel  { background: #fef2f2; color: #dc2626; }
+
+    /* Estado options modal */
+    .mant-estado-options { display: flex; flex-direction: column; gap: 8px; }
+    .mant-estado-opt {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px; border-radius: 12px;
+        border: 1.5px solid #f1f5f9; cursor: pointer;
+        transition: border-color .15s, background .15s;
+        font-size: 13px; font-weight: 600; color: #334155;
+    }
+    .mant-estado-opt:hover  { border-color: #126c2e; background: #f0fdf4; color: #126c2e; }
+    .mant-estado-opt i { font-size: 18px; }
+    .mant-estado-opt.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+    /* Spinner */
+    .spinner-circle {
+        width: 28px; height: 28px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #126c2e;
+        border-radius: 50%;
+        animation: spin .8s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+    var BASE_URL = 'http://localhost:8080/api/v1';
+    var session  = window.Auth ? window.Auth.getSession() : null;
+
+    /* ---- Colores de avatares ---- */
+    var COLORS = ['#8b5cf6','#3b82f6','#f59e0b','#10b981','#ef4444','#ec4899','#06b6d4'];
+
+    /* ---- Estado local ---- */
+    var todosMantenimientos = [];
+    var filtros = { canchaId: '', estado: '', desde: '', hasta: '' };
+    var _editId   = null;
+    var _estadoId = null;
+    var _cancelId = null;
+
+    /* ---- DOM refs ---- */
+    var loadingEl = document.getElementById('mant-loading');
+    var errorEl   = document.getElementById('mant-error');
+    var errorMsg  = document.getElementById('mant-error-msg');
+    var emptyEl   = document.getElementById('mant-empty');
+    var tableWrap = document.getElementById('mant-table-wrap');
+    var tbody     = document.getElementById('mant-tbody');
+    var countLbl  = document.getElementById('mant-count-label');
+
+    var mfCancha = document.getElementById('mf-cancha');
+    var mfEstado = document.getElementById('mf-estado');
+    var mfDesde  = document.getElementById('mf-desde');
+    var mfHasta  = document.getElementById('mf-hasta');
+
+    /* ---- Toast ---- */
+    function mostrarToast(msg, isError) {
+        var t   = document.getElementById('mant-toast');
+        var tm  = document.getElementById('mant-toast-msg');
+        tm.textContent = msg;
+        t.style.background = isError ? '#fef2f2' : '';
+        t.style.color      = isError ? '#dc2626' : '';
+        t.style.display = 'flex';
+        setTimeout(function(){ t.style.display = 'none'; }, 3500);
+    }
+
+    /* ---- Formatear fecha ISO a legible ---- */
+    function fmtDT(isoStr) {
+        if (!isoStr) return '—';
+        try {
+            var d = new Date(isoStr);
+            var pad = function(n){ return n < 10 ? '0' + n : n; };
+            return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear()
+                 + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + 'h';
+        } catch(e) { return isoStr; }
+    }
+
+    /* ---- Cargar dropdown de canchas ---- */
+    function cargarCanchasDropdown() {
+        fetch(BASE_URL + '/canchas?size=200')
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                var canchas = Array.isArray(data) ? data : (data.content || []);
+                canchas.forEach(function(c){
+                    var opt = document.createElement('option');
+                    opt.value = c.canchaId || c.id || '';
+                    opt.textContent = c.nombre;
+                    mfCancha.appendChild(opt);
+                });
+            }).catch(function(){});
+    }
+
+    /* ---- Calcular y mostrar stats ---- */
+    function actualizarStats(data) {
+        var tots = { PROGRAMADO: 0, EN_PROCESO: 0, COMPLETADO: 0, CANCELADO: 0 };
+        data.forEach(function(m){ if (tots[m.estadoMantenimiento] !== undefined) tots[m.estadoMantenimiento]++; });
+        document.getElementById('stat-total').textContent      = data.length;
+        document.getElementById('stat-programados').textContent = tots.PROGRAMADO;
+        document.getElementById('stat-enproceso').textContent   = tots.EN_PROCESO;
+        document.getElementById('stat-completados').textContent = tots.COMPLETADO;
+        document.getElementById('stat-cancelados').textContent  = tots.CANCELADO;
+    }
+
+    /* ---- Aplicar filtros locales ---- */
+    function filtrar() {
+        return todosMantenimientos.filter(function(m){
+            if (filtros.canchaId && String(m.canchaId) !== String(filtros.canchaId)) return false;
+            if (filtros.estado  && m.estadoMantenimiento !== filtros.estado) return false;
+            if (filtros.desde) {
+                var dInicio = new Date(m.horaInicio);
+                var dDesde  = new Date(filtros.desde + 'T00:00:00');
+                if (dInicio < dDesde) return false;
+            }
+            if (filtros.hasta) {
+                var dFin2  = new Date(m.horaInicio);
+                var dHasta = new Date(filtros.hasta + 'T23:59:59');
+                if (dFin2 > dHasta) return false;
+            }
+            return true;
+        });
+    }
+
+    /* ---- Badge tipo ---- */
+    function tipoBadge(tipo) {
+        var map = {
+            PREVENTIVO: { cls: 'tipo-preventivo', lbl: 'Preventivo' },
+            CORRECTIVO: { cls: 'tipo-correctivo', lbl: 'Correctivo' },
+            URGENTE:    { cls: 'tipo-urgente',    lbl: 'Urgente'    },
+        };
+        var t = map[tipo] || { cls: 'tipo-preventivo', lbl: tipo };
+        return "<span class='mant-tipo-badge " + t.cls + "'>" + t.lbl + "</span>";
+    }
+
+    /* ---- Badge estado ---- */
+    function estadoBadge(estado) {
+        var map = {
+            PROGRAMADO: { cls: 'est-programado', lbl: 'Programado',  dot: '🔵' },
+            EN_PROCESO: { cls: 'est-en_proceso', lbl: 'En Proceso',  dot: '🟠' },
+            COMPLETADO: { cls: 'est-completado', lbl: 'Completado',  dot: '🟢' },
+            CANCELADO:  { cls: 'est-cancelado',  lbl: 'Cancelado',   dot: '🔴' },
+        };
+        var s = map[estado] || { cls: 'est-programado', lbl: estado, dot: '⚪' };
+        return "<span class='mant-estado-badge " + s.cls + "'>" + s.dot + " " + s.lbl + "</span>";
+    }
+
+    /* ---- Construir fila ---- */
+    function buildFila(m) {
+        var color    = COLORS[(m.canchaId || 0) % COLORS.length];
+        var initials = (m.nombreCancha || 'C').split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
+        var isProgramado = m.estadoMantenimiento === 'PROGRAMADO';
+        var isFinal      = m.estadoMantenimiento === 'COMPLETADO' || m.estadoMantenimiento === 'CANCELADO';
+
+        var tr = document.createElement('tr');
+        tr.innerHTML = [
+            "<td>",
+                "<div class='mant-cancha-cell'>",
+                    "<div class='mant-cancha-avatar' style='background:" + color + ";'>" + initials + "</div>",
+                    "<div><div class='mant-cancha-name'>" + (m.nombreCancha || 'desconocida') + "</div>",
+                    "<div class='mant-cancha-sub'>ID Man: " + (m.id || '—') + "</div></div>",
+                "</div>",
+            "</td>",
+            "<td style='white-space:nowrap;'>" + fmtDT(m.horaInicio) + "</td>",
+            "<td style='white-space:nowrap;'>" + fmtDT(m.horaFin) + "</td>",
+            "<td>" + tipoBadge(m.tipoMantenimiento) + "</td>",
+            "<td>" + estadoBadge(m.estadoMantenimiento) + "</td>",
+            "<td><div class='mant-motivo-cell' title='" + (m.motivo||'').replace(/'/g, '&#39;') + "'>" + (m.motivo || '—') + "</div></td>",
+            "<td>",
+                "<div class='mant-actions'>",
+                    !isFinal ? "<button class='mant-btn mb-edit' data-mid='" + m.id + "'" + (!isProgramado ? " disabled title='Solo se puede editar si está PROGRAMADO'" : "") + "><i class='bx bx-edit-alt'></i> Editar</button>" : '',
+                    !isFinal ? "<button class='mant-btn mb-estado' data-mid='" + m.id + "'><i class='bx bx-transfer-alt'></i> Estado</button>" : '',
+                    !isFinal ? "<button class='mant-btn mb-cancel' data-mid='" + m.id + "'><i class='bx bx-x-circle'></i> Cancelar</button>" : '',
+                    isFinal  ? "<span style='font-size:12px;color:#94a3b8;font-style:italic;'>Finalizado</span>" : '',
+                "</div>",
+            "</td>",
+        ].join('');
+
+        // Bind edit
+        var btnEdit = tr.querySelector('.mb-edit:not([disabled])');
+        if (btnEdit) {
+            btnEdit.addEventListener('click', function(){ abrirEditar(m); });
+        }
+        // Bind cambiar estado
+        var btnEst = tr.querySelector('.mb-estado');
+        if (btnEst) {
+            btnEst.addEventListener('click', function(){ abrirCambioEstado(m); });
+        }
+        // Bind cancelar
+        var btnCan = tr.querySelector('.mb-cancel');
+        if (btnCan) {
+            btnCan.addEventListener('click', function(){ abrirConfirmCancelar(m); });
+        }
+
+        return tr;
+    }
+
+    /* ---- Render tabla ---- */
+    function renderTabla(data) {
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            loadingEl.style.display = 'none';
+            tableWrap.style.display = 'none';
+            emptyEl.style.display = 'flex';
+            return;
+        }
+        data.forEach(function(m){ tbody.appendChild(buildFila(m)); });
+        countLbl.textContent = data.length + ' mantenimiento' + (data.length !== 1 ? 's' : '') + ' encontrado' + (data.length !== 1 ? 's' : '');
+        loadingEl.style.display  = 'none';
+        emptyEl.style.display    = 'none';
+        tableWrap.style.display  = '';
+
+        actualizarStats(todosMantenimientos);
+    }
+
+    /* ---- Cargar datos del servidor ---- */
+    function cargarMantenimientos() {
+        loadingEl.style.display  = 'flex';
+        errorEl.style.display    = 'none';
+        emptyEl.style.display    = 'none';
+        tableWrap.style.display  = 'none';
+
+        fetch(BASE_URL + '/mantenimientos?size=200&sort=horaInicio,desc')
+            .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
+            .then(function(data){
+                todosMantenimientos = Array.isArray(data) ? data : (data.content || []);
+                renderTabla(filtrar());
+            })
+            .catch(function(e){
+                loadingEl.style.display = 'none';
+                errorMsg.textContent = 'No se pudo cargar: ' + e.message;
+                errorEl.style.display = 'flex';
+            });
+    }
+
+    /* ==========================================================
+       MODAL EDITAR
+    ========================================================== */
+    var modalEdit      = document.getElementById('modal-mant-edit');
+    var editCanchaLbl  = document.getElementById('edit-cancha-label');
+    var editInicio     = document.getElementById('edit-inicio');
+    var editFin        = document.getElementById('edit-fin');
+    var editTipo       = document.getElementById('edit-tipo');
+    var editMotivo     = document.getElementById('edit-motivo');
+    var editCharMotivo = document.getElementById('edit-char-motivo');
+    var editErrBox     = document.getElementById('edit-error-box');
+    var editErrMsg     = document.getElementById('edit-error-msg');
+
+    function dtLocalVal(isoStr) {
+        if (!isoStr) return '';
+        var d = new Date(isoStr);
+        var pad = function(n){ return n < 10 ? '0' + n : n; };
+        return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+             + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function abrirEditar(m) {
+        _editId = m.id;
+        editCanchaLbl.textContent = '📌 ' + (m.nombreCancha || 'Cancha');
+        editInicio.value = dtLocalVal(m.horaInicio);
+        editFin.value    = dtLocalVal(m.horaFin);
+        editTipo.value   = m.tipoMantenimiento || '';
+        editMotivo.value = m.motivo || '';
+        editCharMotivo.textContent = (m.motivo || '').length + '/200';
+        editErrBox.style.display = 'none';
+        document.getElementById('edit-submit-text').style.display = 'flex';
+        document.getElementById('edit-submit-loader').style.display = 'none';
+        document.getElementById('btn-edit-submit').disabled = false;
+        modalEdit.style.display = 'flex';
+    }
+    function cerrarEditar() { modalEdit.style.display = 'none'; }
+
+    editMotivo.addEventListener('input', function(){
+        editCharMotivo.textContent = editMotivo.value.length + '/200';
+    });
+
+    document.getElementById('btn-edit-close').addEventListener('click', cerrarEditar);
+    document.getElementById('btn-edit-cancel').addEventListener('click', cerrarEditar);
+    modalEdit.addEventListener('click', function(e){ if (e.target === modalEdit) cerrarEditar(); });
+
+    document.getElementById('btn-edit-submit').addEventListener('click', function(){
+        var inicio = editInicio.value;
+        var fin    = editFin.value;
+        var tipo   = editTipo.value;
+        var motivo = editMotivo.value.trim();
+
+        if (!inicio || !fin || !tipo || !motivo) {
+            editErrMsg.textContent = 'Completa todos los campos.';
+            editErrBox.style.display = 'flex';
+            return;
+        }
+        if (fin <= inicio) {
+            editErrMsg.textContent = 'El fin debe ser posterior al inicio.';
+            editErrBox.style.display = 'flex';
+            return;
+        }
+
+        var btn = document.getElementById('btn-edit-submit');
+        btn.disabled = true;
+        document.getElementById('edit-submit-text').style.display = 'none';
+        document.getElementById('edit-submit-loader').style.display = 'flex';
+
+        fetch(BASE_URL + '/mantenimientos/' + _editId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ horaInicio: inicio + ':00', horaFin: fin + ':00', tipoMantenimiento: tipo, motivo: motivo })
+        })
+        .then(function(r){ if (!r.ok) return r.json().then(function(e){ throw e; }); return r.json(); })
+        .then(function(updated){
+            var idx = todosMantenimientos.findIndex(function(m){ return m.id === _editId; });
+            if (idx !== -1) todosMantenimientos[idx] = updated;
+            cerrarEditar();
+            renderTabla(filtrar());
+            mostrarToast('¡Mantenimiento actualizado con éxito!');
+        })
+        .catch(function(e){
+            btn.disabled = false;
+            document.getElementById('edit-submit-text').style.display = 'flex';
+            document.getElementById('edit-submit-loader').style.display = 'none';
+            editErrMsg.textContent = (e && e.message) || 'Error al actualizar.';
+            editErrBox.style.display = 'flex';
+        });
+    });
+
+    /* ==========================================================
+       MODAL CAMBIAR ESTADO
+    ========================================================== */
+    var modalEstado = document.getElementById('modal-mant-estado');
+    var estadoLbl   = document.getElementById('estado-mant-label');
+    var estadoOpts  = document.getElementById('mant-estado-options');
+
+    var FLUJO_ESTADOS = {
+        PROGRAMADO: [
+            { val: 'EN_PROCESO', lbl: 'En Proceso', icon: 'bx-loader-alt', color: '#92400e' },
+            { val: 'CANCELADO',  lbl: 'Cancelado',  icon: 'bx-x-circle',   color: '#dc2626' },
+        ],
+        EN_PROCESO: [
+            { val: 'COMPLETADO', lbl: 'Completado', icon: 'bx-check-circle', color: '#16a34a' },
+        ],
+    };
+
+    function abrirCambioEstado(m) {
+        _estadoId = m.id;
+        estadoLbl.textContent = (m.nombreCancha || 'Cancha') + ' · ' + (m.estadoMantenimiento || '');
+        estadoOpts.innerHTML = '';
+
+        var opciones = FLUJO_ESTADOS[m.estadoMantenimiento] || [];
+        if (opciones.length === 0) {
+            estadoOpts.innerHTML = '<p style="font-size:13px;color:#94a3b8;">No hay transiciones disponibles.</p>';
+        } else {
+            opciones.forEach(function(op){
+                var div = document.createElement('div');
+                div.className = 'mant-estado-opt';
+                div.innerHTML = "<i class='bx " + op.icon + "' style='color:" + op.color + ";'></i> " + op.lbl;
+                div.addEventListener('click', function(){
+                    ejecutarCambioEstado(_estadoId, op.val);
+                });
+                estadoOpts.appendChild(div);
+            });
+        }
+
+        modalEstado.style.display = 'flex';
+    }
+    function cerrarEstado() { modalEstado.style.display = 'none'; }
+
+    document.getElementById('btn-estado-close').addEventListener('click', cerrarEstado);
+    document.getElementById('btn-estado-cancel').addEventListener('click', cerrarEstado);
+    modalEstado.addEventListener('click', function(e){ if (e.target === modalEstado) cerrarEstado(); });
+
+    function ejecutarCambioEstado(id, nuevoEstado) {
+        cerrarEstado();
+        fetch(BASE_URL + '/mantenimientos/' + id + '/estado', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        })
+        .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
+        .then(function(updated){
+            var idx = todosMantenimientos.findIndex(function(m){ return m.id === id; });
+            if (idx !== -1) todosMantenimientos[idx] = updated;
+            renderTabla(filtrar());
+            mostrarToast('Estado actualizado a ' + nuevoEstado + '.');
+        })
+        .catch(function(e){ mostrarToast('Error al cambiar estado: ' + e.message, true); });
+    }
+
+    /* ==========================================================
+       MODAL CONFIRMAR CANCELAR
+    ========================================================== */
+    var modalConfirm = document.getElementById('modal-mant-confirm');
+    var confirmMsg   = document.getElementById('mant-confirm-msg');
+
+    function abrirConfirmCancelar(m) {
+        _cancelId = m.id;
+        confirmMsg.textContent = 'Estás por cancelar el mantenimiento de "' + (m.nombreCancha || 'la cancha')
+            + '" programado para el ' + fmtDT(m.horaInicio) + '. ¿Confirmas?';
+        document.getElementById('confirm-text').style.display = 'flex';
+        document.getElementById('confirm-loader').style.display = 'none';
+        document.getElementById('btn-confirm-yes').disabled = false;
+        modalConfirm.style.display = 'flex';
+    }
+    function cerrarConfirm() { modalConfirm.style.display = 'none'; }
+
+    document.getElementById('btn-confirm-close').addEventListener('click', cerrarConfirm);
+    document.getElementById('btn-confirm-no').addEventListener('click', cerrarConfirm);
+    modalConfirm.addEventListener('click', function(e){ if (e.target === modalConfirm) cerrarConfirm(); });
+
+    document.getElementById('btn-confirm-yes').addEventListener('click', function(){
+        var btn = document.getElementById('btn-confirm-yes');
+        btn.disabled = true;
+        document.getElementById('confirm-text').style.display = 'none';
+        document.getElementById('confirm-loader').style.display = 'flex';
+
+        fetch(BASE_URL + '/mantenimientos/' + _cancelId + '/cancelar', { method: 'PATCH' })
+        .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
+        .then(function(updated){
+            var idx = todosMantenimientos.findIndex(function(m){ return m.id === _cancelId; });
+            if (idx !== -1) todosMantenimientos[idx] = updated;
+            cerrarConfirm();
+            renderTabla(filtrar());
+            mostrarToast('Mantenimiento cancelado correctamente.');
+        })
+        .catch(function(e){
+            cerrarConfirm();
+            mostrarToast('Error al cancelar: ' + e.message, true);
+        });
+    });
+
+    /* ---- Escape global ---- */
+    document.addEventListener('keydown', function(e){
+        if (e.key !== 'Escape') return;
+        if (modalEdit.style.display    !== 'none') cerrarEditar();
+        if (modalEstado.style.display  !== 'none') cerrarEstado();
+        if (modalConfirm.style.display !== 'none') cerrarConfirm();
+    });
+
+    /* ---- Filtros ---- */
+    document.getElementById('mf-apply').addEventListener('click', function(){
+        filtros.canchaId = mfCancha.value;
+        filtros.estado   = mfEstado.value;
+        filtros.desde    = mfDesde.value;
+        filtros.hasta    = mfHasta.value;
+        renderTabla(filtrar());
+    });
+
+    document.getElementById('mf-clear').addEventListener('click', function(){
+        mfCancha.value = ''; mfEstado.value = '';
+        mfDesde.value  = ''; mfHasta.value  = '';
+        filtros = { canchaId: '', estado: '', desde: '', hasta: '' };
+        renderTabla(filtrar());
+    });
+
+    document.getElementById('mant-retry').addEventListener('click', cargarMantenimientos);
+
+    /* ---- Init ---- */
+    cargarCanchasDropdown();
+    cargarMantenimientos();
+
+})();
+</script>

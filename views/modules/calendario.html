@@ -33,6 +33,7 @@
         <div class="legend-item bg-yellow-tint text-yellow"><span class="dot bg-yellow"></span> Pendiente</div>
         <div class="legend-item" style="background:#f0fdf4;color:#166534;"><span class="dot" style="background:#22c55e;"></span> Completada</div>
         <div class="legend-item bg-gray-tint text-gray-d"><span class="dot bg-gray"></span> Cancelada</div>
+        <div class="legend-item" style="background:#fff7ed;color:#9a3412;font-weight:700;"><span class="dot" style="background:#ea580c;"></span> 🔧 Mantenimiento</div>
     </div>
 
     <!-- Loading / Error -->
@@ -133,6 +134,64 @@
         cursor:pointer;color:inherit;line-height:16px;text-align:center;
     }
     .cal-card:hover .cc-cancel-btn { display:block; }
+
+    /* Bloque mantenimiento en calendario */
+    .cal-card-mant {
+        background: #fff7ed !important;
+        border-left: 3px solid #ea580c !important;
+        color: #9a3412 !important;
+    }
+    .cal-card-mant .cc-time  { color: #c2410c !important; font-weight: 800; }
+    .cal-card-mant .cc-title { color: #7c2d12 !important; font-weight: 700; }
+    .cal-card-mant .cc-sub   { color: #c2410c !important; opacity: 0.85; }
+
+    /* Popover mantenimiento */
+    .mant-popover {
+        position: fixed;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+        border: 1px solid #fed7aa;
+        width: 280px;
+        padding: 0;
+        z-index: 2000;
+        animation: pop-in 0.18s cubic-bezier(.4,0,.2,1);
+        overflow: hidden;
+    }
+    @keyframes pop-in { from { opacity:0; transform: scale(0.92) } to { opacity:1; transform: scale(1) } }
+    .mp-header {
+        background: linear-gradient(135deg,#9a3412,#ea580c);
+        color: #fff; padding: 14px 16px 12px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .mp-header-icon { font-size: 22px; }
+    .mp-header-title { font-size: 14px; font-weight: 700; }
+    .mp-header-close {
+        margin-left: auto; background: rgba(255,255,255,0.2);
+        border: none; color: #fff; border-radius: 8px;
+        width: 28px; height: 28px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 17px;
+    }
+    .mp-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .mp-row {
+        display: flex; flex-direction: column; gap: 1px;
+        font-size: 12px; color: #64748b;
+    }
+    .mp-row strong { font-size: 13px; color: #1e293b; }
+    .mp-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #f1f5f9; }
+    .mp-btn-manage {
+        flex: 1; padding: 8px; border-radius: 10px;
+        border: none; background: #fff7ed;
+        color: #9a3412; font-size: 12px; font-weight: 700;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .mp-btn-cancel {
+        flex: 1; padding: 8px; border-radius: 10px;
+        border: none; background: #fef2f2;
+        color: #dc2626; font-size: 12px; font-weight: 700;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
 </style>
 
 <script>
@@ -152,6 +211,7 @@
     /* ---- Estado ---- */
     var semanaOffset = 0;   // 0 = semana actual
     var reservasSemana = [];
+    var mantenimientosSemana = [];
     var filtroEstado = '';
 
     /* ---- DOM refs ---- */
@@ -271,14 +331,51 @@
         return div;
     }
 
+    /* ---- Construir card de MANTENIMIENTO ---- */
+    function buildCardMant(m) {
+        // horaInicio puede ser "YYYY-MM-DDTHH:MM:SS" o similar
+        var parseHora = function(isoStr) {
+            if (!isoStr) return '00:00';
+            // Puede venir como "2024-10-30T09:00:00"
+            var t = isoStr.split('T')[1] || isoStr;
+            return t.substring(0,5);
+        };
+        var hIni = parseHora(m.horaInicio);
+        var hFin = parseHora(m.horaFin);
+
+        var top = posYPct(hIni);
+        var alt = altPct(hIni, hFin);
+
+        var TIPO_LABEL = { PREVENTIVO: 'Preventivo', CORRECTIVO: 'Correctivo', URGENTE: '⚠ Urgente' };
+        var tipoLbl = TIPO_LABEL[m.tipoMantenimiento] || m.tipoMantenimiento;
+
+        var div = document.createElement('div');
+        div.className = 'cal-card cal-card-mant';
+        div.style.top    = top + '%';
+        div.style.height = Math.max(alt, 5) + '%';
+
+        var mostrarSub = alt >= 10;
+        div.innerHTML = [
+            "<span class='cc-time'>🔧 " + hIni + ' - ' + hFin + "</span>",
+            "<span class='cc-title'>" + (m.motivo || 'Mantenimiento') + "</span>",
+            mostrarSub ? "<span class='cc-sub'>" + tipoLbl + " · " + (m.nombreCancha || 'Cancha') + "</span>" : '',
+        ].join('');
+
+        // Popover al click
+        div.addEventListener('click', function(e){
+            e.stopPropagation();
+            abrirPopoverMant(m, div);
+        });
+
+        return div;
+    }
+
     /* ---- Render semana ---- */
     function renderSemana(lunes, reservas) {
         // Limpiar columnas
         for (var i = 0; i < 7; i++) {
             var col = document.getElementById('cal-col-' + i);
-            // Quitar col-today-bg
             col.classList.remove('col-today-bg');
-            // Remover solo las cards (no los dividers)
             Array.from(col.children).forEach(function(c){ c.remove(); });
         }
 
@@ -315,6 +412,19 @@
             resEnDia.forEach(function (r) {
                 col.appendChild(buildCard(r));
             });
+        });
+
+        // Render mantenimientos (siempre visibles independiente del filtro de estado)
+        mantenimientosSemana.forEach(function(m) {
+            var fecha = new Date(m.horaInicio);
+            fecha.setHours(0,0,0,0);
+            var diff = Math.round((fecha - lunes) / (1000 * 60 * 60 * 24));
+            if (diff >= 0 && diff < 7) {
+                if (m.estadoMantenimiento !== 'CANCELADO') {
+                    var col = document.getElementById('cal-col-' + diff);
+                    if (col) col.appendChild(buildCardMant(m));
+                }
+            }
         });
     }
 
@@ -380,6 +490,24 @@
             reservasSemana = [];
             resultados.forEach(function(r){ reservasSemana = reservasSemana.concat(r); });
 
+            // Cargar mantenimientos de la semana
+            var fechaIni = toISO(lunes);
+            var fechaFin = new Date(lunes); fechaFin.setDate(lunes.getDate() + 6);
+            return fetch(BASE_URL + '/mantenimientos?size=200')
+                .then(function(r){ return r.ok ? r.json() : { content: [] }; })
+                .then(function(data){
+                    var todos = Array.isArray(data) ? data : (data.content || []);
+                    // Filtrar solo los de esta semana
+                    var lunMs = lunes.getTime();
+                    var domMs = lunMs + 7 * 24 * 60 * 60 * 1000;
+                    mantenimientosSemana = todos.filter(function(m){
+                        var t = new Date(m.horaInicio).getTime();
+                        return t >= lunMs && t < domMs;
+                    });
+                })
+                .catch(function(){ mantenimientosSemana = []; });
+        })
+        .then(function(){
             buildEjes();
             renderSemana(lunes, reservasSemana);
             renderBottomStats(reservasSemana);
@@ -387,7 +515,8 @@
             loading.style.display = 'none';
             panel.style.display   = '';
             bottom.style.display  = '';
-        }).catch(function (err) {
+        })
+        .catch(function (err) {
             loading.style.display = 'none';
             errMsg.textContent    = 'Error al cargar reservas: ' + err.message;
             errBox.style.display  = 'flex';
@@ -437,6 +566,97 @@
 
     /* ---- Retry ---- */
     document.getElementById('cal-retry').addEventListener('click', cargarSemana);
+
+    /* ---- Popover Mantenimiento ---- */
+    var _activePop = null;
+
+    function cerrarPopover() {
+        if (_activePop && _activePop.parentNode) {
+            _activePop.parentNode.removeChild(_activePop);
+        }
+        _activePop = null;
+    }
+
+    function abrirPopoverMant(m, anchorEl) {
+        cerrarPopover();
+
+        var TIPO_LABEL  = { PREVENTIVO: 'Preventivo', CORRECTIVO: 'Correctivo', URGENTE: '⚠ Urgente' };
+        var ESTADO_LABEL = { PROGRAMADO: '🔵 Programado', EN_PROCESO: '🟠 En Proceso', COMPLETADO: '🟢 Completado', CANCELADO: '🔴 Cancelado' };
+        var DIAS_FULL2  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+        var MESES_FULL  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        var parseDT = function(iso) {
+            if (!iso) return { hora: '—', fecha: '—' };
+            var d = new Date(iso);
+            var pad = function(n){ return n < 10 ? '0' + n : n; };
+            return {
+                hora:  pad(d.getHours()) + ':' + pad(d.getMinutes()),
+                fecha: DIAS_FULL2[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES_FULL[d.getMonth()]
+            };
+        };
+
+        var ini = parseDT(m.horaInicio);
+        var fin = parseDT(m.horaFin);
+        var isCancelable = m.estadoMantenimiento !== 'COMPLETADO' && m.estadoMantenimiento !== 'CANCELADO';
+
+        var pop = document.createElement('div');
+        pop.className = 'mant-popover';
+        pop.innerHTML = [
+            "<div class='mp-header'>",
+                "<span class='mp-header-icon'>🔧</span>",
+                "<span class='mp-header-title'>Mantenimiento</span>",
+                "<button class='mp-header-close' id='pop-close-btn'>✕</button>",
+            "</div>",
+            "<div class='mp-body'>",
+                "<div class='mp-row'><span>Cancha</span><strong>" + (m.nombreCancha || '—') + "</strong></div>",
+                "<div class='mp-row'><span>Horario</span><strong>" + ini.fecha + "</strong><strong>" + ini.hora + " — " + fin.hora + "</strong></div>",
+                "<div class='mp-row'><span>Tipo</span><strong>" + (TIPO_LABEL[m.tipoMantenimiento] || m.tipoMantenimiento) + "</strong></div>",
+                "<div class='mp-row'><span>Motivo</span><strong>" + (m.motivo || '—') + "</strong></div>",
+                "<div class='mp-row'><span>Estado</span><strong>" + (ESTADO_LABEL[m.estadoMantenimiento] || m.estadoMantenimiento) + "</strong></div>",
+            "</div>",
+            "<div class='mp-actions'>",
+                "<button class='mp-btn-manage' id='pop-manage-btn'><i class='bx bx-list-ul'></i> Gestionar</button>",
+                isCancelable ? "<button class='mp-btn-cancel' id='pop-cancel-btn'><i class='bx bx-x-circle'></i> Cancelar</button>" : '',
+            "</div>",
+        ].join('');
+
+        document.body.appendChild(pop);
+        _activePop = pop;
+
+        // Posicionar cerca del bloque
+        var rect = anchorEl.getBoundingClientRect();
+        var left = rect.right + 8;
+        var top  = rect.top;
+        if (left + 285 > window.innerWidth)  left = rect.left - 293;
+        if (top  + 300 > window.innerHeight) top  = window.innerHeight - 310;
+        pop.style.left = left + 'px';
+        pop.style.top  = Math.max(top, 8) + 'px';
+
+        // Listeners
+        pop.querySelector('#pop-close-btn').addEventListener('click', cerrarPopover);
+        pop.querySelector('#pop-manage-btn').addEventListener('click', function(){
+            cerrarPopover();
+            window.location.hash = '#/dashboard/mantenimientos';
+        });
+        var cancelBtn = pop.querySelector('#pop-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function(){
+                if (!confirm('¿Cancelar este mantenimiento? Esta acción no se puede deshacer.')) return;
+                fetch(BASE_URL + '/mantenimientos/' + m.id + '/cancelar', { method: 'PATCH' })
+                    .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
+                    .then(function(){
+                        cerrarPopover();
+                        cargarSemana();
+                    })
+                    .catch(function(e){ alert('Error al cancelar: ' + e.message); });
+            });
+        }
+    }
+
+    // Cerrar popover al click fuera
+    document.addEventListener('click', function(e){
+        if (_activePop && !_activePop.contains(e.target)) cerrarPopover();
+    });
 
     /* ---- Init ---- */
     cargarSemana();
