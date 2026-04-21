@@ -262,7 +262,7 @@
         fetch(BASE_URL + '/canchas/' + canchaId + '/estado', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estadoCancha: nuevoEstado })
+            body: JSON.stringify({ estado: nuevoEstado })
         })
         .then(function (res) {
             if (!res.ok) throw new Error('Error ' + res.status);
