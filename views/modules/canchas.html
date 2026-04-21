@@ -258,8 +258,10 @@
 
     /* ---- Cambiar estado via API ---- */
     function cambiarEstado(canchaId, nuevoEstado, estadoAnterior, selectEl) {
-        fetch(BASE_URL + '/canchas/' + canchaId + '/estado?estadoCancha=' + encodeURIComponent(nuevoEstado), {
-            method: 'PATCH'
+        fetch(BASE_URL + '/canchas/' + canchaId + '/estado', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estadoCancha: nuevoEstado })
         })
         .then(function (res) {
             if (!res.ok) throw new Error('Error ' + res.status);
