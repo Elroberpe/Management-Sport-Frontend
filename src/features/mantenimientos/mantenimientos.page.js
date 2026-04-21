@@ -18,7 +18,6 @@ export function mount(container) {
     var todosMantenimientos = [];
     var filtros = { canchaId: '', estado: '', desde: '', hasta: '' };
     var _editId   = null;
-    var _estadoId = null;
     var _cancelId = null;
 
     /* ---- DOM refs ---- */
@@ -163,7 +162,6 @@ export function mount(container) {
             "<td>",
                 "<div class='mant-actions'>",
                     !isFinal ? "<button class='mant-btn mb-edit' data-mid='" + m.id + "'" + (!isProgramado ? " disabled title='Solo se puede editar si está PROGRAMADO'" : "") + "><i class='bx bx-edit-alt'></i> Editar</button>" : '',
-                    !isFinal ? "<button class='mant-btn mb-estado' data-mid='" + m.id + "'><i class='bx bx-transfer-alt'></i> Estado</button>" : '',
                     !isFinal ? "<button class='mant-btn mb-cancel' data-mid='" + m.id + "'><i class='bx bx-x-circle'></i> Cancelar</button>" : '',
                     isFinal  ? "<span style='font-size:12px;color:#94a3b8;font-style:italic;'>Finalizado</span>" : '',
                 "</div>",
@@ -174,11 +172,6 @@ export function mount(container) {
         var btnEdit = tr.querySelector('.mb-edit:not([disabled])');
         if (btnEdit) {
             btnEdit.addEventListener('click', function(){ abrirEditar(m); });
-        }
-        // Bind cambiar estado
-        var btnEst = tr.querySelector('.mb-estado');
-        if (btnEst) {
-            btnEst.addEventListener('click', function(){ abrirCambioEstado(m); });
         }
         // Bind cancelar
         var btnCan = tr.querySelector('.mb-cancel');
@@ -316,67 +309,6 @@ export function mount(container) {
         });
     });
 
-    /* ==========================================================
-       MODAL CAMBIAR ESTADO
-    ========================================================== */
-    var modalEstado = document.getElementById('modal-mant-estado');
-    var estadoLbl   = document.getElementById('estado-mant-label');
-    var estadoOpts  = document.getElementById('mant-estado-options');
-
-    var FLUJO_ESTADOS = {
-        PROGRAMADO: [
-            { val: 'EN_PROCESO', lbl: 'En Proceso', icon: 'bx-loader-alt', color: '#92400e' },
-            { val: 'CANCELADO',  lbl: 'Cancelado',  icon: 'bx-x-circle',   color: '#dc2626' },
-        ],
-        EN_PROCESO: [
-            { val: 'COMPLETADO', lbl: 'Completado', icon: 'bx-check-circle', color: '#16a34a' },
-        ],
-    };
-
-    function abrirCambioEstado(m) {
-        _estadoId = m.id;
-        estadoLbl.textContent = (m.nombreCancha || 'Cancha') + ' · ' + (m.estadoMantenimiento || '');
-        estadoOpts.innerHTML = '';
-
-        var opciones = FLUJO_ESTADOS[m.estadoMantenimiento] || [];
-        if (opciones.length === 0) {
-            estadoOpts.innerHTML = '<p style="font-size:13px;color:#94a3b8;">No hay transiciones disponibles.</p>';
-        } else {
-            opciones.forEach(function(op){
-                var div = document.createElement('div');
-                div.className = 'mant-estado-opt';
-                div.innerHTML = "<i class='bx " + op.icon + "' style='color:" + op.color + ";'></i> " + op.lbl;
-                div.addEventListener('click', function(){
-                    ejecutarCambioEstado(_estadoId, op.val);
-                });
-                estadoOpts.appendChild(div);
-            });
-        }
-
-        modalEstado.style.display = 'flex';
-    }
-    function cerrarEstado() { modalEstado.style.display = 'none'; }
-
-    document.getElementById('btn-estado-close').addEventListener('click', cerrarEstado);
-    document.getElementById('btn-estado-cancel').addEventListener('click', cerrarEstado);
-    modalEstado.addEventListener('click', function(e){ if (e.target === modalEstado) cerrarEstado(); });
-
-    function ejecutarCambioEstado(id, nuevoEstado) {
-        cerrarEstado();
-        fetch(BASE_URL + '/mantenimientos/' + id + '/estado', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: nuevoEstado })
-        })
-        .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
-        .then(function(updated){
-            var idx = todosMantenimientos.findIndex(function(m){ return m.id === id; });
-            if (idx !== -1) todosMantenimientos[idx] = updated;
-            renderTabla(filtrar());
-            mostrarToast('Estado actualizado a ' + nuevoEstado + '.');
-        })
-        .catch(function(e){ mostrarToast('Error al cambiar estado: ' + e.message, true); });
-    }
 
     /* ==========================================================
        MODAL CONFIRMAR CANCELAR
@@ -386,8 +318,23 @@ export function mount(container) {
 
     function abrirConfirmCancelar(m) {
         _cancelId = m.id;
-        confirmMsg.textContent = 'Estás por cancelar el mantenimiento de "' + (m.nombreCancha || 'la cancha')
-            + '" programado para el ' + fmtDT(m.horaInicio) + '. ¿Confirmas?';
+        
+        // Helper interno para formato descriptivo
+        var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        var d1 = new Date(m.horaInicio);
+        var d2 = new Date(m.horaFin);
+        var pad = function(n){ return n < 10 ? '0' + n : n; };
+        
+        var fechaStr = d1.getDate() + ' de ' + meses[d1.getMonth()];
+        var horarioStr = pad(d1.getHours()) + ':' + pad(d1.getMinutes()) + ' a ' + pad(d2.getHours()) + ':' + pad(d2.getMinutes());
+
+        confirmMsg.innerHTML = [
+            "Se cancelará el mantenimiento programado para la <strong>\"" + (m.nombreCancha || 'Cancha') + "\"</strong> ",
+            "el día <strong>" + fechaStr + "</strong> de <strong>" + horarioStr + "</strong>.",
+            "<br><br>El horario volverá a estar disponible para reservas.",
+            "<br><br><strong>¿Estás seguro?</strong>"
+        ].join('');
+
         document.getElementById('confirm-text').style.display = 'flex';
         document.getElementById('confirm-loader').style.display = 'none';
         document.getElementById('btn-confirm-yes').disabled = false;
@@ -406,17 +353,26 @@ export function mount(container) {
         document.getElementById('confirm-loader').style.display = 'flex';
 
         fetch(BASE_URL + '/mantenimientos/' + _cancelId + '/cancelar', { method: 'PATCH' })
-        .then(function(r){ if (!r.ok) throw new Error('Error ' + r.status); return r.json(); })
+        .then(function(r){
+            if (r.status === 200) return r.json();
+            if (r.status === 400) {
+                return r.json().then(function(e){ throw new Error(e.mensaje || 'El mantenimiento ya está en un estado final.'); });
+            }
+            if (r.status === 404) {
+                throw new Error('No se pudo encontrar el mantenimiento. Por favor, refresca la página.');
+            }
+            throw new Error('Error inesperado (' + r.status + ')');
+        })
         .then(function(updated){
             var idx = todosMantenimientos.findIndex(function(m){ return m.id === _cancelId; });
             if (idx !== -1) todosMantenimientos[idx] = updated;
             cerrarConfirm();
             renderTabla(filtrar());
-            mostrarToast('Mantenimiento cancelado correctamente.');
+            mostrarToast('¡Mantenimiento cancelado con éxito!');
         })
         .catch(function(e){
             cerrarConfirm();
-            mostrarToast('Error al cancelar: ' + e.message, true);
+            alert(e.message);
         });
     });
 
@@ -424,7 +380,6 @@ export function mount(container) {
     document.addEventListener('keydown', function(e){
         if (e.key !== 'Escape') return;
         if (modalEdit.style.display    !== 'none') cerrarEditar();
-        if (modalEstado.style.display  !== 'none') cerrarEstado();
         if (modalConfirm.style.display !== 'none') cerrarConfirm();
     });
 

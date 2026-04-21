@@ -306,4 +306,73 @@ export const canchasTemplate = () => `
 
     </div>
 </div>
+
+<!-- ===== MODAL: EDITAR CANCHA ===== -->
+<div id="modal-edit-cancha" class="nc-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-ec-title">
+    <div class="nc-modal">
+
+        <!-- Header -->
+        <div class="nc-header">
+            <div class="nc-header-icon" style="background: #f1f5f9; color: #1e40af;"><i class='bx bx-pencil'></i></div>
+            <div>
+                <h2 class="nc-title" id="modal-ec-title">Editar Cancha</h2>
+                <p class="nc-subtitle">Modifica los detalles de la cancha seleccionada</p>
+            </div>
+            <button class="nc-close" id="btn-ec-close" title="Cerrar"><i class='bx bx-x'></i></button>
+        </div>
+
+        <!-- Body -->
+        <div class="nc-body">
+
+            <!-- Error general -->
+            <div class="nc-alert-error" id="ec-error-general" style="display:none;">
+                <i class='bx bx-error-circle'></i>
+                <span id="ec-error-general-msg">Ha ocurrido un error.</span>
+            </div>
+
+            <!-- Campo: Sucursal (Deshabilitado) -->
+            <div class="nc-field">
+                <label class="nc-label" for="ec-sucursal">
+                    <i class='bx bx-map-pin'></i> Sucursal (No editable)
+                </label>
+                <input type="text" id="ec-sucursal" class="nc-input" disabled style="background:#f1f5f9; cursor:not-allowed; border-color:#e2e8f0; color:#64748b; font-weight:600;">
+            </div>
+
+            <!-- Campo: Nombre -->
+            <div class="nc-field">
+                <label class="nc-label" for="ec-nombre">
+                    <i class='bx bx-rename'></i> Nombre de la Cancha <span class="nc-required">*</span>
+                </label>
+                <input type="text" id="ec-nombre" class="nc-input" maxlength="50" placeholder="Ej: Cancha 1 - Fútbol 6" autocomplete="off">
+                <div class="nc-input-footer">
+                    <span class="nc-field-error" id="ec-err-nombre"></span>
+                    <span class="nc-char-count" id="ec-char-nombre">0/50</span>
+                </div>
+            </div>
+
+            <!-- Campo: Precio -->
+            <div class="nc-field">
+                <label class="nc-label" for="ec-precio">
+                    <i class='bx bx-money'></i> Precio por Hora <span class="nc-required">*</span>
+                </label>
+                <div class="nc-precio-wrap">
+                    <span class="nc-currency">S/</span>
+                    <input type="number" id="ec-precio" class="nc-input nc-input-precio" min="0.01" step="0.01" placeholder="85.00">
+                </div>
+                <span class="nc-field-error" id="ec-err-precio"></span>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="nc-footer">
+            <button class="nc-btn-cancel" id="btn-ec-cancel">Cancelar</button>
+            <button class="nc-btn-submit" id="btn-ec-submit">
+                <span id="ec-submit-text"><i class='bx bx-save'></i> Guardar Cambios</span>
+                <span id="ec-submit-loader" style="display:none;"><div class="nc-spinner"></div> Guardando...</span>
+            </button>
+        </div>
+
+    </div>
+</div>
 `;

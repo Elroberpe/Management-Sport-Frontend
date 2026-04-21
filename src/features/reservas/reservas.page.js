@@ -60,11 +60,11 @@ export function mount(container) {
 
     /* ---- Color por estado ---- */
     var ESTADO_STYLE = {
-        PAGADA:     { cls: 'bg-blue-tint text-blue',    label: 'Pagada',     dot: '#3b82f6' },
-        PENDIENTE:  { cls: 'bg-yellow-tint text-yellow', label: 'Pendiente',  dot: '#eab308' },
-        COMPLETADO: { cls: 'bg-gray-tint text-gray-d',  label: 'Completada', dot: '#94a3b8' },
-        CANCELADO:  { cls: 'bg-gray-tint text-gray-d',  label: 'Cancelada',  dot: '#94a3b8' },
-        REEMBOLSADO:{ cls: 'bg-gray-tint text-gray-d',  label: 'Reembolsado',dot: '#94a3b8' },
+        PAGADA:      { cls: 'bg-blue-tint text-blue',    label: 'Pagada',      dot: '#3b82f6' },
+        PENDIENTE:   { cls: 'bg-yellow-tint text-yellow', label: 'Pendiente',   dot: '#eab308' },
+        COMPLETADO:  { cls: 'bg-green-tint text-green',   label: 'Completada',  dot: '#10b981' },
+        CANCELADO:   { cls: 'bg-red-tint text-red',       label: 'Cancelada',   dot: '#ef4444' },
+        REEMBOLSADO: { cls: 'bg-purple-tint text-purple', label: 'Reembolsada', dot: '#8b5cf6' },
     };
 
     /* ---- Calcular posición vertical (%) ---- */
@@ -274,10 +274,15 @@ export function mount(container) {
         // Resumen de estados
         var counts = {};
         reservas.forEach(function(r){ counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; });
+        
         var listEl = document.getElementById('cal-estado-list');
         listEl.innerHTML = '';
-        Object.keys(counts).forEach(function(est) {
-            var meta = ESTADO_STYLE[est] || { label: est, dot: '#ccc' };
+
+        // Iterar sobre todos los estados definidos para mostrar incluso los que tienen 0
+        Object.keys(ESTADO_STYLE).forEach(function(est) {
+            var meta = ESTADO_STYLE[est];
+            var count = counts[est] || 0;
+            
             var item = document.createElement('div');
             item.className = 'cbc-item';
             item.innerHTML = [
@@ -285,12 +290,14 @@ export function mount(container) {
                     "<span style='width:8px;height:8px;border-radius:50%;background:" + meta.dot + ";display:inline-block;'></span>",
                     meta.label,
                 "</strong>",
-                "<span class='cbc-badge' style='background:#f1f5f9;color:#334155;'>" + counts[est] + "</span>"
+                "<span class='cbc-badge' style='background:#f1f5f9;color:#334155;'>" + count + "</span>"
             ].join('');
             listEl.appendChild(item);
         });
-        if (Object.keys(counts).length === 0) {
-            listEl.innerHTML = '<p style="font-size:13px;color:#94a3b8;padding:8px 0;">Sin reservas esta semana.</p>';
+
+        if (reservas.length === 0) {
+            // Opcional: mostrar un mensaje sutil si no hay nada en absoluto, 
+            // pero ya estamos mostrando los estados con 0.
         }
     }
 
@@ -309,9 +316,8 @@ export function mount(container) {
         var fechaDesdeStr = toISO(lunes);
         var fechaHastaStr = toISO(domMs);
 
-        // Fetch Reservas Activas (PENDIENTE, PAGADA, COMPLETADO)
-        var urlReservas = BASE_URL + '/reservas?fechaDesde=' + fechaDesdeStr + '&fechaHasta=' + fechaHastaStr + 
-                          '&estadoReserva=PENDIENTE&estadoReserva=PAGADA&estadoReserva=COMPLETADO&size=500';
+        // Fetch Reservas (Traemos todas para las estadísticas)
+        var urlReservas = BASE_URL + '/reservas?fechaDesde=' + fechaDesdeStr + '&fechaHasta=' + fechaHastaStr + '&size=500';
                           
         // Fetch Mantenimientos (PROGRAMADO, EN_PROCESO)
         var urlMant = BASE_URL + '/mantenimientos?fechaDesde=' + fechaDesdeStr + '&fechaHasta=' + fechaHastaStr + 
@@ -328,9 +334,8 @@ export function mount(container) {
             var allMant = Array.isArray(dataMant) ? dataMant : (dataMant.content || []);
             
             // Garantizar seguridad de filtrado local (Ocultar Cancelados/Reembolsados/Completados según regla)
-            reservasSemana = allRes.filter(function(r) {
-                return r.estadoReserva !== 'CANCELADO' && r.estadoReserva !== 'REEMBOLSADO';
-            });
+            // Guardamos todas para el resumen de estados
+            reservasSemana = allRes;
             mantenimientosSemana = allMant.filter(function(m) {
                 var est = m.estadoMantenimiento;
                 return est === 'PROGRAMADO' || est === 'EN_PROCESO';

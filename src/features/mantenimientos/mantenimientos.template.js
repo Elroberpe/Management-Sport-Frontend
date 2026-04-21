@@ -179,30 +179,7 @@ export const mantenimientosTemplate = () => `
     </div>
 </div>
 
-<!-- ===== MODAL CAMBIAR ESTADO ===== -->
-<div id="modal-mant-estado" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
-    <div class="pm-modal" style="max-width:380px;">
-        <div class="pm-header">
-            <div class="pm-header-icon" style="background:linear-gradient(135deg,#0f172a,#334155);">
-                <i class='bx bx-transfer-alt'></i>
-            </div>
-            <div>
-                <h2 class="pm-title">Cambiar Estado</h2>
-                <p class="pm-subtitle" id="estado-mant-label">Mantenimiento</p>
-            </div>
-            <button class="pm-close" id="btn-estado-close"><i class='bx bx-x'></i></button>
-        </div>
-        <div class="pm-body">
-            <p style="font-size:13px;color:#64748b;margin:0;">Selecciona el nuevo estado para este mantenimiento:</p>
-            <div class="mant-estado-options" id="mant-estado-options">
-                <!-- Renderizado dinámicamente -->
-            </div>
-        </div>
-        <div class="pm-footer">
-            <button class="pm-btn-cancel" id="btn-estado-cancel">Cancelar</button>
-        </div>
-    </div>
-</div>
+<!-- ===== CONFIRM CANCELAR ===== -->
 
 <!-- ===== CONFIRM CANCELAR ===== -->
 <div id="modal-mant-confirm" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
@@ -212,8 +189,8 @@ export const mantenimientosTemplate = () => `
                 <i class='bx bx-trash-alt'></i>
             </div>
             <div>
-                <h2 class="pm-title">Cancelar Mantenimiento</h2>
-                <p class="pm-subtitle">Esta acción no se puede deshacer</p>
+                <h2 class="pm-title">¿Cancelar Mantenimiento?</h2>
+                <p class="pm-subtitle">Esta acción liberará el horario seleccionado</p>
             </div>
             <button class="pm-close" id="btn-confirm-close"><i class='bx bx-x'></i></button>
         </div>
@@ -221,10 +198,10 @@ export const mantenimientosTemplate = () => `
             <p id="mant-confirm-msg" style="font-size:13.5px;color:#374151;margin:0;line-height:1.6;"></p>
         </div>
         <div class="pm-footer">
-            <button class="pm-btn-cancel" id="btn-confirm-no">No, volver</button>
+            <button class="pm-btn-cancel" id="btn-confirm-no">No, Mantener Programación</button>
             <button class="pm-btn-submit" id="btn-confirm-yes" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
-                <span id="confirm-text"><i class='bx bx-x-circle'></i> Sí, cancelar</span>
-                <span id="confirm-loader" style="display:none;"><div class="pm-spinner"></div> Cancelando...</span>
+                <span id="confirm-text"><i class='bx bx-check-circle'></i> Sí, Cancelar Mantenimiento</span>
+                <span id="confirm-loader" style="display:none;"><div class="pm-spinner"></div> Procesando...</span>
             </button>
         </div>
     </div>

@@ -131,6 +131,14 @@ export function mount(container) {
             "</td>"
         ].join('');
 
+        // Bind Edit
+        var btnEdit = tr.querySelector('.btn-edit-cancha');
+        if (btnEdit) {
+            btnEdit.addEventListener('click', function() {
+                abrirModalEditar(c.canchaId);
+            });
+        }
+
         // Bind estado change
         var toggle = tr.querySelector('.estado-toggle');
         if (toggle) {
@@ -176,7 +184,7 @@ export function mount(container) {
             "<span class='cgc-estado-badge " + meta.badgeCls + "'>" + meta.label + "</span>",
             "<div style='display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;'>",
                 "<button class='btn-mant-cancha btn-mant-full' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "'><i class='bx bx-wrench'></i> Programar Mantenimiento</button>",
-                "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;height:36px;'><i class='bx bx-pencil'></i></button>",
+                "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;height:36px;' title='Editar'><i class='bx bx-pencil'></i></button>",
                 "<div style='flex:2;display:flex;justify-content:flex-end;'>",
                     "<label class='toggle-switch'>",
                         "<input type='checkbox' class='estado-toggle' data-id='" + c.canchaId + "'" + (c.estadoCancha === 'DISPONIBLE' ? " checked" : "") + ">",
@@ -201,10 +209,10 @@ export function mount(container) {
             });
         }
 
-        var btnMantCard = card.querySelector('.btn-mant-cancha');
-        if (btnMantCard) {
-            btnMantCard.addEventListener('click', function() {
-                abrirModalMant(c.canchaId, c.nombre);
+        var btnEditCard = card.querySelector('.btn-edit-cancha');
+        if (btnEditCard) {
+            btnEditCard.addEventListener('click', function() {
+                abrirModalEditar(c.canchaId);
             });
         }
 
@@ -704,6 +712,148 @@ export function mount(container) {
     });
     btnPmSubmit.addEventListener('click', programarMantenimiento);
 
+    /* ========================================
+       MODAL EDITAR CANCHA
+    ======================================== */
+    var modalEC      = document.getElementById('modal-edit-cancha');
+    var btnEcClose   = document.getElementById('btn-ec-close');
+    var btnEcCancel  = document.getElementById('btn-ec-cancel');
+    var btnEcSubmit  = document.getElementById('btn-ec-submit');
+    var ecSubmitText = document.getElementById('ec-submit-text');
+    var ecSubmitLoad = document.getElementById('ec-submit-loader');
+    var ecSucursal   = document.getElementById('ec-sucursal');
+    var ecNombre     = document.getElementById('ec-nombre');
+    var ecPrecio     = document.getElementById('ec-precio');
+    var ecErrNombre  = document.getElementById('ec-err-nombre');
+    var ecErrPrecio  = document.getElementById('ec-err-precio');
+    var ecCharNombre = document.getElementById('ec-char-nombre');
+    var ecErrGen     = document.getElementById('ec-error-general');
+    var ecErrGenMsg  = document.getElementById('ec-error-general-msg');
+
+    var _editCanchaId = null;
+
+    function abrirModalEditar(id) {
+        _editCanchaId = id;
+        ecLimpiarErrores();
+        ecSetLoading(false);
+        ecNombre.value = '';
+        ecPrecio.value = '';
+        ecSucursal.value = 'Cargando...';
+        ecCharNombre.textContent = '0/50';
+
+        modalEC.style.display = 'flex';
+
+        fetch(BASE_URL + '/canchas/' + id)
+            .then(function(res) {
+                if (!res.ok) throw new Error('No se pudo obtener los datos de la cancha (Error ' + res.status + ')');
+                return res.json();
+            })
+            .then(function(c) {
+                // Priorizar el nombre que viene de la API de la cancha
+                var nombreSede = c.sucursalNombre || (c.sucursal && c.sucursal.nombre);
+                
+                // Si no viene en la API, usar el de la sesión SOLO si no es "Todas las Sedes"
+                if (!nombreSede && session && session.sucursalNombre && session.sucursalNombre !== 'Todas las Sedes') {
+                    nombreSede = session.sucursalNombre;
+                }
+                
+                ecSucursal.value = nombreSede || ('Sede ' + c.sucursalId);
+                ecNombre.value = c.nombre || '';
+                ecPrecio.value = c.precioHora || '';
+                ecCharNombre.textContent = (c.nombre || '').length + '/50';
+                ecNombre.focus();
+            })
+            .catch(function(err) {
+                ecErrGenMsg.textContent = err.mensaje || err.message;
+                ecErrGen.style.display = 'flex';
+            });
+    }
+
+    function cerrarModalEditar() {
+        modalEC.style.display = 'none';
+    }
+
+    function ecLimpiarErrores() {
+        [ecErrNombre, ecErrPrecio].forEach(function(el){ el.textContent = ''; });
+        [ecNombre, ecPrecio].forEach(function(el){ el.classList.remove('nc-input-error'); });
+        ecErrGen.style.display = 'none';
+    }
+
+    function ecSetError(inputEl, errEl, msg) {
+        inputEl.classList.add('nc-input-error');
+        errEl.textContent = msg;
+    }
+
+    function ecSetLoading(on) {
+        btnEcSubmit.disabled = on;
+        ecSubmitText.style.display = on ? 'none' : 'flex';
+        ecSubmitLoad.style.display = on ? 'flex' : 'none';
+    }
+
+    function actualizarCancha() {
+        ecLimpiarErrores();
+        var ok = true;
+        var nombre = ecNombre.value.trim();
+        if (!nombre) {
+            ecSetError(ecNombre, ecErrNombre, 'El nombre no puede estar vacío.');
+            ok = false;
+        }
+        var precio = parseFloat(ecPrecio.value);
+        if (!ecPrecio.value || isNaN(precio) || precio <= 0) {
+            ecSetError(ecPrecio, ecErrPrecio, 'Ingresa un precio válido mayor a 0.');
+            ok = false;
+        }
+
+        if (!ok) return;
+
+        ecSetLoading(true);
+
+        var payload = {
+            nombre:     nombre,
+            precioHora: precio
+        };
+
+        fetch(BASE_URL + '/canchas/' + _editCanchaId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) {
+            if (res.status === 200) return res.json();
+            return res.json().then(function(err) {
+                throw new Error(err.message || 'Error al actualizar la cancha.');
+            });
+        })
+        .then(function(updated) {
+            // Actualizar arreglo local
+            var idx = todasCanchas.findIndex(function(c){ return c.canchaId == _editCanchaId; });
+            if (idx !== -1) {
+                todasCanchas[idx].nombre = updated.nombre;
+                todasCanchas[idx].precioHora = updated.precioHora;
+            }
+            statsActualizar(todasCanchas);
+            renderVista(filtrar());
+            cerrarModalEditar();
+            mostrarToast('¡Cancha "' + updated.nombre + '" actualizada correctamente!');
+        })
+        .catch(function(err) {
+            ecSetLoading(false);
+            ecErrGenMsg.textContent = err.message;
+            ecErrGen.style.display = 'flex';
+        });
+    }
+
+    /* -- Event listeners -- */
+    btnEcClose.addEventListener('click', cerrarModalEditar);
+    btnEcCancel.addEventListener('click', cerrarModalEditar);
+    modalEC.addEventListener('click', function(e) { if (e.target === modalEC) cerrarModalEditar(); });
+    btnEcSubmit.addEventListener('click', actualizarCancha);
+    ecNombre.addEventListener('keydown', function(e) { if (e.key === 'Enter') actualizarCancha(); });
+    ecNombre.addEventListener('input', function() {
+        var len = ecNombre.value.length;
+        ecCharNombre.textContent = len + '/50';
+        ecCharNombre.style.color = len > 45 ? '#ef4444' : '#94a3b8';
+    });
 
 }
 
