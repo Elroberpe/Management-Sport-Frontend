@@ -41,8 +41,8 @@ const MOCK_USERS = [
 
 // Permisos por rol: qué módulos puede ver en el sidebar
 const ROLE_PERMISSIONS = {
-    superadmin: ['inicio', 'sedes', 'canchas', 'calendario', 'clientes', 'pagos'],
-    admin:       ['inicio', 'canchas', 'calendario', 'clientes', 'pagos'],
+    superadmin:    ['inicio', 'sedes', 'canchas', 'mantenimientos', 'calendario', 'clientes', 'pagos'],
+    admin:         ['inicio', 'canchas', 'mantenimientos', 'calendario', 'clientes', 'pagos'],
     recepcionista: ['inicio', 'calendario', 'clientes'],
 };
 
