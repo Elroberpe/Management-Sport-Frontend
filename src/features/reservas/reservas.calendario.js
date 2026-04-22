@@ -253,9 +253,14 @@ export function initCalendario(ctx) {
         });
     }
 
-    /* ──────────── Stats (todas las canchas) ──────────── */
+    /* ──────────── Stats (filtradas) ──────────── */
     function renderBottomStats() {
-        var reservas = reservasSemana;
+        var reservas = reservasSemana.filter(function(r) {
+            if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return false;
+            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return false;
+            if (filtroEstado && r.estadoReserva !== filtroEstado) return false;
+            return true;
+        });
         var completadas = reservas.filter(function(r) { return r.estadoReserva === 'COMPLETADO'; }).length;
         
         document.getElementById('cal-stat-total').textContent = completadas;
