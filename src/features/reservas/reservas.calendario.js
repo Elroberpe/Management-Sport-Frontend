@@ -267,7 +267,7 @@ export function initCalendario(ctx) {
         if (subEl) subEl.textContent = 'de ' + reservas.length + ' en total (' + (reservas.length ? Math.round((completadas/reservas.length)*100) : 0) + '%)';
 
         var counts = {};
-        reservas.forEach(function(r) { counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; });
+        reservasSemana.forEach(function(r) { counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; });
 
         var listEl = document.getElementById('cal-estado-list');
         listEl.innerHTML = '';
