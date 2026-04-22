@@ -55,11 +55,11 @@ export function initCalendario(ctx) {
 
     /* ──────────── Color por estado ──────────── */
     var ESTADO_STYLE = {
-        PAGADA:      { cls: 'bg-blue-tint text-blue',     label: 'Pagada',      dot: '#3b82f6' },
-        PENDIENTE:   { cls: 'bg-yellow-tint text-yellow', label: 'Pendiente',   dot: '#eab308' },
-        COMPLETADO:  { cls: 'bg-green-tint text-green',   label: 'Completada',  dot: '#10b981' },
-        CANCELADO:   { cls: 'bg-red-tint text-red',       label: 'Cancelada',   dot: '#ef4444' },
-        REEMBOLSADO: { cls: 'bg-purple-tint text-purple', label: 'Reembolsada', dot: '#8b5cf6' }
+        PAGADA:      { cls: 'c-blue',        label: 'Pagada',      dot: '#3b82f6' },
+        PENDIENTE:   { cls: 'c-yellow',      label: 'Pendiente',   dot: '#eab308' },
+        COMPLETADO:  { cls: 'c-green-light', label: 'Completada',  dot: '#10b981' },
+        CANCELADO:   { cls: 'c-gray',        label: 'Cancelada',   dot: '#ef4444' },
+        REEMBOLSADO: { cls: 'c-gray-purple', label: 'Reembolsada', dot: '#8b5cf6' }
     };
 
     /* ──────────── Utils de fecha ──────────── */
@@ -160,7 +160,6 @@ export function initCalendario(ctx) {
         div.className    = 'cal-card ' + meta.cls;
         div.style.top    = posYPct(r.horaInicio) + '%';
         div.style.height = altPct(r.horaInicio, r.horaFin) + '%';
-        if (r.estadoReserva === 'PENDIENTE')  div.style.borderLeft = '4px solid #eab308';
         if (r.estadoReserva === 'COMPLETADO') div.style.opacity    = '0.6';
         div.setAttribute('title', (r.nombreCliente||'Sin Cliente') + '\n' + formatHora(r.horaInicio) + ' - ' + formatHora(r.horaFin));
 
