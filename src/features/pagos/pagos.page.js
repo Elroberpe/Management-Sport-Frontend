@@ -259,8 +259,6 @@ export function mount(container) {
     ══════════════════════════════════════ */
     function abrirDetalle(id) {
         _pagoActivo = allPagos.find(function(p){ return p.id === id; }) || null;
-    function abrirDetalle(id) {
-        _pagoActivo = allPagos.find(function(p){ return p.id === id; }) || null;
         document.getElementById('dp-title').textContent = 'Detalle de Transacción #' + id;
         document.getElementById('dp-loading').style.display  = 'block';
         document.getElementById('dp-content').style.display  = 'none';
