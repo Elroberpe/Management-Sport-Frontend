@@ -174,7 +174,7 @@ export function initTabla(ctx) {
 
     function renderHistoricalTable(data) {
         var tbody = document.getElementById('rh-tbody');
-        var items = data.content || [];
+        var items = Array.isArray(data) ? data : (data.content || []);
 
         if (items.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#64748b;">No se encontraron reservas con esos filtros.</td></tr>';
@@ -314,18 +314,30 @@ export function initTabla(ctx) {
         });
 
         /* ── Paginación ── */
+        var isPaged = data.content !== undefined;
+        var totalEls = isPaged ? data.totalElements : items.length;
+        var pageNum = isPaged ? data.number : 0;
+        var totalPgs = isPaged ? data.totalPages : 1;
+        var isFirst = isPaged ? data.first : true;
+        var isLast = isPaged ? data.last : true;
+
         document.getElementById('rh-count-label').textContent =
-            'Mostrando ' + items.length + ' resultados (Total: ' + data.totalElements + ')';
-        document.getElementById('rh-pagination').style.display = 'flex';
-        document.getElementById('rh-page-info').textContent =
-            'Página ' + (data.number + 1) + ' de ' + data.totalPages;
+            'Mostrando ' + items.length + ' resultados (Total: ' + totalEls + ')';
+        
+        if (isPaged && totalPgs > 1) {
+            document.getElementById('rh-pagination').style.display = 'flex';
+            document.getElementById('rh-page-info').textContent =
+                'Página ' + (pageNum + 1) + ' de ' + totalPgs;
 
-        document.getElementById('rh-page-first').disabled = data.first;
-        document.getElementById('rh-page-prev').disabled  = data.first;
-        document.getElementById('rh-page-next').disabled  = data.last;
-        document.getElementById('rh-page-last').disabled  = data.last;
-
-        rhTotalPages = data.totalPages;
+            document.getElementById('rh-page-first').disabled = isFirst;
+            document.getElementById('rh-page-prev').disabled  = isFirst;
+            document.getElementById('rh-page-next').disabled  = isLast;
+            document.getElementById('rh-page-last').disabled  = isLast;
+            rhTotalPages = totalPgs;
+        } else {
+            document.getElementById('rh-pagination').style.display = 'none';
+            rhTotalPages = 1;
+        }
     }
 
     /* ──────────── EVENTOS TABLA ──────────── */
