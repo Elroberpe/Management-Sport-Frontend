@@ -592,6 +592,7 @@ export function initCalendario(ctx) {
                     calCanchaSel.selectedIndex = 0;
                     canchaCalId = parseInt(calCanchaSel.value);
                     renderSemana(getLunes(semanaOffset), reservasSemana);
+                    renderBottomStats();
                 }
             }).catch(function() {
                 calCanchaSel.innerHTML = '<option value="">— Sin canchas —</option>';
@@ -601,6 +602,7 @@ export function initCalendario(ctx) {
     calCanchaSel.addEventListener('change', function() {
         canchaCalId = calCanchaSel.value ? parseInt(calCanchaSel.value) : null;
         renderSemana(getLunes(semanaOffset), reservasSemana);
+        renderBottomStats();
     });
 
     /* ──────────── Inicio ──────────── */
