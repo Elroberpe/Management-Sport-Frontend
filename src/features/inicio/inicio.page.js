@@ -132,8 +132,8 @@ function _loadCanchasSede(sucursalId) {
 function _loadKPIs(sucursalId) {
     var qs = sucursalId ? '?sucursalId=' + sucursalId : '';
     
-    // Reservas Completadas Hoy
-    api.get('/dashboard/kpi/reservas-completadas-hoy' + qs).then(function(res) {
+    // Reservas Completadas Hoy (ahora en reserva-api)
+    api.get('/reservas/stats/completadas-hoy' + qs).then(function(res) {
         var el = document.getElementById('kpi-reservas-hoy');
         if (el) el.textContent = res && res.total !== undefined ? res.total : '0';
     }).catch(function() {
@@ -141,8 +141,8 @@ function _loadKPIs(sucursalId) {
         if (el) el.textContent = 'N/D';
     });
 
-    // Ingresos Anuales
-    api.get('/dashboard/kpi/ingresos-anuales' + qs).then(function(res) {
+    // Ingresos Anuales (ahora en pago-api)
+    api.get('/pagos/stats/ingresos-anuales' + qs).then(function(res) {
         var el = document.getElementById('kpi-ingresos-anuales');
         if (el) {
             var val = res && res.total !== undefined ? res.total : 0;
@@ -153,7 +153,7 @@ function _loadKPIs(sucursalId) {
         if (el) el.textContent = 'N/D';
     });
 
-    // Tasa Ocupacion Mensual
+    // Tasa Ocupacion Mensual (sigue en dashboard-api)
     api.get('/dashboard/kpi/tasa-ocupacion-mensual' + qs).then(function(res) {
         var el = document.getElementById('kpi-tasa-ocupacion');
         if (el) {
