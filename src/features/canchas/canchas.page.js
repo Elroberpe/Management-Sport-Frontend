@@ -896,11 +896,12 @@ export function mount(container) {
                 circle.innerHTML = '<span class="text-white" style="font-weight:700;">LLENO</span>';
             } else {
                 circle.className = 'day-circle border-green';
-                // Asumimos 15 horas máximo de operacion diaria por cancha.
-                // El llenado visual representa qué tan "ocupada" está. 
-                // A más horas disponibles, menor el porcentaje de llenado.
-                var horasOcupadas = Math.max(0, 15 - horas);
-                var pct = Math.min((horasOcupadas / 15) * 100, 100);
+                // El horario es de 7am a medianoche (17 horas máximo de operación diaria por cancha).
+                // El llenado visual representa qué tan "ocupada" está la cancha. 
+                // A menos horas disponibles, mayor el porcentaje de llenado.
+                var maxHoras = 17;
+                var horasOcupadas = Math.max(0, maxHoras - horas);
+                var pct = Math.min((horasOcupadas / maxHoras) * 100, 100);
                 
                 // Redondear a 1 decimal si es necesario
                 var displayHoras = horas % 1 === 0 ? horas : horas.toFixed(1);
