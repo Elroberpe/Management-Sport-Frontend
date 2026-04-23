@@ -238,23 +238,26 @@ function _loadReservasRecientes(sucursalId) {
                 return;
             }
 
+            var STYLE_MAP = {
+                PENDIENTE:   { badge: 'badge-yellow', dot: 'dot-yellow' },
+                PAGADA:      { badge: 'badge-blue',   dot: 'dot-blue'   },
+                COMPLETADO:  { badge: 'badge-green',  dot: 'dot-green'  },
+                CANCELADO:   { badge: 'badge-red',    dot: 'dot-red'    },
+                REEMBOLSADO: { badge: 'badge-purple', dot: 'dot-purple' }
+            };
+
             var html = '';
             items.forEach(function(r) {
                 var initials = (r.nombreCliente || '?').split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
                 var hora = (r.horaInicio || '').substring(0,5) + ' - ' + (r.horaFin || '').substring(0,5);
                 
-                var badgeClass = '';
-                if (r.estadoReserva === 'PENDIENTE') badgeClass = 'badge-pending';
-                else if (r.estadoReserva === 'PAGADA') badgeClass = 'badge-confirmed';
-                else if (r.estadoReserva === 'COMPLETADO') badgeClass = 'badge-confirmed';
-                else if (r.estadoReserva === 'CANCELADO') badgeClass = 'badge-cancelled';
-                else badgeClass = 'badge-confirmed';
+                var meta = STYLE_MAP[r.estadoReserva] || { badge: 'badge-gray', dot: 'dot-gray' };
 
                 html += '<tr>'
-                     +  '<td><div class="cell-user"><div class="avatar-sm">' + initials + '</div> ' + r.nombreCliente + '</div></td>'
-                     +  '<td>' + (r.nombreCancha || ('Cancha ' + r.canchaId)) + '<br><span class="muted">' + r.fecha + '</span></td>'
+                     +  '<td><div class="cell-user"><div class="avatar-sm">' + initials + '</div> ' + (r.nombreCliente || 'Sin Nombre') + '</div></td>'
+                     +  '<td>' + (r.nombreCancha || ('Cancha ' + r.canchaId)) + '<br><span class="muted">' + (r.fecha || '') + '</span></td>'
                      +  '<td>' + hora + '</td>'
-                     +  '<td><span class="badge ' + badgeClass + '">' + r.estadoReserva + '</span></td>'
+                     +  '<td><span class="status-badge ' + meta.badge + '"><span class="dot ' + meta.dot + '"></span> ' + (r.estadoReserva || '') + '</span></td>'
                      +  '<td>S/ ' + Number(r.montoTotal || 0).toFixed(2) + '</td>'
                      +  '</tr>';
             });
