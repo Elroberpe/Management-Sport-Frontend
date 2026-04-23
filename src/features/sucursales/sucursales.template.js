@@ -10,18 +10,27 @@ export const sucursalesTemplate = () => `
 </div>
 
 <!-- Stats -->
-<div class="stats-cards-row">
-    <div class="stat-card minimal">
-        <p class="stat-label">TOTAL SEDES</p>
-        <h2 class="stat-value" id="stat-total">—</h2>
+<div class="pay-stats-row" style="margin-bottom:30px;">
+    <div class="pay-stat-card">
+        <div class="pay-stat-header">
+            <div class="pay-icon-circle bg-gray-tint text-gray-d"><i class='bx bx-building-house'></i></div>
+        </div>
+        <p class="pay-stat-label">TOTAL SEDES</p>
+        <h2 class="pay-stat-value" id="stat-total">—</h2>
     </div>
-    <div class="stat-card minimal border-left-green bg-lighter-green">
-        <p class="stat-label text-green">ACTIVAS</p>
-        <h2 class="stat-value text-green" id="stat-activas">—</h2>
+    <div class="pay-stat-card">
+        <div class="pay-stat-header">
+            <div class="pay-icon-circle bg-green-tint text-green"><i class='bx bx-check-circle'></i></div>
+        </div>
+        <p class="pay-stat-label">ACTIVAS</p>
+        <h2 class="pay-stat-value" id="stat-activas">—</h2>
     </div>
-    <div class="stat-card minimal">
-        <p class="stat-label">INACTIVAS</p>
-        <h2 class="stat-value" id="stat-inactivas">—</h2>
+    <div class="pay-stat-card">
+        <div class="pay-stat-header">
+            <div class="pay-icon-circle bg-red-tint text-red"><i class='bx bx-block'></i></div>
+        </div>
+        <p class="pay-stat-label">INACTIVAS</p>
+        <h2 class="pay-stat-value" id="stat-inactivas">—</h2>
     </div>
 </div>
 
