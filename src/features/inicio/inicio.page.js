@@ -253,9 +253,17 @@ function _loadReservasRecientes(sucursalId) {
                 
                 var meta = STYLE_MAP[r.estadoReserva] || { badge: 'badge-gray', dot: 'dot-gray' };
 
+                // Lógica solicitada: SEDE si modo global (sin sucursalId), CANCHA si modo sede (con sucursalId)
+                var locationDisplay = '';
+                if (sucursalId) {
+                    locationDisplay = r.nombreCancha || ('Cancha ' + r.canchaId);
+                } else {
+                    locationDisplay = r.nombreSucursal || 'Sede';
+                }
+
                 html += '<tr>'
                      +  '<td><div class="cell-user"><div class="avatar-sm">' + initials + '</div> ' + (r.nombreCliente || 'Sin Nombre') + '</div></td>'
-                     +  '<td>' + (r.nombreCancha || ('Cancha ' + r.canchaId)) + '<br><span class="muted">' + (r.fecha || '') + '</span></td>'
+                     +  '<td>' + locationDisplay + '<br><span class="muted">' + (r.fecha || '') + '</span></td>'
                      +  '<td>' + hora + '</td>'
                      +  '<td><span class="status-badge ' + meta.badge + '"><span class="dot ' + meta.dot + '"></span> ' + (r.estadoReserva || '') + '</span></td>'
                      +  '<td>S/ ' + Number(r.montoTotal || 0).toFixed(2) + '</td>'
