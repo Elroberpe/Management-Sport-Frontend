@@ -896,8 +896,11 @@ export function mount(container) {
                 circle.innerHTML = '<span class="text-white" style="font-weight:700;">LLENO</span>';
             } else {
                 circle.className = 'day-circle border-green';
-                // Asumimos que 15 horas disponibles al día es un 100% aproximado de una cancha para la gráfica.
-                var pct = Math.min((horas / 15) * 100, 100);
+                // Asumimos 15 horas máximo de operacion diaria por cancha.
+                // El llenado visual representa qué tan "ocupada" está. 
+                // A más horas disponibles, menor el porcentaje de llenado.
+                var horasOcupadas = Math.max(0, 15 - horas);
+                var pct = Math.min((horasOcupadas / 15) * 100, 100);
                 
                 // Redondear a 1 decimal si es necesario
                 var displayHoras = horas % 1 === 0 ? horas : horas.toFixed(1);
