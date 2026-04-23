@@ -1,24 +1,36 @@
 import { canchasTemplate } from './canchas.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
+import { Store } from '../../core/store.js';
+
+var canchasMountCleanup = null;
 
 export function template() {
     return canchasTemplate();
 }
 
 export function mount(container) {
-
-    var BASE_URL = 'http://localhost:8080/api/v1';
-    var session  = Auth ? Auth.getSession() : null;
-
-    // Subtitle con sede del usuario
-    var subtitleEl = document.getElementById('canchas-subtitle');
-    if (session && session.sucursalNombre) {
-        subtitleEl.innerHTML = 'Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">' + session.sucursalNombre + '</span>.';
+    if (canchasMountCleanup) {
+        canchasMountCleanup();
+        canchasMountCleanup = null;
     }
 
-    // Filtro por sucursal según rol
-    var sucursalFiltro = (session && session.rol !== 'superadmin') ? session.sucursalId : null;
+    var session  = Auth ? Auth.getSession() : null;
+    var mountCleanups = [];
+
+    // Determinar filtro por sucursal:
+    // - Superadmin en modo operativo: usa la sede del Store
+    // - Admin/Recepcionista: usa la sede de su sesión
+    var sedeActiva = (session && session.rol === 'superadmin')
+        ? Store.getSucursal()
+        : (session ? { sucursalId: session.sucursalId, nombre: session.sucursalNombre } : null);
+    var sucursalFiltro = sedeActiva ? sedeActiva.sucursalId : null;
+
+    // Subtitle con sede activa
+    var subtitleEl = document.getElementById('canchas-subtitle');
+    if (subtitleEl && sedeActiva && sedeActiva.nombre) {
+        subtitleEl.innerHTML = 'Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">' + sedeActiva.nombre + '</span>.';
+    }
 
     /* ---- Refs DOM ---- */
     var loading  = document.getElementById('canchas-loading');
@@ -41,6 +53,17 @@ export function mount(container) {
     var vistaActual = 'tabla'; // 'tabla' | 'grilla'
     var todasCanchas = [];
 
+    function addCleanup(fn) {
+        mountCleanups.push(fn);
+    }
+
+    function addGlobalListener(target, eventName, handler) {
+        target.addEventListener(eventName, handler);
+        addCleanup(function() {
+            target.removeEventListener(eventName, handler);
+        });
+    }
+
     /* ---- Helpers estado ---- */
     var ESTADO_META = {
         DISPONIBLE:    { cls: 'green',  dotCls: 'green',  label: 'Disponible',    badgeCls: 'cgc-badge-disponible' },
@@ -57,15 +80,7 @@ export function mount(container) {
 
     /* ---- Cambiar estado via API ---- */
     function cambiarEstado(canchaId, nuevoEstado, estadoAnterior, el) {
-        fetch(BASE_URL + '/canchas/' + canchaId + '/estado', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estadoCancha: nuevoEstado })
-        })
-        .then(function (res) {
-            if (!res.ok) throw new Error('Error ' + res.status);
-            return res.json();
-        })
+        api.patch('/canchas/' + canchaId + '/estado', { estadoCancha: nuevoEstado })
         .then(function (updated) {
             // Actualizar en el arreglo local
             var idx = todasCanchas.findIndex(function(c){ return c.canchaId == canchaId; });
@@ -122,8 +137,8 @@ export function mount(container) {
                 "</label>",
             "</td>",
             "<td><span class='dot-status " + meta.dotCls + "'>" + meta.label + "</span></td>",
-            "<td style='text-align:right;'>",
-                "<div class='actions-col' style='justify-content:flex-end;gap:6px;'>",
+            "<td>",
+                "<div class='cli-actions'>",
                     "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' title='Programar Mantenimiento'><i class='bx bx-wrench'></i></button>",
                     "<button class='btn-edit-cancha' data-id='" + c.canchaId + "' title='Editar'><i class='bx bx-pencil'></i></button>",
                     "<button class='btn-delete-cancha' data-id='" + c.canchaId + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
@@ -268,14 +283,10 @@ export function mount(container) {
         footer.style.display   = 'none';
         todasCanchas = [];
 
-        var url = BASE_URL + '/canchas';
-        if (sucursalFiltro) url += '?sucursalId=' + sucursalFiltro;
+        var endpoint = '/canchas';
+        if (sucursalFiltro) endpoint += '?sucursalId=' + sucursalFiltro;
 
-        fetch(url)
-            .then(function (res) {
-                if (!res.ok) throw new Error('Error ' + res.status + ' del servidor');
-                return res.json();
-            })
+        api.get(endpoint)
             .then(function (data) {
                 // Normalizar: si la API devuelve 'id' en lugar de 'canchaId'
                 console.log('[Canchas] Primer item recibido de la API:', data[0]);
@@ -385,13 +396,8 @@ export function mount(container) {
         ncSelectSuc.innerHTML = '<option value="">Cargando sucursales...</option>';
         ncSelectSuc.disabled = true;
 
-        var url = BASE_URL + '/sucursales';
         // Si el usuario no es superadmin, pre-seleccionar su sucursal
-        fetch(url)
-            .then(function(res) {
-                if (!res.ok) throw new Error('Error ' + res.status);
-                return res.json();
-            })
+        api.get('/sucursales')
             .then(function(sucursales) {
                 ncSelectSuc.innerHTML = '<option value="">— Seleccionar Sucursal —</option>';
                 sucursales.forEach(function(s) {
@@ -449,22 +455,7 @@ export function mount(container) {
 
         setLoading(true);
 
-        fetch(BASE_URL + '/canchas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(function(res) {
-            if (res.status === 201) return res.json();
-            // Manejar error 400 con mensaje del backend
-            if (res.status === 400) {
-                return res.json().then(function(err) {
-                    var msg = err.message || err.error || JSON.stringify(err);
-                    throw { tipo: 'validacion', mensaje: msg };
-                });
-            }
-            throw { tipo: 'servidor', mensaje: 'Error ' + res.status + ' del servidor.' };
-        })
+        api.post('/canchas', payload)
         .then(function(nuevaCancha) {
             // Normalizar id
             if (nuevaCancha.canchaId === undefined && nuevaCancha.id !== undefined) {
@@ -479,19 +470,16 @@ export function mount(container) {
         })
         .catch(function(err) {
             setLoading(false);
-            if (err && err.tipo === 'validacion') {
-                // Mostrar error inline
-                ncErrGenMsg.textContent = err.mensaje;
-                ncErrGen.style.display = 'flex';
-            } else {
-                ncErrGenMsg.textContent = (err && err.mensaje) || 'No se pudo conectar con el servidor.';
-                ncErrGen.style.display = 'flex';
-            }
+            ncErrGenMsg.textContent = (err && err.message) || 'No se pudo conectar con el servidor.';
+            ncErrGen.style.display = 'flex';
         });
     }
 
     /* -- Toast -- */
     var toastTimer = null;
+    addCleanup(function() {
+        clearTimeout(toastTimer);
+    });
     function mostrarToast(msg) {
         ncToastMsg.textContent = msg;
         ncToast.style.display = 'flex';
@@ -514,9 +502,10 @@ export function mount(container) {
     modalNC.addEventListener('click', function(e) {
         if (e.target === modalNC) cerrarModal(); // click fuera cierra
     });
-    document.addEventListener('keydown', function(e) {
+    var onKeydownNuevaCancha = function(e) {
         if (e.key === 'Escape' && modalNC.style.display !== 'none') cerrarModal();
-    });
+    };
+    addGlobalListener(document, 'keydown', onKeydownNuevaCancha);
     btnNcSubmit.addEventListener('click', crearCancha);
     ncNombre.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') crearCancha();
@@ -678,27 +667,16 @@ export function mount(container) {
 
         pmSetLoading(true);
 
-        fetch(BASE_URL + '/mantenimientos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(function(res) {
-            if (res.status === 201) return res.json();
-            return res.json().then(function(err) {
-                var msg = err.message || err.error || 'Error al programar el mantenimiento.';
-                throw { tipo: res.status === 400 ? 'conflicto' : 'servidor', mensaje: msg };
+        api.post('/mantenimientos', payload)
+            .then(function() {
+                cerrarModalMant();
+                mostrarToast('¡Mantenimiento programado para "' + _pmCanchaNombre + '"!');
+            })
+            .catch(function(err) {
+                pmSetLoading(false);
+                pmErrGenMsg.textContent = (err && err.message) || 'No se pudo conectar con el servidor.';
+                pmErrGen.style.display = 'flex';
             });
-        })
-        .then(function() {
-            cerrarModalMant();
-            mostrarToast('¡Mantenimiento programado para "' + _pmCanchaNombre + '"!');
-        })
-        .catch(function(err) {
-            pmSetLoading(false);
-            pmErrGenMsg.textContent = (err && err.mensaje) || 'No se pudo conectar con el servidor.';
-            pmErrGen.style.display = 'flex';
-        });
     }
 
     /* -- Event listeners -- */
@@ -707,9 +685,10 @@ export function mount(container) {
     modalMant.addEventListener('click', function(e) {
         if (e.target === modalMant) cerrarModalMant();
     });
-    document.addEventListener('keydown', function(e) {
+    var onKeydownMantenimiento = function(e) {
         if (e.key === 'Escape' && modalMant.style.display !== 'none') cerrarModalMant();
-    });
+    };
+    addGlobalListener(document, 'keydown', onKeydownMantenimiento);
     btnPmSubmit.addEventListener('click', programarMantenimiento);
 
     /* ========================================
@@ -743,11 +722,7 @@ export function mount(container) {
 
         modalEC.style.display = 'flex';
 
-        fetch(BASE_URL + '/canchas/' + id)
-            .then(function(res) {
-                if (!res.ok) throw new Error('No se pudo obtener los datos de la cancha (Error ' + res.status + ')');
-                return res.json();
-            })
+        api.get('/canchas/' + id)
             .then(function(c) {
                 // Priorizar el nombre que viene de la API de la cancha
                 var nombreSede = c.sucursalNombre || (c.sucursal && c.sucursal.nombre);
@@ -764,7 +739,7 @@ export function mount(container) {
                 ecNombre.focus();
             })
             .catch(function(err) {
-                ecErrGenMsg.textContent = err.mensaje || err.message;
+                ecErrGenMsg.textContent = err.message;
                 ecErrGen.style.display = 'flex';
             });
     }
@@ -813,17 +788,7 @@ export function mount(container) {
             precioHora: precio
         };
 
-        fetch(BASE_URL + '/canchas/' + _editCanchaId, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(function(res) {
-            if (res.status === 200) return res.json();
-            return res.json().then(function(err) {
-                throw new Error(err.message || 'Error al actualizar la cancha.');
-            });
-        })
+        api.put('/canchas/' + _editCanchaId, payload)
         .then(function(updated) {
             // Actualizar arreglo local
             var idx = todasCanchas.findIndex(function(c){ return c.canchaId == _editCanchaId; });
@@ -855,8 +820,129 @@ export function mount(container) {
         ecCharNombre.style.color = len > 45 ? '#ef4444' : '#94a3b8';
     });
 
+    /* =========================================================================
+       VISTA RÁPIDA DE HORARIOS (QUICK SCHEDULE)
+       ========================================================================= */
+    var qsCurrentDate = new Date();
+    var btnQsPrev = document.getElementById('btn-qs-prev');
+    var btnQsNext = document.getElementById('btn-qs-next');
+    var qsWeekLabel = document.getElementById('qs-week-label');
+    var qsDaysContainer = document.getElementById('qs-days-container');
+
+    function getMonday(d) {
+        var d2 = new Date(d);
+        var day = d2.getDay();
+        var diff = d2.getDate() - day + (day == 0 ? -6 : 1);
+        d2.setDate(diff);
+        return d2;
+    }
+
+    function formatShortDate(d) {
+        var ds = d.getDate().toString().padStart(2, '0');
+        var ms = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][d.getMonth()];
+        return ds + ' ' + ms;
+    }
+
+    function fetchQuickSchedule() {
+        if (!sucursalFiltro) {
+            if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;">Selecciona una sucursal para ver la disponibilidad.</div>';
+            return;
+        }
+
+        var mon = getMonday(qsCurrentDate);
+        var sun = new Date(mon);
+        sun.setDate(mon.getDate() + 6);
+        if (qsWeekLabel) qsWeekLabel.textContent = formatShortDate(mon) + ' - ' + formatShortDate(sun);
+
+        var yyyy = qsCurrentDate.getFullYear();
+        var mm = String(qsCurrentDate.getMonth() + 1).padStart(2, '0');
+        var dd = String(qsCurrentDate.getDate()).padStart(2, '0');
+        var fechaBase = yyyy + '-' + mm + '-' + dd;
+
+        if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;"><div class="spinner-circle" style="width: 24px; height: 24px; border-width: 3px; display: inline-block; vertical-align: middle; margin-right: 8px;"></div>Cargando disponibilidad...</div>';
+
+        api.get('/dashboard/sucursales/' + sucursalFiltro + '/disponibilidad-semanal?fechaBase=' + fechaBase)
+            .then(function(data) {
+                renderQuickSchedule(data);
+            })
+            .catch(function(err) {
+                if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #ef4444; font-size: 14px;"><i class="bx bx-error-circle" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>Error al cargar disponibilidad</div>';
+            });
+    }
+
+    function renderQuickSchedule(data) {
+        if (!qsDaysContainer) return;
+        qsDaysContainer.innerHTML = '';
+        var mapNombres = { 'LUNES': 'LUN', 'MARTES': 'MAR', 'MIERCOLES': 'MIE', 'JUEVES': 'JUE', 'VIERNES': 'VIE', 'SABADO': 'SAB', 'DOMINGO': 'DOM' };
+
+        data.forEach(function(item) {
+            var shortName = mapNombres[item.dia] || item.dia.substring(0, 3).toUpperCase();
+            var d = new Date(item.fecha + 'T00:00:00');
+            var isToday = d.toDateString() === new Date().toDateString();
+
+            var col = document.createElement('div');
+            col.className = 'day-col';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.className = 'd-name';
+            nameSpan.textContent = shortName;
+            if (isToday) nameSpan.style.color = 'var(--primary)';
+
+            var circle = document.createElement('div');
+            
+            var horas = Number(item.horasDisponibles || 0);
+            if (horas <= 0) {
+                circle.className = 'day-circle bg-dark-green';
+                circle.innerHTML = '<span class="text-white" style="font-weight:700;">LLENO</span>';
+            } else {
+                circle.className = 'day-circle border-green';
+                // Asumimos que 15 horas disponibles al día es un 100% aproximado de una cancha para la gráfica.
+                var pct = Math.min((horas / 15) * 100, 100);
+                
+                // Redondear a 1 decimal si es necesario
+                var displayHoras = horas % 1 === 0 ? horas : horas.toFixed(1);
+                
+                circle.innerHTML = '<span>' + displayHoras + ' hrs</span><div class="fill green" style="height:' + pct + '%"></div>';
+            }
+
+            col.appendChild(nameSpan);
+            col.appendChild(circle);
+            qsDaysContainer.appendChild(col);
+        });
+    }
+
+    if (btnQsPrev) {
+        btnQsPrev.addEventListener('click', function() {
+            qsCurrentDate.setDate(qsCurrentDate.getDate() - 7);
+            fetchQuickSchedule();
+        });
+    }
+    if (btnQsNext) {
+        btnQsNext.addEventListener('click', function() {
+            qsCurrentDate.setDate(qsCurrentDate.getDate() + 7);
+            fetchQuickSchedule();
+        });
+    }
+
+    if (sucursalFiltro) {
+        fetchQuickSchedule();
+    }
+
+    canchasMountCleanup = function() {
+        mountCleanups.forEach(function(cleanup) {
+            try {
+                cleanup();
+            } catch (error) {
+                console.error('[Canchas] Error during cleanup:', error);
+            }
+        });
+        mountCleanups = [];
+        canchasMountCleanup = null;
+    };
 }
 
 export function unmount() {
-    // Cleanup if necessary
+    if (canchasMountCleanup) {
+        canchasMountCleanup();
+    }
 }

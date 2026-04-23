@@ -7,32 +7,40 @@ export const canchasTemplate = () => `
             <h1 class="page-title">Gestión de Canchas</h1>
             <p class="page-subtitle" id="canchas-subtitle">Configura, monitorea y gestiona tus canchas.</p>
         </div>
-        <button class="btn btn-primary new-booking-btn" id="btn-nueva-cancha" style="padding: 12px 24px;">
-            <i class='bx bx-plus-circle' style="font-size: 20px;"></i> Añadir Nueva Cancha
+        <button class="btn btn-primary new-booking-btn" id="btn-nueva-cancha" style="height:42px; padding:0 24px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
+            <i class='bx bx-plus'></i> Nueva Cancha
         </button>
     </div>
 
     <!-- Stats -->
-    <div class="stats-cards-row">
-        <div class="stat-card minimal stat-canchas">
-            <div class="icon-top"><i class='bx bx-football text-green'></i></div>
-            <p class="stat-label">TOTAL CANCHAS</p>
-            <h2 class="stat-value" id="stat-total">—</h2>
+    <div class="pay-stats-row" style="margin-bottom:30px;">
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-gray-tint text-gray-d"><i class='bx bx-football'></i></div>
+            </div>
+            <p class="pay-stat-label">TOTAL CANCHAS</p>
+            <h2 class="pay-stat-value" id="stat-total">—</h2>
         </div>
-        <div class="stat-card minimal stat-canchas active-stat border-bottom-green">
-            <div class="icon-top"><i class='bx bx-check-circle text-green'></i></div>
-            <p class="stat-label">DISPONIBLES</p>
-            <h2 class="stat-value text-green" id="stat-disponibles">—</h2>
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-green-tint text-green"><i class='bx bx-check-circle'></i></div>
+            </div>
+            <p class="pay-stat-label">DISPONIBLES</p>
+            <h2 class="pay-stat-value" id="stat-disponibles">—</h2>
         </div>
-        <div class="stat-card minimal stat-canchas">
-            <div class="icon-top"><i class='bx bx-wrench' style="color:#BA8510;"></i></div>
-            <p class="stat-label">MANTENIMIENTO</p>
-            <h2 class="stat-value" id="stat-mantenimiento">—</h2>
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-yellow-tint text-yellow-d"><i class='bx bx-wrench'></i></div>
+            </div>
+            <p class="pay-stat-label">MANTENIMIENTO</p>
+            <h2 class="pay-stat-value" id="stat-mantenimiento">—</h2>
         </div>
-        <div class="stat-card minimal stat-canchas stat-dark-green">
-            <div class="icon-top" style="color:#fff;"><i class='bx bx-block'></i></div>
-            <p class="stat-label" style="color:rgba(255,255,255,0.8);">INACTIVAS</p>
-            <h2 class="stat-value" style="color:#fff;" id="stat-inactivas">—</h2>
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-red-tint text-red"><i class='bx bx-block'></i></div>
+            </div>
+            <p class="pay-stat-label">INACTIVAS</p>
+            <h2 class="pay-stat-value" id="stat-inactivas">—</h2>
         </div>
     </div>
 
@@ -85,7 +93,7 @@ export const canchasTemplate = () => `
                     <th>PRECIO / HORA</th>
                     <th>ESTADO</th>
                     <th>DISPONIBILIDAD</th>
-                    <th style="text-align:right;">ACCIONES</th>
+                    <th style="text-align:center;">ACCIONES</th>
                 </tr>
             </thead>
             <tbody id="canchas-tbody">
@@ -104,36 +112,33 @@ export const canchasTemplate = () => `
             No se encontraron canchas con ese filtro.
         </div>
 
-        <!-- Footer -->
+        <!-- Footer unificado -->
         <div class="pagination-footer" id="canchas-footer" style="display:none;">
             <span id="canchas-count-label">Mostrando <strong>0</strong> canchas</span>
+            <div class="page-numbers" id="canchas-pagination" style="display:none;">
+                <button class="arr" id="canchas-page-first" title="Primera"><i class='bx bx-chevrons-left'></i></button>
+                <button class="arr" id="canchas-page-prev"  title="Anterior"><i class='bx bx-chevron-left'></i></button>
+                <span style="display:flex;align-items:center;padding:0 8px;font-weight:600;font-size:13px;color:#0f172a;" id="canchas-page-info">Página 1 de 1</span>
+                <button class="arr" id="canchas-page-next"  title="Siguiente"><i class='bx bx-chevron-right'></i></button>
+                <button class="arr" id="canchas-page-last"  title="Última"><i class='bx bx-chevrons-right'></i></button>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Schedule (estático por ahora) -->
+    <!-- Quick Schedule -->
     <div class="quick-schedule">
-        <h3 class="qs-title"><i class='bx bx-calendar'></i> Vista Rápida de Horarios</h3>
-        <div class="qs-days">
-            <div class="day-col"><span class="d-name">LUN</span>
-                <div class="day-circle border-green"><span>18 Cupos</span><div class="fill green" style="height:15%"></div></div>
+        <div class="qs-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <h3 class="qs-title" style="margin-bottom: 0;"><i class='bx bx-calendar'></i> Disponibilidad Semanal</h3>
+            <div class="qs-nav" style="display: flex; align-items: center; gap: 12px;">
+                <button class="btn btn-icon" id="btn-qs-prev" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center;"><i class='bx bx-chevron-left'></i></button>
+                <span id="qs-week-label" style="font-weight: 600; color: #1e293b; font-size: 14px; min-width: 140px; text-align: center;">Cargando...</span>
+                <button class="btn btn-icon" id="btn-qs-next" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center;"><i class='bx bx-chevron-right'></i></button>
             </div>
-            <div class="day-col"><span class="d-name">MAR</span>
-                <div class="day-circle bg-blue-tint"><span>12 Cupos</span><div class="fill light-blue" style="height:5%"></div></div>
-            </div>
-            <div class="day-col"><span class="d-name">MIE</span>
-                <div class="day-circle border-green"><span>20 Cupos</span><div class="fill green" style="height:25%"></div></div>
-            </div>
-            <div class="day-col"><span class="d-name">JUE</span>
-                <div class="day-circle border-green"><span>15 Cupos</span><div class="fill green" style="height:12%"></div></div>
-            </div>
-            <div class="day-col"><span class="d-name">VIE</span>
-                <div class="day-circle border-brown bg-brown-tint"><span style="font-weight:700;">Festivo</span></div>
-            </div>
-            <div class="day-col"><span class="d-name">SAB</span>
-                <div class="day-circle bg-dark-green"><span class="text-white" style="font-weight:700;">LLENO</span></div>
-            </div>
-            <div class="day-col"><span class="d-name">DOM</span>
-                <div class="day-circle border-green"><span>24 Cupos</span><div class="fill green" style="height:30%"></div></div>
+        </div>
+        <div class="qs-days" id="qs-days-container">
+            <div style="width: 100%; text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;">
+                <div class="spinner-circle" style="width: 24px; height: 24px; border-width: 3px; display: inline-block; vertical-align: middle; margin-right: 8px;"></div>
+                Cargando disponibilidad...
             </div>
         </div>
     </div>
