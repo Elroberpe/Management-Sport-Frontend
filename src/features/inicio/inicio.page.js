@@ -61,6 +61,7 @@ export function mount(container) {
     } else {
         // modo global
         var sedeId = null;
+        _loadStatusSedes();
     }
 
     // Cargar datos del dashboard (KPIs, Gráfico y Reservas Recientes)
@@ -294,6 +295,66 @@ function _loadReservasRecientes(sucursalId) {
     .catch(function() {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#ef4444;">Error al cargar reservas.</td></tr>';
     });
+}
+
+/**
+ * Carga el estado de las sedes para la vista global
+ */
+function _loadStatusSedes() {
+    var listContainer = document.querySelector('#inicio-panel-sedes .branch-list');
+    var statValueEl = document.querySelector('#inicio-stat-sedes .stat-value');
+    
+    if (listContainer) {
+        listContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;"><div class="spinner-circle" style="width:24px;height:24px;margin:0 auto 10px;border-width:3px;"></div>Cargando estado...</div>';
+    }
+    
+    api.get('/dashboard/status-sedes')
+        .then(function(data) {
+            var sedes = Array.isArray(data) ? data : [];
+            
+            // Actualizar KPI
+            if (statValueEl) {
+                statValueEl.textContent = sedes.length;
+            }
+            
+            if (!listContainer) return;
+            
+            if (sedes.length === 0) {
+                listContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">No hay sedes registradas.</div>';
+                return;
+            }
+            
+            var html = '';
+            sedes.forEach(function(s) {
+                var pct = s.canchasTotales > 0 ? Math.round((s.canchasActivas / s.canchasTotales) * 100) : 0;
+                var isActive = s.canchasActivas > 0;
+                var isMaintenance = s.canchasTotales > 0 && s.canchasActivas === 0;
+                
+                var iconHtml = isActive ? '<div class="b-icon"><i class="bx bx-map"></i></div>' : 
+                              (isMaintenance ? '<div class="b-icon bg-gray"><i class="bx bx-wrench"></i></div>' : 
+                                               '<div class="b-icon bg-dark"><i class="bx bx-moon"></i></div>');
+                                               
+                var dotClass = isActive ? 'green' : (isMaintenance ? 'yellow' : 'gray');
+                var textClass = isMaintenance ? 'grayed' : '';
+                var statusText = isActive ? (s.canchasActivas + '/' + s.canchasTotales + ' Canchas Activas') : 
+                                (isMaintenance ? 'En Mantenimiento' : 'Sin Canchas Activas');
+                
+                html += '<div class="branch-item ' + textClass + '">'
+                     +    iconHtml
+                     +    '<div class="b-info">'
+                     +      '<h4>' + (s.nombreSede || 'Sede ' + s.sucursalId) + ' <span class="dot ' + dotClass + '"></span></h4>'
+                     +      '<p>' + statusText + ' <span class="pct">' + pct + '%</span></p>'
+                     +      (s.canchasTotales > 0 ? '<div class="progress-bg"><div class="progress-fill" style="width: ' + pct + '%;"></div></div>' : '')
+                     +    '</div>'
+                     +  '</div>';
+            });
+            
+            listContainer.innerHTML = html;
+        })
+        .catch(function() {
+            if (listContainer) listContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;">Error al cargar el estado de las sedes.</div>';
+            if (statValueEl) statValueEl.textContent = 'N/D';
+        });
 }
 
 export function unmount() {
