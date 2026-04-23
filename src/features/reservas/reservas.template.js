@@ -16,6 +16,11 @@ export const reservasTemplate = () => `
         </div>
         <div class="ch-right" style="display:flex; align-items:center; gap:12px;">
             <div class="select-wrap">
+                <select id="cal-cancha-sel" style="height:42px; padding:0 36px 0 16px; border-radius:10px; border:1px solid #e2e8f0; background-color:#fff; font-size:13px; font-weight:600; color:#334155; cursor:pointer; outline:none; appearance:none; background-image:url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center;">
+                    <option value="">Cargando canchas...</option>
+                </select>
+            </div>
+            <div class="select-wrap">
                 <select id="cal-filter-estado" style="height:42px; padding:0 36px 0 16px; border-radius:10px; border:1px solid #e2e8f0; background-color:#fff; font-size:13px; font-weight:600; color:#334155; cursor:pointer; outline:none; appearance:none; background-image:url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\"); background-repeat:no-repeat; background-position:right 12px center;">
                     <option value="">Todos los estados</option>
                     <option value="PENDIENTE">Pendiente</option>
