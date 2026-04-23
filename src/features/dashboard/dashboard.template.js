@@ -8,28 +8,55 @@ export const dashboardTemplate = () => `
         <span id="sidebar-role-label">CARGANDO...</span>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav">
-        <!-- Items rendered by role -->
-        <a href="#/dashboard/inicio" class="nav-item active" data-module="inicio" data-roles="superadmin,admin,recepcionista">
-            <i class='bx bxs-dashboard'></i> Dashboard
-        </a>
-        <a href="#/dashboard/sucursales" class="nav-item" data-module="sucursales" data-roles="superadmin">
-            <i class='bx bx-buildings'></i> Sedes
-        </a>
-        <a href="#/dashboard/canchas" class="nav-item" data-module="canchas" data-roles="superadmin,admin">
-            <i class='bx bx-map'></i> Canchas
-        </a>
-        <a href="#/dashboard/mantenimientos" class="nav-item" data-module="mantenimientos" data-roles="superadmin,admin">
-            <i class='bx bx-wrench'></i> Mantenimientos
-        </a>
-        <a href="#/dashboard/reservas" class="nav-item" data-module="reservas" data-roles="superadmin,admin,recepcionista">
-            <i class='bx bx-calendar'></i> Calendario
-        </a>
-        <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
-            <i class='bx bx-group'></i> Clientes
-        </a>
-        <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
-            <i class='bx bx-wallet'></i> Pagos
-        </a>
+        <!-- BLOQUE GLOBAL (Solo para Superadmin en vista general) -->
+        <div id="sidebar-nav-global">
+            <a href="#/dashboard/inicio" class="nav-item active" data-module="inicio" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bxs-dashboard'></i> Dashboard
+            </a>
+            <a href="#/dashboard/sucursales" class="nav-item" data-module="sucursales" data-roles="superadmin">
+                <i class='bx bx-buildings'></i> Sedes
+            </a>
+            <a href="#/dashboard/canchas" class="nav-item" data-module="canchas" data-roles="superadmin,admin">
+                <i class='bx bx-map'></i> Canchas
+            </a>
+            <a href="#/dashboard/mantenimientos" class="nav-item" data-module="mantenimientos" data-roles="superadmin,admin">
+                <i class='bx bx-wrench'></i> Mantenimientos
+            </a>
+            <a href="#/dashboard/reservas" class="nav-item" data-module="reservas" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-calendar'></i> Calendario
+            </a>
+            <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-group'></i> Clientes
+            </a>
+            <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
+                <i class='bx bx-wallet'></i> Pagos
+            </a>
+        </div>
+
+        <!-- BLOQUE OPERATIVO (Superadmin dentro de Sede / Admin / Recepcionista) -->
+        <div id="sidebar-nav-operativo" style="display: none;">
+            <a href="#" class="nav-item" id="btn-volver-sedes" data-roles="superadmin" style="color: var(--text-muted); margin-bottom: 10px; border-bottom: 1px solid var(--border-color); border-radius: 0; padding-bottom: 15px;">
+                <i class='bx bx-arrow-back'></i> Volver a Sedes
+            </a>
+            <a href="#/dashboard/inicio" class="nav-item active" data-module="inicio" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bxs-dashboard'></i> Dashboard
+            </a>
+            <a href="#/dashboard/canchas" class="nav-item" data-module="canchas" data-roles="superadmin,admin">
+                <i class='bx bx-map'></i> Canchas
+            </a>
+            <a href="#/dashboard/mantenimientos" class="nav-item" data-module="mantenimientos" data-roles="superadmin,admin">
+                <i class='bx bx-wrench'></i> Mantenimientos
+            </a>
+            <a href="#/dashboard/reservas" class="nav-item" data-module="reservas" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-calendar'></i> Calendario
+            </a>
+            <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-group'></i> Clientes
+            </a>
+            <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
+                <i class='bx bx-wallet'></i> Pagos
+            </a>
+        </div>
     </nav>
     <div class="sidebar-footer">
         <a href="#" class="nav-item" id="sidebar-settings"><i class='bx bx-cog'></i> Ajustes</a>
