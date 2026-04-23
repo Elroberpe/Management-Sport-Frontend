@@ -113,7 +113,7 @@ export const inicioTemplate = () => `
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-outlined btn-full mt-4" id="inicio-btn-add-sede">
+                <button class="btn btn-outlined btn-full mt-4" id="inicio-btn-add-sede" style="margin-top: 24px;">
                     <i class='bx bx-plus'></i> Añadir Sede
                 </button>
             </div>
