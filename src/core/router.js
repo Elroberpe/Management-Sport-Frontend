@@ -22,6 +22,7 @@ export class Router {
         };
         
         window.addEventListener('hashchange', () => this.handleRoute());
+        window.addEventListener('sucursalChanged', () => this.handleRoute());
         this.handleRoute();
     }
 

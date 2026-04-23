@@ -255,7 +255,9 @@ export function initCalendario(ctx) {
     /* ──────────── Stats (todas las canchas) ──────────── */
     function renderBottomStats() {
         var reservas = reservasSemana.filter(function(r) {
-            return r.estadoReserva !== 'CANCELADO' && r.estadoReserva !== 'REEMBOLSADO';
+            if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return false;
+            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return false;
+            return true;
         });
         var completadas = reservas.filter(function(r) { return r.estadoReserva === 'COMPLETADO'; }).length;
         
@@ -266,7 +268,10 @@ export function initCalendario(ctx) {
         if (subEl) subEl.textContent = 'de ' + reservas.length + ' en total (' + (reservas.length ? Math.round((completadas/reservas.length)*100) : 0) + '%)';
 
         var counts = {};
-        reservasSemana.forEach(function(r) { counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; });
+        reservasSemana.forEach(function(r) { 
+            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
+            counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; 
+        });
 
         var listEl = document.getElementById('cal-estado-list');
         listEl.innerHTML = '';
