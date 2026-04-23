@@ -156,7 +156,7 @@ export function initTabla(ctx) {
         if (fHasta) params.append('fechaHasta', fHasta);
 
         var estados = getSelectedStates();
-        estados.forEach(function(est) { params.append('estadoReserva', est); });
+        estados.forEach(function(est) { params.append('estado', est); });
 
         var cid = rhClienteId.value;
         if (cid) params.append('clienteId', cid);
