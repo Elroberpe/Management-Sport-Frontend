@@ -273,7 +273,9 @@ function _loadReservasRecientes(sucursalId) {
                 locationDisplay = r.nombreCancha || ('Cancha ' + r.canchaId);
             } else {
                 var sId = canchaToSucursal[r.canchaId];
-                locationDisplay = sucursalMap[sId] || 'Sede ' + (sId || '');
+                var rawNombre = sucursalMap[sId] || '';
+                // Remover la palabra "Sede " del nombre si la tiene (ej: "Sede Miraflores" -> "Miraflores")
+                locationDisplay = rawNombre.replace(/^Sede\s+/i, '') || ('Sucursal ' + (sId || ''));
             }
 
             html += '<tr>'
