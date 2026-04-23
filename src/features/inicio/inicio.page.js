@@ -194,8 +194,11 @@ function _loadChart(sucursalId, periodo) {
             var isSemana = periodo === 'SEMANA';
             
             data.forEach(function(d, index) {
-                var pct = Math.min((d.cantidad / maxVal) * 100, 100);
-                // Highlight primary if it's the current day (last item usually) or randomly if no logic
+                var pct = Math.min((d.cantidad / maxVal), 1);
+                // Calcular altura en pixeles (máximo 120px para que encaje en los 180px del contenedor)
+                var barHeight = Math.max(pct * 120, 8); // minimo 8px para que siempre se vea una línea base
+
+                // Highlight primary if it's the current day (last item usually)
                 var isPrimary = (index === data.length - 1);
                 var bgClass = isPrimary ? ' bg-primary' : '';
                 
@@ -209,7 +212,7 @@ function _loadChart(sucursalId, periodo) {
                 }
 
                 html += '<div class="bar-group" title="' + d.cantidad + ' reservas el ' + d.fecha + '">'
-                     +  '<div class="bar h-' + Math.round(pct) + bgClass + '" style="height:' + pct + '%;"></div>'
+                     +  '<div class="bar' + bgClass + '" style="height:' + barHeight + 'px;"></div>'
                      +  '<span>' + label + '</span>'
                      +  '</div>';
             });
