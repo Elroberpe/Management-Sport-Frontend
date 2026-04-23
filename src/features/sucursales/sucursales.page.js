@@ -1,6 +1,7 @@
 import { sucursalesTemplate } from './sucursales.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
+import { Store } from '../../core/store.js';
 
 export function template() {
     return sucursalesTemplate();
@@ -181,7 +182,7 @@ export function mount(container) {
                         "<button class='icon-btn btn-edit-sede' data-id='" + sid + "' title='Editar'><i class='bx bx-pencil'></i></button>",
                         "<button class='icon-btn btn-delete-sede' data-id='" + sid + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
                     "</div>",
-                    "<button class='btn-text-arrow" + (activo ? '' : ' text-muted') + "'>Ver Canchas <i class='bx bx-right-arrow-alt'></i></button>",
+                    "<button class='btn-text-arrow btn-ingresar-sede" + (activo ? '' : ' text-muted') + "' data-id='" + sid + "' data-nombre='" + s.nombre + "'>Ingresar a Sede <i class='bx bx-right-arrow-alt'></i></button>",
                 "</div>",
             "</div>"
         ].join('');
@@ -228,6 +229,16 @@ export function mount(container) {
                 }).catch(function (err) {
                     alert('No se puede eliminar: ' + err.message);
                 });
+            });
+        });
+
+        /* Ingresar a Sede */
+        grid.querySelectorAll('.btn-ingresar-sede').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.dataset.id;
+                var nombre = btn.dataset.nombre;
+                Store.setSucursal({ sucursalId: id, nombre: nombre });
+                window.location.hash = '#/dashboard/reservas';
             });
         });
     }
