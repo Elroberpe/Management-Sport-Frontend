@@ -230,50 +230,65 @@ function _loadReservasRecientes(sucursalId) {
     var qs = '?size=5&sort=id,desc';
     if (sucursalId) qs += '&sucursalId=' + sucursalId;
 
-    api.get('/reservas' + qs)
-        .then(function(data) {
-            var items = Array.isArray(data) ? data : (data.content || []);
-            if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#94a3b8;">No hay reservas recientes.</td></tr>';
-                return;
+    Promise.all([
+        api.get('/reservas' + qs),
+        api.get('/sucursales'),
+        api.get('/canchas')
+    ])
+    .then(function(results) {
+        var data = results[0];
+        var sucursales = results[1] || [];
+        var canchas = results[2] || [];
+
+        // Mapeos para resolver el nombre de la sede a partir de la cancha
+        var sucursalMap = {};
+        sucursales.forEach(function(s) { sucursalMap[s.id] = s.nombre; });
+        var canchaToSucursal = {};
+        canchas.forEach(function(c) { canchaToSucursal[c.id] = c.sucursalId; });
+
+        var items = Array.isArray(data) ? data : (data.content || []);
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#94a3b8;">No hay reservas recientes.</td></tr>';
+            return;
+        }
+
+        var STYLE_MAP = {
+            PENDIENTE:   { badge: 'badge-yellow', dot: 'dot-yellow' },
+            PAGADA:      { badge: 'badge-blue',   dot: 'dot-blue'   },
+            COMPLETADO:  { badge: 'badge-green',  dot: 'dot-green'  },
+            CANCELADO:   { badge: 'badge-red',    dot: 'dot-red'    },
+            REEMBOLSADO: { badge: 'badge-purple', dot: 'dot-purple' }
+        };
+
+        var html = '';
+        items.forEach(function(r) {
+            var initials = (r.nombreCliente || '?').split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
+            var hora = (r.horaInicio || '').substring(0,5) + ' - ' + (r.horaFin || '').substring(0,5);
+            
+            var meta = STYLE_MAP[r.estadoReserva] || { badge: 'badge-gray', dot: 'dot-gray' };
+
+            // Lógica solicitada: SEDE si modo global (sin sucursalId), CANCHA si modo sede (con sucursalId)
+            var locationDisplay = '';
+            if (sucursalId) {
+                locationDisplay = r.nombreCancha || ('Cancha ' + r.canchaId);
+            } else {
+                var sId = canchaToSucursal[r.canchaId];
+                locationDisplay = sucursalMap[sId] || 'Sede ' + (sId || '');
             }
 
-            var STYLE_MAP = {
-                PENDIENTE:   { badge: 'badge-yellow', dot: 'dot-yellow' },
-                PAGADA:      { badge: 'badge-blue',   dot: 'dot-blue'   },
-                COMPLETADO:  { badge: 'badge-green',  dot: 'dot-green'  },
-                CANCELADO:   { badge: 'badge-red',    dot: 'dot-red'    },
-                REEMBOLSADO: { badge: 'badge-purple', dot: 'dot-purple' }
-            };
-
-            var html = '';
-            items.forEach(function(r) {
-                var initials = (r.nombreCliente || '?').split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
-                var hora = (r.horaInicio || '').substring(0,5) + ' - ' + (r.horaFin || '').substring(0,5);
-                
-                var meta = STYLE_MAP[r.estadoReserva] || { badge: 'badge-gray', dot: 'dot-gray' };
-
-                // Lógica solicitada: SEDE si modo global (sin sucursalId), CANCHA si modo sede (con sucursalId)
-                var locationDisplay = '';
-                if (sucursalId) {
-                    locationDisplay = r.nombreCancha || ('Cancha ' + r.canchaId);
-                } else {
-                    locationDisplay = r.nombreSucursal || 'Sede';
-                }
-
-                html += '<tr>'
-                     +  '<td><div class="cell-user"><div class="avatar-sm">' + initials + '</div> ' + (r.nombreCliente || 'Sin Nombre') + '</div></td>'
-                     +  '<td>' + locationDisplay + '<br><span class="muted">' + (r.fecha || '') + '</span></td>'
-                     +  '<td>' + hora + '</td>'
-                     +  '<td><span class="status-badge ' + meta.badge + '"><span class="dot ' + meta.dot + '"></span> ' + (r.estadoReserva || '') + '</span></td>'
-                     +  '<td>S/ ' + Number(r.montoTotal || 0).toFixed(2) + '</td>'
-                     +  '</tr>';
-            });
-            tbody.innerHTML = html;
-        })
-        .catch(function() {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#ef4444;">Error al cargar reservas.</td></tr>';
+            html += '<tr>'
+                 +  '<td><div class="cell-user"><div class="avatar-sm">' + initials + '</div> ' + (r.nombreCliente || 'Sin Nombre') + '</div></td>'
+                 +  '<td>' + locationDisplay + '<br><span class="muted">' + (r.fecha || '') + '</span></td>'
+                 +  '<td>' + hora + '</td>'
+                 +  '<td><span class="status-badge ' + meta.badge + '"><span class="dot ' + meta.dot + '"></span> ' + (r.estadoReserva || '') + '</span></td>'
+                 +  '<td>S/ ' + Number(r.montoTotal || 0).toFixed(2) + '</td>'
+                 +  '</tr>';
         });
+        tbody.innerHTML = html;
+    })
+    .catch(function() {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#ef4444;">Error al cargar reservas.</td></tr>';
+    });
 }
 
 export function unmount() {
