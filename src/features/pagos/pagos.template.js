@@ -45,6 +45,15 @@ export const pagosTemplate = () => `
         </div>
         <div class="pay-stat-card">
             <div class="pay-stat-header">
+                <div class="pay-icon-circle bg-orange-tint text-orange"><i class='bx bx-trending-down'></i></div>
+                <span class="pay-badge bg-orange-tint text-orange" id="pagos-badge-salidas">0 salidas</span>
+            </div>
+            <p class="pay-stat-label">TOTAL SALIDAS</p>
+            <h2 class="pay-stat-value" id="pagos-stat-salidas">S/ —</h2>
+            <div class="pay-prog-track"><div class="pay-prog-fill" id="pagos-bar-salidas" style="width:0%;background:#ea580c;"></div></div>
+        </div>
+        <div class="pay-stat-card">
+            <div class="pay-stat-header">
                 <div class="pay-icon-circle bg-red-tint text-red"><i class='bx bx-block'></i></div>
                 <span class="pay-badge bg-red-tint text-red" id="pagos-badge-anulados">0 anulados</span>
             </div>
@@ -61,15 +70,7 @@ export const pagosTemplate = () => `
             <h2 class="pay-stat-value" id="pagos-stat-count">0</h2>
             <p class="pay-stat-sub" id="pagos-stat-sub">en el período</p>
         </div>
-        <div class="pay-stat-card">
-            <div class="pay-stat-header">
-                <div class="pay-icon-circle bg-orange-tint text-orange"><i class='bx bx-trending-down'></i></div>
-                <span class="pay-badge bg-orange-tint text-orange" id="pagos-badge-salidas">0 salidas</span>
-            </div>
-            <p class="pay-stat-label">TOTAL SALIDAS</p>
-            <h2 class="pay-stat-value" id="pagos-stat-salidas">S/ —</h2>
-            <div class="pay-prog-track"><div class="pay-prog-fill" id="pagos-bar-salidas" style="width:0%;background:#ea580c;"></div></div>
-        </div>
+        
     </div>
 
     <!-- Tabla -->

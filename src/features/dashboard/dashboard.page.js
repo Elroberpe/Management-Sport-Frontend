@@ -8,12 +8,16 @@ export function template() {
     return dashboardTemplate();
 }
 
+let _closeDropdownHandler = null;
+let _storeUnsubscribe = null;
+
 export function mount() {
     const session = Auth.getSession();
     if (!session) {
         window.location.hash = '#/login';
         return;
     }
+
 
     // Poblar datos del usuario en la UI
     document.getElementById('header-user-name').textContent   = session.nombre;
@@ -22,15 +26,6 @@ export function mount() {
     
     const avatarImg = document.getElementById('header-avatar-img');
     if (session.avatar && avatarImg) avatarImg.src = session.avatar;
-
-    // Filtrar sidebar según rol
-    const navItems = document.querySelectorAll('#sidebar-nav .nav-item[data-roles]');
-    navItems.forEach(function (item) {
-        const allowedRoles = item.getAttribute('data-roles').split(',');
-        if (!allowedRoles.includes(session.rol)) {
-            item.style.display = 'none';
-        }
-    });
 
     // Cerrar sesión
     const logoutBtn = document.getElementById('sidebar-logout');
@@ -52,7 +47,7 @@ export function mount() {
     setupBranchSelector(session);
 
     // Escuchar cambios de sucursal en el Store
-    window._storeUnsubscribe = Store.subscribe(state => {
+    _storeUnsubscribe = Store.subscribe(state => {
         const sucursal = state.sucursal;
         const sedeLabel = document.getElementById('header-sede-label');
         if (sucursal) {
@@ -100,16 +95,49 @@ export function mount() {
 }
 
 function setSidebarMode(mode) {
-    const navGlobal = document.getElementById('sidebar-nav-global');
-    const navOperativo = document.getElementById('sidebar-nav-operativo');
-    if (!navGlobal || !navOperativo) return;
+    const session = Auth.getSession();
+    if (!session) return;
 
-    if (mode === 'global') {
-        navGlobal.style.display = 'block';
-        navOperativo.style.display = 'none';
-    } else {
-        navGlobal.style.display = 'none';
-        navOperativo.style.display = 'block';
+    const btnVolver = document.getElementById('btn-volver-sedes');
+
+    // Define modules for each context for superadmin
+    const globalModules = ['inicio', 'sucursales', 'canchas', 'clientes', 'pagos', 'usuarios'];
+    const operativoModules = ['inicio', 'reservas', 'canchas', 'mantenimientos', 'clientes', 'pagos', 'usuarios'];
+
+    const navItems = document.querySelectorAll('#sidebar-nav .nav-item[data-roles]');
+
+    navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (!href) return;
+
+        const moduleName = href.replace('#/dashboard/', '');
+        const allowedRoles = item.getAttribute('data-roles').split(',');
+
+        // 1. Hide if user role is not in the list
+        if (!allowedRoles.includes(session.rol)) {
+            item.style.display = 'none';
+            return;
+        }
+
+        // 2. For superadmin, apply dynamic visibility based on mode
+        if (session.rol === 'superadmin') {
+            const modulesForMode = (mode === 'global') ? globalModules : operativoModules;
+            if (modulesForMode.includes(moduleName)) {
+                item.style.display = ''; // Reset to default display
+            } else {
+                item.style.display = 'none';
+            }
+        } else {
+            // For other roles, if they have permission, the item should be visible.
+            // They are always in 'operativo' mode.
+            item.style.display = '';
+        }
+    });
+
+    // Handle the "Volver a sedes" button visibility
+    if (btnVolver) {
+        // Only visible for superadmin in operativo mode
+        btnVolver.style.display = (mode === 'operativo' && session.rol === 'superadmin') ? '' : 'none';
     }
 }
 
@@ -127,14 +155,13 @@ function setupBranchSelector(session) {
         wrap.classList.toggle('open');
     });
 
-    // We attach click to document. To clean it up, we need a named function, 
-    // but right now since the shell usually stays alive, this is acceptable.
-    // For a perfect implementation, we should store this function and remove it in unmount().
-    document.addEventListener('click', function (e) {
+    // Manejador para cerrar el dropdown al hacer clic fuera. Se limpia en unmount.
+    _closeDropdownHandler = function (e) {
         if (!wrap.contains(e.target)) {
             wrap.classList.remove('open');
         }
-    });
+    };
+    document.addEventListener('click', _closeDropdownHandler);
 
     function buildItem(label, icon, sucursalId, activo, isSelected) {
         const item = document.createElement('div');
@@ -173,8 +200,6 @@ function setupBranchSelector(session) {
         Store.setSucursal({ sucursalId: session.sucursalId, nombre: session.sucursalNombre });
         
         setSidebarMode('operativo');
-        const btnVolver = document.getElementById('btn-volver-sedes');
-        if (btnVolver) btnVolver.style.display = 'none'; // Admin no puede volver al global
         return;
     }
 
@@ -207,7 +232,14 @@ function setupBranchSelector(session) {
 }
 
 export function unmount() {
-    if (window._storeUnsubscribe) {
-        window._storeUnsubscribe();
+    // Limpiar la suscripción al store para evitar fugas de memoria
+    if (_storeUnsubscribe) {
+        _storeUnsubscribe();
+        _storeUnsubscribe = null;
+    }
+    // Limpiar el event listener global del documento
+    if (_closeDropdownHandler) {
+        document.removeEventListener('click', _closeDropdownHandler);
+        _closeDropdownHandler = null;
     }
 }

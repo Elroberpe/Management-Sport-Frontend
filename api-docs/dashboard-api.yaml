@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: "API de Dashboard y Reportes - Management-Sport"
+  description: "Endpoints para obtener datos agregados y de inteligencia de negocio."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /dashboard/sucursales/{sucursalId}/disponibilidad-semanal:
+    get:
+      tags:
+        - Dashboard
+      summary: "Obtener disponibilidad de horas por día para una semana"
+      description: "Calcula el total de horas disponibles para reservar en una sucursal para cada día de una semana específica, descontando reservas y mantenimientos."
+      parameters:
+        - name: sucursalId
+          in: path
+          required: true
+          description: "ID de la sucursal a consultar."
+          schema:
+            type: integer
+        - name: fechaBase
+          in: query
+          description: "Una fecha cualquiera dentro de la semana que se desea consultar. Si se omite, se usa la fecha actual."
+          schema:
+            type: string
+            format: date
+            example: "2024-10-28"
+      responses:
+        '200':
+          description: "Lista de disponibilidad para los 7 días de la semana."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DisponibilidadDiariaResponse'
+        '404':
+          description: "Sucursal no encontrada."
+
+  /dashboard/kpi/tasa-ocupacion-mensual:
+    get:
+      tags:
+        - Dashboard - KPIs
+      summary: "Obtener la tasa de ocupación de los últimos 30 días"
+      description: "Calcula el porcentaje de horas ocupadas (por reservas y mantenimientos) sobre el total de horas disponibles de las canchas activas en los últimos 30 días. Puede ser filtrado por sucursal."
+      parameters:
+        - name: sucursalId
+          in: query
+          description: "ID de la sucursal para filtrar el resultado. Si se omite, se calcula el total de todas las sucursales."
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Tasa de ocupación mensual."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KpiResponse'
+
+  /dashboard/graficos/actividad-reservas:
+    get:
+      tags:
+        - Dashboard - Gráficos
+      summary: "Obtener datos para el gráfico de actividad de reservas"
+      description: "Devuelve el número de reservas activas (Pendiente, Pagada, Completado) por día para un período determinado (semana o mes actual). Puede ser filtrado por sucursal."
+      parameters:
+        - name: sucursalId
+          in: query
+          description: "ID de la sucursal para filtrar el resultado. Si se omite, se calcula el total de todas las sucursales."
+          schema:
+            type: integer
+        - name: periodo
+          in: query
+          description: "El período de tiempo para el gráfico."
+          schema:
+            type: string
+            enum: [SEMANA, MES]
+            default: MES
+      responses:
+        '200':
+          description: "Lista de puntos de datos para el gráfico."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActividadDiariaResponse'
+
+  /dashboard/status-sedes:
+    get:
+      tags:
+        - Dashboard - Status
+      summary: "Obtener el status de canchas por cada sede"
+      description: "Devuelve una lista de todas las sedes, indicando para cada una el número total de canchas y cuántas de ellas están activas (no en estado INACTIVA)."
+      responses:
+        '200':
+          description: "Lista del status de todas las sedes."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SedeStatusResponse'
+
+components:
+  schemas:
+    DisponibilidadDiariaResponse:
+      type: object
+      properties:
+        dia:
+          type: string
+          example: "LUNES"
+        fecha:
+          type: string
+          format: date
+          example: "2024-10-28"
+        horasDisponibles:
+          type: number
+          format: double
+          example: 45.5
+    KpiResponse:
+      type: object
+      properties:
+        total:
+          type: number
+          description: "El valor total del KPI solicitado. Para la tasa de ocupación, es un porcentaje."
+          example: 78.50
+    ActividadDiariaResponse:
+      type: object
+      properties:
+        fecha:
+          type: string
+          format: date
+          example: "2024-04-23"
+        cantidad:
+          type: integer
+          format: int64
+          example: 15
+    SedeStatusResponse:
+      type: object
+      properties:
+        sucursalId:
+          type: integer
+          example: 1
+        nombreSede:
+          type: string
+          example: "Sede Miraflores"
+        canchasTotales:
+          type: integer
+          format: int64
+          example: 10
+        canchasActivas:
+          type: integer
+          format: int64
+          example: 8
