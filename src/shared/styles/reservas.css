@@ -130,6 +130,18 @@
     color: #c2410c;
 }
 
+.badge-red {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+.badge-purple {
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+    color: #7e22ce;
+}
+
 .dot-blue {
     background: #3b82f6;
 }
@@ -149,6 +161,15 @@
 .dot-orange {
     background: #ea580c;
 }
+
+.dot-red {
+    background: #ef4444;
+}
+
+.dot-purple {
+    background: #a855f7;
+}
+
 
 /* Calendar Panel */
 .calendar-panel {

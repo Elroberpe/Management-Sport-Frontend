@@ -37,6 +37,8 @@ export const reservasTemplate = () => `
         <div class="legend-item badge-blue"><span class="dot dot-blue"></span> Pagada</div>
         <div class="legend-item badge-yellow"><span class="dot dot-yellow"></span> Pendiente</div>
         <div class="legend-item badge-green"><span class="dot dot-green"></span> Completada</div>
+        <div class="legend-item badge-red"><span class="dot dot-red"></span> Cancelada</div>
+        <div class="legend-item badge-purple"><span class="dot dot-purple"></span> Reembolsado</div>
         <div class="legend-item badge-orange"><span class="dot dot-orange"></span> 🔧 Mantenimiento</div>
     </div>
 
