@@ -2,951 +2,184 @@ import { canchasTemplate } from './canchas.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
-
-var canchasMountCleanup = null;
+import { initTable } from '../../shared/components/table.js';
 
 export function template() {
     return canchasTemplate();
 }
 
 export function mount(container) {
-    if (canchasMountCleanup) {
-        canchasMountCleanup();
-        canchasMountCleanup = null;
-    }
-
-    var session  = Auth ? Auth.getSession() : null;
-    var mountCleanups = [];
-
-    // Determinar filtro por sucursal:
-    // - Superadmin en modo operativo: usa la sede del Store
-    // - Admin/Recepcionista: usa la sede de su sesión
-    var sedeActiva = (session && session.rol === 'superadmin')
+    const session = Auth ? Auth.getSession() : null;
+    const sedeActiva = (session && session.rol === 'superadmin')
         ? Store.getSucursal()
         : (session ? { sucursalId: session.sucursalId, nombre: session.sucursalNombre } : null);
-    var sucursalFiltro = sedeActiva ? sedeActiva.sucursalId : null;
+    const sucursalFiltro = sedeActiva ? sedeActiva.sucursalId : null;
 
-    // Subtitle con sede activa
-    var subtitleEl = document.getElementById('canchas-subtitle');
+    const subtitleEl = document.getElementById('canchas-subtitle');
     if (subtitleEl && sedeActiva && sedeActiva.nombre) {
-        subtitleEl.innerHTML = 'Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">' + sedeActiva.nombre + '</span>.';
+        subtitleEl.innerHTML = `Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">${sedeActiva.nombre}</span>.`;
     }
 
     /* ---- Refs DOM ---- */
-    var loading  = document.getElementById('canchas-loading');
-    var errBox   = document.getElementById('canchas-error');
-    var errMsg   = document.getElementById('canchas-error-msg');
-    var btnRetry = document.getElementById('btn-canchas-retry');
-    var table    = document.getElementById('canchas-table');
-    var tbody    = document.getElementById('canchas-tbody');
-    var grilla   = document.getElementById('canchas-grilla');
-    var grillaIn = document.getElementById('canchas-grilla-inner');
-    var emptyEl  = document.getElementById('canchas-empty');
-    var footer   = document.getElementById('canchas-footer');
-    var countLbl = document.getElementById('canchas-count-label');
-    var searchIn = document.getElementById('canchas-search');
-    var filterEs = document.getElementById('canchas-filter-estado');
-    var btnTabla  = document.getElementById('btn-view-tabla');
-    var btnGrilla = document.getElementById('btn-view-grilla');
+    const grilla = document.getElementById('canchas-grilla');
+    const grillaIn = document.getElementById('canchas-grilla-inner');
+    const searchIn = document.getElementById('canchas-search');
+    const filterEs = document.getElementById('canchas-filter-estado');
+    const btnTabla = document.getElementById('btn-view-tabla');
+    const btnGrilla = document.getElementById('btn-view-grilla');
 
-    var COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
-    var vistaActual = 'tabla'; // 'tabla' | 'grilla'
-    var todasCanchas = [];
+    const COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
+    let vistaActual = 'tabla';
+    let todasCanchas = [];
 
-    function addCleanup(fn) {
-        mountCleanups.push(fn);
-    }
-
-    function addGlobalListener(target, eventName, handler) {
-        target.addEventListener(eventName, handler);
-        addCleanup(function() {
-            target.removeEventListener(eventName, handler);
-        });
-    }
-
-    /* ---- Helpers estado ---- */
-    var ESTADO_META = {
-        DISPONIBLE:    { cls: 'green',  dotCls: 'green',  label: 'Disponible',    badgeCls: 'cgc-badge-disponible' },
-        MANTENIMIENTO: { cls: 'yellow', dotCls: 'yellow', label: 'Mantenimiento', badgeCls: 'cgc-badge-mantenimiento' },
-        INACTIVA:      { cls: 'gray',   dotCls: 'gray',   label: 'Inactiva',      badgeCls: 'cgc-badge-inactiva' },
+    const ESTADO_META = {
+        DISPONIBLE:    { cls: 'green',  dotCls: 'green',  label: 'Disponible',    badgeCls: 'badge-green' },
+        MANTENIMIENTO: { cls: 'yellow', dotCls: 'yellow', label: 'Mantenimiento', badgeCls: 'badge-yellow' },
+        INACTIVA:      { cls: 'gray',   dotCls: 'gray',   label: 'Inactiva',      badgeCls: 'badge-gray' },
     };
 
     function statsActualizar(canchas) {
-        document.getElementById('stat-total').textContent         = canchas.length;
-        document.getElementById('stat-disponibles').textContent   = canchas.filter(function(c){ return c.estadoCancha === 'DISPONIBLE'; }).length;
-        document.getElementById('stat-mantenimiento').textContent = canchas.filter(function(c){ return c.estadoCancha === 'MANTENIMIENTO'; }).length;
-        document.getElementById('stat-inactivas').textContent     = canchas.filter(function(c){ return c.estadoCancha === 'INACTIVA'; }).length;
+        const total = canchas.length;
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-disponibles').textContent = canchas.filter(c => c.estadoCancha === 'DISPONIBLE').length;
+        document.getElementById('stat-mantenimiento').textContent = canchas.filter(c => c.estadoCancha === 'MANTENIMIENTO').length;
+        document.getElementById('stat-inactivas').textContent = canchas.filter(c => c.estadoCancha === 'INACTIVA').length;
     }
 
-    /* ---- Cambiar estado via API ---- */
-    function cambiarEstado(canchaId, nuevoEstado, estadoAnterior, el) {
-        api.patch('/canchas/' + canchaId + '/estado', { estadoCancha: nuevoEstado })
-        .then(function (updated) {
-            // Actualizar en el arreglo local
-            var idx = todasCanchas.findIndex(function(c){ return c.canchaId == canchaId; });
-            if (idx !== -1) todasCanchas[idx].estadoCancha = updated.estadoCancha;
-            renderVista(filtrar());
-            statsActualizar(todasCanchas);
-        })
-        .catch(function (err) {
-            alert('No se pudo cambiar el estado: ' + err.message);
-            if (el.tagName.toLowerCase() === 'input' && el.type === 'checkbox') {
-                 el.checked = (estadoAnterior === 'DISPONIBLE');
-                 var spanText = el.parentNode.querySelector('.toggle-text');
-                 if (spanText) {
-                     spanText.textContent = el.checked ? 'Disponible' : 'Inactiva';
-                     if (el.checked) spanText.classList.remove('offline');
-                     else spanText.classList.add('offline');
-                 }
-            } else if (el.tagName.toLowerCase() === 'select') {
-                 el.value = estadoAnterior;
-                 actualizarClaseSelect(el);
-            }
-        });
-    }
-
-    function actualizarClaseSelect(sel) {
-        sel.className = 'estado-select s-' + sel.value.toLowerCase();
-    }
-
-    /* ---- Construir fila tabla ---- */
-    function buildFila(c) {
-        var meta  = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
-        var color = COLORS[c.canchaId % COLORS.length];
-        var initials = c.nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
-
-        var tr = document.createElement('tr');
-        tr.innerHTML = [
-            "<td>",
-                "<div class='cancha-name-cell'>",
-                    "<div style='width:44px;height:44px;border-radius:50%;background:" + color + ";display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;'>",
-                        initials,
-                    "</div>",
-                    "<div>",
-                        "<strong>" + c.nombre + "</strong>",
-                        "<span>ID: " + c.canchaId + " · Sede " + c.sucursalId + "</span>",
-                    "</div>",
-                "</div>",
-            "</td>",
-            "<td class='price-col'>S/ " + Number(c.precioHora).toFixed(2) + "</td>",
-            "<td>",
-                "<label class='toggle-switch'>",
-                    "<input type='checkbox' class='estado-toggle' data-id='" + c.canchaId + "'" + (c.estadoCancha === 'DISPONIBLE' ? " checked" : "") + ">",
-                    "<span class='slider'></span>",
-                    "<span class='toggle-text" + (c.estadoCancha !== 'DISPONIBLE' ? " offline" : "") + "'>" + (c.estadoCancha === 'DISPONIBLE' ? "Disponible" : "Inactiva") + "</span>",
-                "</label>",
-            "</td>",
-            "<td><span class='dot-status " + meta.dotCls + "'>" + meta.label + "</span></td>",
-            "<td>",
-                "<div class='cli-actions'>",
-                    "<button class='btn-mant-cancha' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "' title='Programar Mantenimiento'><i class='bx bx-wrench'></i></button>",
-                    "<button class='btn-edit-cancha' data-id='" + c.canchaId + "' title='Editar'><i class='bx bx-pencil'></i></button>",
-                    "<button class='btn-delete-cancha' data-id='" + c.canchaId + "' title='Eliminar'><i class='bx bx-trash'></i></button>",
-                "</div>",
-            "</td>"
-        ].join('');
-
-        // Bind Edit
-        var btnEdit = tr.querySelector('.btn-edit-cancha');
-        if (btnEdit) {
-            btnEdit.addEventListener('click', function() {
-                abrirModalEditar(c.canchaId);
-            });
-        }
-
-        // Bind estado change
-        var toggle = tr.querySelector('.estado-toggle');
-        if (toggle) {
-            toggle.addEventListener('change', function () {
-                var estadoAnterior = c.estadoCancha;
-                var nuevoEstado = toggle.checked ? 'DISPONIBLE' : 'INACTIVA';
-                var spanText = toggle.parentNode.querySelector('.toggle-text');
-                spanText.textContent = toggle.checked ? 'Disponible' : 'Inactiva';
-                if(toggle.checked) spanText.classList.remove('offline');
-                else spanText.classList.add('offline');
-                
-                cambiarEstado(c.canchaId, nuevoEstado, estadoAnterior, toggle);
-            });
-        }
-
-        // Bind mantenimiento
-        var btnMant = tr.querySelector('.btn-mant-cancha');
-        if (btnMant) {
-            btnMant.addEventListener('click', function() {
-                abrirModalMant(c.canchaId, c.nombre);
-            });
-        }
-
-        return tr;
-    }
-
-    /* ---- Construir card grilla ---- */
-    function buildCard(c) {
-        var meta  = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
-        var color = COLORS[c.canchaId % COLORS.length];
-        var initials = c.nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
-
-        var card = document.createElement('div');
-        card.className = 'cancha-grid-card';
-        card.innerHTML = [
-            "<div class='cgc-header'>",
-                "<div class='cgc-icon' style='background:" + color + ";'>" + initials + "</div>",
-                "<div>",
-                    "<div class='cgc-name'>" + c.nombre + "</div>",
-                    "<div class='cgc-precio'>S/ " + Number(c.precioHora).toFixed(2) + " / hr</div>",
-                "</div>",
-            "</div>",
-            "<span class='cgc-estado-badge " + meta.badgeCls + "'>" + meta.label + "</span>",
-            "<div style='display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;'>",
-                "<button class='btn-mant-cancha btn-mant-full' data-id='" + c.canchaId + "' data-nombre='" + c.nombre + "'><i class='bx bx-wrench'></i> Programar Mantenimiento</button>",
-                "<button class='icon-btn btn-edit-cancha' data-id='" + c.canchaId + "' style='flex:1;justify-content:center;height:36px;' title='Editar'><i class='bx bx-pencil'></i></button>",
-                "<div style='flex:2;display:flex;justify-content:flex-end;'>",
-                    "<label class='toggle-switch'>",
-                        "<input type='checkbox' class='estado-toggle' data-id='" + c.canchaId + "'" + (c.estadoCancha === 'DISPONIBLE' ? " checked" : "") + ">",
-                        "<span class='slider'></span>",
-                        "<span class='toggle-text" + (c.estadoCancha !== 'DISPONIBLE' ? " offline" : "") + "' style='font-size:11px;'>" + (c.estadoCancha === 'DISPONIBLE' ? "Disponible" : "Inactiva") + "</span>",
-                    "</label>",
-                "</div>",
-            "</div>"
-        ].join('');
-
-        var toggle = card.querySelector('.estado-toggle');
-        if (toggle) {
-            toggle.addEventListener('change', function () {
-                var estadoAnterior = c.estadoCancha;
-                var nuevoEstado = toggle.checked ? 'DISPONIBLE' : 'INACTIVA';
-                var spanText = toggle.parentNode.querySelector('.toggle-text');
-                spanText.textContent = toggle.checked ? 'Disponible' : 'Inactiva';
-                if(toggle.checked) spanText.classList.remove('offline');
-                else spanText.classList.add('offline');
-
-                cambiarEstado(c.canchaId, nuevoEstado, estadoAnterior, toggle);
-            });
-        }
-
-        var btnEditCard = card.querySelector('.btn-edit-cancha');
-        if (btnEditCard) {
-            btnEditCard.addEventListener('click', function() {
-                abrirModalEditar(c.canchaId);
-            });
-        }
-
-        return card;
-    }
-
-    /* ---- Filtrar localmente ---- */
-    function filtrar() {
-        var texto = searchIn.value.toLowerCase();
-        var estado = filterEs.value;
-        return todasCanchas.filter(function (c) {
-            var matchTexto = !texto || c.nombre.toLowerCase().includes(texto);
-            var matchEstado = !estado || c.estadoCancha === estado;
-            return matchTexto && matchEstado;
-        });
-    }
-
-    /* ---- Render según vista ---- */
-    function renderVista(canchas) {
-        tbody.innerHTML = '';
+    /* ---- Vista Grilla Renderer ---- */
+    function renderGrilla(canchas) {
         grillaIn.innerHTML = '';
+        canchas.forEach(c => {
+            const meta = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
+            const color = COLORS[(c.canchaId || c.id) % COLORS.length];
+            const initials = c.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 
-        if (canchas.length === 0) {
-            table.style.display = 'none';
-            grilla.style.display = 'none';
-            emptyEl.style.display = 'block';
-            footer.style.display = 'none';
-            return;
-        }
-
-        emptyEl.style.display = 'none';
-        footer.style.display = 'flex';
-        countLbl.innerHTML = 'Mostrando <strong>' + canchas.length + '</strong> de ' + todasCanchas.length + ' canchas';
-
-        if (vistaActual === 'tabla') {
-            table.style.display = '';
-            grilla.style.display = 'none';
-            canchas.forEach(function (c) { tbody.appendChild(buildFila(c)); });
-        } else {
-            table.style.display = 'none';
-            grilla.style.display = '';
-            canchas.forEach(function (c) { grillaIn.appendChild(buildCard(c)); });
-        }
-    }
-
-    /* ---- Cargar desde API ---- */
-    function cargarCanchas() {
-        loading.style.display  = 'flex';
-        errBox.style.display   = 'none';
-        table.style.display    = 'none';
-        grilla.style.display   = 'none';
-        emptyEl.style.display  = 'none';
-        footer.style.display   = 'none';
-        todasCanchas = [];
-
-        var endpoint = '/canchas';
-        if (sucursalFiltro) endpoint += '?sucursalId=' + sucursalFiltro;
-
-        api.get(endpoint)
-            .then(function (data) {
-                // Normalizar: si la API devuelve 'id' en lugar de 'canchaId'
-                console.log('[Canchas] Primer item recibido de la API:', data[0]);
-                todasCanchas = data.map(function(c) {
-                    if (c.canchaId === undefined && c.id !== undefined) {
-                        c.canchaId = c.id;
-                    }
-                    return c;
-                });
-                statsActualizar(todasCanchas);
-                loading.style.display = 'none';
-                renderVista(filtrar());
-            })
-            .catch(function (err) {
-                loading.style.display  = 'none';
-                errMsg.textContent = 'No se pudo conectar con el servidor. (' + err.message + ')';
-                errBox.style.display = 'flex';
-            });
-    }
-
-    /* ---- Event listeners ---- */
-    btnRetry.addEventListener('click', cargarCanchas);
-
-    searchIn.addEventListener('input', function () { renderVista(filtrar()); });
-    filterEs.addEventListener('change', function () { renderVista(filtrar()); });
-
-    btnTabla.addEventListener('click', function () {
-        vistaActual = 'tabla';
-        btnTabla.classList.add('active');
-        btnGrilla.classList.remove('active');
-        renderVista(filtrar());
-    });
-    btnGrilla.addEventListener('click', function () {
-        vistaActual = 'grilla';
-        btnGrilla.classList.add('active');
-        btnTabla.classList.remove('active');
-        renderVista(filtrar());
-    });
-
-    /* ---- Init ---- */
-    cargarCanchas();
-
-    /* ========================================
-       MODAL NUEVA CANCHA
-    ======================================== */
-    var modalNC      = document.getElementById('modal-nueva-cancha');
-    var btnNuevaC    = document.getElementById('btn-nueva-cancha');
-    var btnNcClose   = document.getElementById('btn-nc-close');
-    var btnNcCancel  = document.getElementById('btn-nc-cancel');
-    var btnNcSubmit  = document.getElementById('btn-nc-submit');
-    var ncSubmitText = document.getElementById('nc-submit-text');
-    var ncSubmitLoad = document.getElementById('nc-submit-loader');
-    var ncSelectSuc  = document.getElementById('nc-sucursal');
-    var ncNombre     = document.getElementById('nc-nombre');
-    var ncPrecio     = document.getElementById('nc-precio');
-    var ncErrSuc     = document.getElementById('nc-err-sucursal');
-    var ncErrNombre  = document.getElementById('nc-err-nombre');
-    var ncErrPrecio  = document.getElementById('nc-err-precio');
-    var ncCharNombre = document.getElementById('nc-char-nombre');
-    var ncErrGen     = document.getElementById('nc-error-general');
-    var ncErrGenMsg  = document.getElementById('nc-error-general-msg');
-    var ncToast      = document.getElementById('nc-toast');
-    var ncToastMsg   = document.getElementById('nc-toast-msg');
-
-    /* -- Abrir modal -- */
-    function abrirModal() {
-        resetModal();
-        modalNC.style.display = 'flex';
-        cargarSucursalesDropdown();
-        ncNombre.focus();
-    }
-
-    /* -- Cerrar modal -- */
-    function cerrarModal() {
-        modalNC.style.display = 'none';
-    }
-
-    /* -- Reset campos -- */
-    function resetModal() {
-        ncSelectSuc.innerHTML = '<option value="">Cargando sucursales...</option>';
-        ncNombre.value  = '';
-        ncPrecio.value  = '';
-        ncCharNombre.textContent = '0/50';
-        limpiarErrores();
-        setLoading(false);
-    }
-
-    function limpiarErrores() {
-        [ncErrSuc, ncErrNombre, ncErrPrecio].forEach(function(el){ el.textContent = ''; });
-        [ncSelectSuc, ncNombre, ncPrecio].forEach(function(el){ el.classList.remove('nc-input-error'); });
-        ncErrGen.style.display = 'none';
-    }
-
-    function setError(inputEl, errEl, msg) {
-        inputEl.classList.add('nc-input-error');
-        errEl.textContent = msg;
-    }
-
-    function setLoading(on) {
-        btnNcSubmit.disabled = on;
-        ncSubmitText.style.display = on ? 'none' : 'flex';
-        ncSubmitLoad.style.display = on ? 'flex' : 'none';
-    }
-
-    /* -- Cargar sucursales en el dropdown -- */
-    function cargarSucursalesDropdown() {
-        ncSelectSuc.innerHTML = '<option value="">Cargando sucursales...</option>';
-        ncSelectSuc.disabled = true;
-
-        // Si el usuario no es superadmin, pre-seleccionar su sucursal
-        api.get('/sucursales')
-            .then(function(sucursales) {
-                ncSelectSuc.innerHTML = '<option value="">— Seleccionar Sucursal —</option>';
-                sucursales.forEach(function(s) {
-                    var opt = document.createElement('option');
-                    // Normalizar id
-                    var sid = s.sucursalId !== undefined ? s.sucursalId : s.id;
-                    opt.value = sid;
-                    opt.textContent = s.nombre;
-                    // Pre-seleccionar si el usuario pertenece a esa sucursal
-                    if (sucursalFiltro && sid == sucursalFiltro) opt.selected = true;
-                    ncSelectSuc.appendChild(opt);
-                });
-                ncSelectSuc.disabled = false;
-            })
-            .catch(function() {
-                ncSelectSuc.innerHTML = '<option value="">Error al cargar sucursales</option>';
-                ncSelectSuc.disabled = true;
-            });
-    }
-
-    /* -- Validar formulario -- */
-    function validarFormulario() {
-        limpiarErrores();
-        var ok = true;
-
-        if (!ncSelectSuc.value) {
-            setError(ncSelectSuc, ncErrSuc, 'Debes seleccionar una sucursal.');
-            ok = false;
-        }
-        var nombre = ncNombre.value.trim();
-        if (!nombre) {
-            setError(ncNombre, ncErrNombre, 'El nombre no puede estar vacío.');
-            ok = false;
-        } else if (nombre.length > 50) {
-            setError(ncNombre, ncErrNombre, 'Máximo 50 caracteres.');
-            ok = false;
-        }
-        var precio = parseFloat(ncPrecio.value);
-        if (!ncPrecio.value || isNaN(precio) || precio <= 0) {
-            setError(ncPrecio, ncErrPrecio, 'Ingresa un precio mayor a 0.');
-            ok = false;
-        }
-        return ok;
-    }
-
-    /* -- Enviar formulario -- */
-    function crearCancha() {
-        if (!validarFormulario()) return;
-
-        var payload = {
-            sucursalId: parseInt(ncSelectSuc.value, 10),
-            nombre:     ncNombre.value.trim(),
-            precioHora: parseFloat(ncPrecio.value)
-        };
-
-        setLoading(true);
-
-        api.post('/canchas', payload)
-        .then(function(nuevaCancha) {
-            // Normalizar id
-            if (nuevaCancha.canchaId === undefined && nuevaCancha.id !== undefined) {
-                nuevaCancha.canchaId = nuevaCancha.id;
-            }
-            // Agregar al array local y re-renderizar
-            todasCanchas.push(nuevaCancha);
-            statsActualizar(todasCanchas);
-            renderVista(filtrar());
-            cerrarModal();
-            mostrarToast('¡Cancha "' + nuevaCancha.nombre + '" creada con éxito!');
-        })
-        .catch(function(err) {
-            setLoading(false);
-            ncErrGenMsg.textContent = (err && err.message) || 'No se pudo conectar con el servidor.';
-            ncErrGen.style.display = 'flex';
+            const card = document.createElement('div');
+            card.className = 'cancha-grid-card';
+            card.style = 'background:white; border-radius:12px; border:1px solid #e2e8f0; padding:16px; display:flex; flex-direction:column; gap:12px; transition:all 0.2s;';
+            card.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:10px; background:${color}; color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;">${initials}</div>
+                    <div>
+                        <div style="font-weight:700; color:#1e293b; font-size:14px;">${c.nombre}</div>
+                        <div style="font-size:12px; color:#64748b;">S/ ${Number(c.precioHora).toFixed(2)} / hr</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="status-badge ${meta.badgeCls}"><span class="dot"></span> ${meta.label}</span>
+                    <div style="display:flex; gap:4px;">
+                         <button class="btn-edit" style="width:32px; height:32px; border-radius:6px; border:1px solid #e2e8f0; background:white; color:#64748b;"><i class='bx bx-pencil'></i></button>
+                    </div>
+                </div>
+            `;
+            card.querySelector('.btn-edit').onclick = () => alert('Editar cancha: ' + c.id);
+            grillaIn.appendChild(card);
         });
     }
 
-    /* -- Toast -- */
-    var toastTimer = null;
-    addCleanup(function() {
-        clearTimeout(toastTimer);
-    });
-    function mostrarToast(msg) {
-        ncToastMsg.textContent = msg;
-        ncToast.style.display = 'flex';
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(function() { ncToast.style.display = 'none'; }, 3500);
-    }
-
-    /* -- Contador de caracteres -- */
-    ncNombre.addEventListener('input', function() {
-        var len = ncNombre.value.length;
-        ncCharNombre.textContent = len + '/50';
-        if (len > 45) ncCharNombre.style.color = '#ef4444';
-        else ncCharNombre.style.color = '#94a3b8';
-    });
-
-    /* -- Event listeners del modal -- */
-    btnNuevaC.addEventListener('click', abrirModal);
-    btnNcClose.addEventListener('click', cerrarModal);
-    btnNcCancel.addEventListener('click', cerrarModal);
-    modalNC.addEventListener('click', function(e) {
-        if (e.target === modalNC) cerrarModal(); // click fuera cierra
-    });
-    var onKeydownNuevaCancha = function(e) {
-        if (e.key === 'Escape' && modalNC.style.display !== 'none') cerrarModal();
-    };
-    addGlobalListener(document, 'keydown', onKeydownNuevaCancha);
-    btnNcSubmit.addEventListener('click', crearCancha);
-    ncNombre.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') crearCancha();
-    });
-
-    /* ========================================
-       MODAL PROGRAMAR MANTENIMIENTO
-    ======================================== */
-    var modalMant      = document.getElementById('modal-mant');
-    var btnPmClose     = document.getElementById('btn-pm-close');
-    var btnPmCancel    = document.getElementById('btn-pm-cancel');
-    var btnPmSubmit    = document.getElementById('btn-pm-submit');
-    var pmSubmitText   = document.getElementById('pm-submit-text');
-    var pmSubmitLoader = document.getElementById('pm-submit-loader');
-    var pmCancha       = document.getElementById('pm-cancha-label');
-    var pmInicio       = document.getElementById('pm-inicio');
-    var pmFin          = document.getElementById('pm-fin');
-    var pmTipo         = document.getElementById('pm-tipo');
-    var pmMotivo       = document.getElementById('pm-motivo');
-    var pmErrInicio    = document.getElementById('pm-err-inicio');
-    var pmErrFin       = document.getElementById('pm-err-fin');
-    var pmErrTipo      = document.getElementById('pm-err-tipo');
-    var pmErrMotivo    = document.getElementById('pm-err-motivo');
-    var pmCharMotivo   = document.getElementById('pm-char-motivo');
-    var pmErrGen       = document.getElementById('pm-error-general');
-    var pmErrGenMsg    = document.getElementById('pm-error-general-msg');
-
-    var _pmCanchaId   = null;
-    var _pmCanchaNombre = null;
-
-    /* -- Helpers datetime -- */
-    function toLocalDatetimeValue(date) {
-        // Convierte Date a 'YYYY-MM-DDTHH:MM' para el input datetime-local
-        var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
-        return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate())
-             + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
-    }
-    function toISO(datetimeLocalVal) {
-        // Convierte 'YYYY-MM-DDTHH:MM' a 'YYYY-MM-DDTHH:MM:00' (sin zona)
-        return datetimeLocalVal + ':00';
-    }
-
-    /* -- Abrir modal -- */
-    function abrirModalMant(canchaId, nombreCancha) {
-        _pmCanchaId    = canchaId;
-        _pmCanchaNombre = nombreCancha;
-
-        // Reset
-        pmCancha.textContent = '\uD83D\uDCCC ' + nombreCancha;
-        pmInicio.value = '';
-        pmFin.value    = '';
-        pmTipo.value   = '';
-        pmMotivo.value = '';
-        pmCharMotivo.textContent = '0/200';
-        pmLimpiarErrores();
-        pmSetLoading(false);
-
-        // Pre-llenar inicio con ahora (redondeado a próxima hora)
-        var ahora = new Date();
-        ahora.setMinutes(0, 0, 0);
-        ahora.setHours(ahora.getHours() + 1);
-        pmInicio.value = toLocalDatetimeValue(ahora);
-        pmInicio.min   = toLocalDatetimeValue(new Date());
-
-        var fin = new Date(ahora);
-        fin.setHours(fin.getHours() + 2);
-        pmFin.value = toLocalDatetimeValue(fin);
-        pmFin.min   = pmInicio.value;
-
-        modalMant.style.display = 'flex';
-        pmMotivo.focus();
-    }
-
-    /* -- Cerrar -- */
-    function cerrarModalMant() {
-        modalMant.style.display = 'none';
-    }
-
-    function pmLimpiarErrores() {
-        [pmErrInicio, pmErrFin, pmErrTipo, pmErrMotivo].forEach(function(el){ el.textContent = ''; });
-        [pmInicio, pmFin, pmTipo, pmMotivo].forEach(function(el){ el.classList.remove('pm-input-error'); });
-        pmErrGen.style.display = 'none';
-    }
-
-    function pmSetError(inputEl, errEl, msg) {
-        inputEl.classList.add('pm-input-error');
-        errEl.textContent = msg;
-    }
-
-    function pmSetLoading(on) {
-        btnPmSubmit.disabled = on;
-        pmSubmitText.style.display = on ? 'none' : 'flex';
-        pmSubmitLoader.style.display = on ? 'flex' : 'none';
-    }
-
-    /* -- Sincronizar min de fin con inicio -- */
-    pmInicio.addEventListener('change', function() {
-        if (pmInicio.value) {
-            pmFin.min = pmInicio.value;
-            // Si fin < inicio, ajustar fin
-            if (pmFin.value && pmFin.value <= pmInicio.value) {
-                var newFin = new Date(pmInicio.value);
-                newFin.setHours(newFin.getHours() + 1);
-                pmFin.value = toLocalDatetimeValue(newFin);
-            }
-        }
-    });
-
-    /* -- Contador motivo -- */
-    pmMotivo.addEventListener('input', function() {
-        var len = pmMotivo.value.length;
-        pmCharMotivo.textContent = len + '/200';
-        pmCharMotivo.style.color = len > 180 ? '#ef4444' : '#94a3b8';
-    });
-
-    /* -- Validar -- */
-    function pmValidar() {
-        pmLimpiarErrores();
-        var ok = true;
-        var ahora = new Date();
-
-        if (!pmInicio.value) {
-            pmSetError(pmInicio, pmErrInicio, 'Selecciona la fecha de inicio.');
-            ok = false;
-        } else if (new Date(pmInicio.value) < ahora) {
-            pmSetError(pmInicio, pmErrInicio, 'La fecha de inicio no puede ser en el pasado.');
-            ok = false;
-        }
-        if (!pmFin.value) {
-            pmSetError(pmFin, pmErrFin, 'Selecciona la fecha de fin.');
-            ok = false;
-        } else if (pmInicio.value && pmFin.value <= pmInicio.value) {
-            pmSetError(pmFin, pmErrFin, 'El fin debe ser posterior al inicio.');
-            ok = false;
-        }
-        if (!pmTipo.value) {
-            pmSetError(pmTipo, pmErrTipo, 'Selecciona el tipo de mantenimiento.');
-            ok = false;
-        }
-        var motivo = pmMotivo.value.trim();
-        if (!motivo) {
-            pmSetError(pmMotivo, pmErrMotivo, 'El motivo no puede estar vacío.');
-            ok = false;
-        }
-        return ok;
-    }
-
-    /* -- Enviar -- */
-    function programarMantenimiento() {
-        if (!pmValidar()) return;
-
-        var payload = {
-            canchaId:          _pmCanchaId,
-            horaInicio:        toISO(pmInicio.value),
-            horaFin:           toISO(pmFin.value),
-            tipoMantenimiento: pmTipo.value,
-            motivo:            pmMotivo.value.trim()
-        };
-
-        pmSetLoading(true);
-
-        api.post('/mantenimientos', payload)
-            .then(function() {
-                cerrarModalMant();
-                mostrarToast('¡Mantenimiento programado para "' + _pmCanchaNombre + '"!');
-            })
-            .catch(function(err) {
-                pmSetLoading(false);
-                pmErrGenMsg.textContent = (err && err.message) || 'No se pudo conectar con el servidor.';
-                pmErrGen.style.display = 'flex';
-            });
-    }
-
-    /* -- Event listeners -- */
-    btnPmClose.addEventListener('click', cerrarModalMant);
-    btnPmCancel.addEventListener('click', cerrarModalMant);
-    modalMant.addEventListener('click', function(e) {
-        if (e.target === modalMant) cerrarModalMant();
-    });
-    var onKeydownMantenimiento = function(e) {
-        if (e.key === 'Escape' && modalMant.style.display !== 'none') cerrarModalMant();
-    };
-    addGlobalListener(document, 'keydown', onKeydownMantenimiento);
-    btnPmSubmit.addEventListener('click', programarMantenimiento);
-
-    /* ========================================
-       MODAL EDITAR CANCHA
-    ======================================== */
-    var modalEC      = document.getElementById('modal-edit-cancha');
-    var btnEcClose   = document.getElementById('btn-ec-close');
-    var btnEcCancel  = document.getElementById('btn-ec-cancel');
-    var btnEcSubmit  = document.getElementById('btn-ec-submit');
-    var ecSubmitText = document.getElementById('ec-submit-text');
-    var ecSubmitLoad = document.getElementById('ec-submit-loader');
-    var ecSucursal   = document.getElementById('ec-sucursal');
-    var ecNombre     = document.getElementById('ec-nombre');
-    var ecPrecio     = document.getElementById('ec-precio');
-    var ecErrNombre  = document.getElementById('ec-err-nombre');
-    var ecErrPrecio  = document.getElementById('ec-err-precio');
-    var ecCharNombre = document.getElementById('ec-char-nombre');
-    var ecErrGen     = document.getElementById('ec-error-general');
-    var ecErrGenMsg  = document.getElementById('ec-error-general-msg');
-
-    var _editCanchaId = null;
-
-    function abrirModalEditar(id) {
-        _editCanchaId = id;
-        ecLimpiarErrores();
-        ecSetLoading(false);
-        ecNombre.value = '';
-        ecPrecio.value = '';
-        ecSucursal.value = 'Cargando...';
-        ecCharNombre.textContent = '0/50';
-
-        modalEC.style.display = 'flex';
-
-        api.get('/canchas/' + id)
-            .then(function(c) {
-                // Priorizar el nombre que viene de la API de la cancha
-                var nombreSede = c.sucursalNombre || (c.sucursal && c.sucursal.nombre);
-                
-                // Si no viene en la API, usar el de la sesión SOLO si no es "Todas las Sedes"
-                if (!nombreSede && session && session.sucursalNombre && session.sucursalNombre !== 'Todas las Sedes') {
-                    nombreSede = session.sucursalNombre;
+    /* ---- Inicializar Tabla ---- */
+    const table = initTable({
+        containerId: 'canchas-table-container',
+        pageSize: 20,
+        columns: [
+            { 
+                key: 'nombre', 
+                label: 'Nombre de Cancha',
+                render: (v, c) => `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:${COLORS[(c.canchaId || c.id) % COLORS.length]}; color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;">
+                            ${(v||'C').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                        </div>
+                        <div>
+                            <strong style="color:#1e293b; display:block;">${v}</strong>
+                            <span style="font-size:11px; color:#94a3b8;">ID: ${c.canchaId || c.id} · Sede ${c.sucursalId}</span>
+                        </div>
+                    </div>
+                `
+            },
+            { key: 'precioHora', label: 'Precio / Hora', render: (v) => `<strong>S/ ${Number(v || 0).toFixed(2)}</strong>` },
+            { 
+                key: 'estadoCancha', 
+                label: 'Estado',
+                render: (v) => {
+                    const meta = ESTADO_META[v] || ESTADO_META['INACTIVA'];
+                    return `<span class="status-badge ${meta.badgeCls}"><span class="dot"></span> ${meta.label}</span>`;
                 }
-                
-                ecSucursal.value = nombreSede || ('Sede ' + c.sucursalId);
-                ecNombre.value = c.nombre || '';
-                ecPrecio.value = c.precioHora || '';
-                ecCharNombre.textContent = (c.nombre || '').length + '/50';
-                ecNombre.focus();
-            })
-            .catch(function(err) {
-                ecErrGenMsg.textContent = err.message;
-                ecErrGen.style.display = 'flex';
-            });
-    }
-
-    function cerrarModalEditar() {
-        modalEC.style.display = 'none';
-    }
-
-    function ecLimpiarErrores() {
-        [ecErrNombre, ecErrPrecio].forEach(function(el){ el.textContent = ''; });
-        [ecNombre, ecPrecio].forEach(function(el){ el.classList.remove('nc-input-error'); });
-        ecErrGen.style.display = 'none';
-    }
-
-    function ecSetError(inputEl, errEl, msg) {
-        inputEl.classList.add('nc-input-error');
-        errEl.textContent = msg;
-    }
-
-    function ecSetLoading(on) {
-        btnEcSubmit.disabled = on;
-        ecSubmitText.style.display = on ? 'none' : 'flex';
-        ecSubmitLoad.style.display = on ? 'flex' : 'none';
-    }
-
-    function actualizarCancha() {
-        ecLimpiarErrores();
-        var ok = true;
-        var nombre = ecNombre.value.trim();
-        if (!nombre) {
-            ecSetError(ecNombre, ecErrNombre, 'El nombre no puede estar vacío.');
-            ok = false;
-        }
-        var precio = parseFloat(ecPrecio.value);
-        if (!ecPrecio.value || isNaN(precio) || precio <= 0) {
-            ecSetError(ecPrecio, ecErrPrecio, 'Ingresa un precio válido mayor a 0.');
-            ok = false;
-        }
-
-        if (!ok) return;
-
-        ecSetLoading(true);
-
-        var payload = {
-            nombre:     nombre,
-            precioHora: precio
-        };
-
-        api.put('/canchas/' + _editCanchaId, payload)
-        .then(function(updated) {
-            // Actualizar arreglo local
-            var idx = todasCanchas.findIndex(function(c){ return c.canchaId == _editCanchaId; });
-            if (idx !== -1) {
-                todasCanchas[idx].nombre = updated.nombre;
-                todasCanchas[idx].precioHora = updated.precioHora;
             }
-            statsActualizar(todasCanchas);
-            renderVista(filtrar());
-            cerrarModalEditar();
-            mostrarToast('¡Cancha "' + updated.nombre + '" actualizada correctamente!');
-        })
-        .catch(function(err) {
-            ecSetLoading(false);
-            ecErrGenMsg.textContent = err.message;
-            ecErrGen.style.display = 'flex';
-        });
-    }
-
-    /* -- Event listeners -- */
-    btnEcClose.addEventListener('click', cerrarModalEditar);
-    btnEcCancel.addEventListener('click', cerrarModalEditar);
-    modalEC.addEventListener('click', function(e) { if (e.target === modalEC) cerrarModalEditar(); });
-    btnEcSubmit.addEventListener('click', actualizarCancha);
-    ecNombre.addEventListener('keydown', function(e) { if (e.key === 'Enter') actualizarCancha(); });
-    ecNombre.addEventListener('input', function() {
-        var len = ecNombre.value.length;
-        ecCharNombre.textContent = len + '/50';
-        ecCharNombre.style.color = len > 45 ? '#ef4444' : '#94a3b8';
+        ],
+        fetchData: async (page) => {
+            const query = searchIn.value.toLowerCase();
+            const estado = filterEs.value;
+            
+            // Si no hay filtro por sucursal, la API devuelve todo. 
+            // Para canchas usualmente no hay miles, así que cargamos todo y paginamos localmente si es necesario, 
+            // pero para mantener el patrón usamos la API si soporta size/page.
+            let url = `/canchas?page=${page}&size=20`;
+            if (sucursalFiltro) url += `&sucursalId=${sucursalFiltro}`;
+            if (estado) url += `&estadoCancha=${estado}`;
+            
+            const data = await api.get(url);
+            // La API de canchas actual parece devolver un Array plano. 
+            // Si es así, simulamos la respuesta paginada para el componente.
+            if (Array.isArray(data)) {
+                todasCanchas = data;
+                const filtered = data.filter(c => !query || c.nombre.toLowerCase().includes(query));
+                statsActualizar(data);
+                
+                if (vistaActual === 'grilla') renderGrilla(filtered);
+                
+                return {
+                    content: filtered.slice(page * 20, (page + 1) * 20),
+                    totalPages: Math.ceil(filtered.length / 20),
+                    totalElements: filtered.length,
+                    number: page
+                };
+            }
+            
+            statsActualizar(data.content || []);
+            if (vistaActual === 'grilla') renderGrilla(data.content || []);
+            return data;
+        },
+        actions: [
+            { label: 'Mantenimiento', icon: 'bx bx-wrench', onClick: (c) => alert('Programar mantenimiento: ' + c.nombre) },
+            { label: 'Editar', icon: 'bx bx-pencil', onClick: (c) => alert('Editar: ' + c.nombre) },
+            { 
+                label: 'Desactivar', 
+                icon: 'bx bx-power-off', 
+                class: 'danger', 
+                show: (c) => c.estadoCancha === 'DISPONIBLE',
+                onClick: (c) => alert('Desactivar: ' + c.nombre) 
+            }
+        ]
     });
 
-    /* =========================================================================
-       VISTA RÁPIDA DE HORARIOS (QUICK SCHEDULE)
-       ========================================================================= */
-    var qsCurrentDate = new Date();
-    var btnQsPrev = document.getElementById('btn-qs-prev');
-    var btnQsNext = document.getElementById('btn-qs-next');
-    var qsWeekLabel = document.getElementById('qs-week-label');
-    var qsDaysContainer = document.getElementById('qs-days-container');
-
-    function getMonday(d) {
-        var d2 = new Date(d);
-        var day = d2.getDay();
-        var diff = d2.getDate() - day + (day == 0 ? -6 : 1);
-        d2.setDate(diff);
-        return d2;
-    }
-
-    function formatShortDate(d) {
-        var ds = d.getDate().toString().padStart(2, '0');
-        var ms = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][d.getMonth()];
-        return ds + ' ' + ms;
-    }
-
-    function fetchQuickSchedule() {
-        if (!sucursalFiltro) {
-            if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;">Selecciona una sucursal para ver la disponibilidad.</div>';
-            return;
+    /* ---- Manejo de Vistas ---- */
+    function setVista(vista) {
+        vistaActual = vista;
+        if (vista === 'tabla') {
+            btnTabla.classList.add('active');
+            btnGrilla.classList.remove('active');
+            grilla.style.display = 'none';
+            document.getElementById('canchas-table-container').style.display = 'block';
+        } else {
+            btnGrilla.classList.add('active');
+            btnTabla.classList.remove('active');
+            grilla.style.display = 'block';
+            document.getElementById('canchas-table-container').style.display = 'none';
         }
-
-        var mon = getMonday(qsCurrentDate);
-        var sun = new Date(mon);
-        sun.setDate(mon.getDate() + 6);
-        if (qsWeekLabel) qsWeekLabel.textContent = formatShortDate(mon) + ' - ' + formatShortDate(sun);
-
-        var yyyy = qsCurrentDate.getFullYear();
-        var mm = String(qsCurrentDate.getMonth() + 1).padStart(2, '0');
-        var dd = String(qsCurrentDate.getDate()).padStart(2, '0');
-        var fechaBase = yyyy + '-' + mm + '-' + dd;
-
-        if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;"><div class="spinner-circle" style="width: 24px; height: 24px; border-width: 3px; display: inline-block; vertical-align: middle; margin-right: 8px;"></div>Cargando disponibilidad...</div>';
-
-        api.get('/dashboard/sucursales/' + sucursalFiltro + '/disponibilidad-semanal?fechaBase=' + fechaBase)
-            .then(function(data) {
-                renderQuickSchedule(data);
-            })
-            .catch(function(err) {
-                if (qsDaysContainer) qsDaysContainer.innerHTML = '<div style="width: 100%; text-align: center; padding: 30px; color: #ef4444; font-size: 14px;"><i class="bx bx-error-circle" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>Error al cargar disponibilidad</div>';
-            });
+        table.fetch(0);
     }
 
-    function renderQuickSchedule(data) {
-        if (!qsDaysContainer) return;
-        qsDaysContainer.innerHTML = '';
-        var mapNombres = { 'LUNES': 'LUN', 'MARTES': 'MAR', 'MIERCOLES': 'MIE', 'JUEVES': 'JUE', 'VIERNES': 'VIE', 'SABADO': 'SAB', 'DOMINGO': 'DOM' };
+    btnTabla.onclick = () => setVista('tabla');
+    btnGrilla.onclick = () => setVista('grilla');
+    searchIn.oninput = () => table.fetch(0);
+    filterEs.onchange = () => table.fetch(0);
 
-        data.forEach(function(item) {
-            var shortName = mapNombres[item.dia] || item.dia.substring(0, 3).toUpperCase();
-            var d = new Date(item.fecha + 'T00:00:00');
-            var isToday = d.toDateString() === new Date().toDateString();
+    const btnRetry = document.getElementById('btn-canchas-retry');
+    if (btnRetry) btnRetry.onclick = () => table.fetch(0);
 
-            var col = document.createElement('div');
-            col.className = 'day-col';
-
-            var nameSpan = document.createElement('span');
-            nameSpan.className = 'd-name';
-            nameSpan.textContent = shortName;
-            if (isToday) nameSpan.style.color = 'var(--primary)';
-
-            var circle = document.createElement('div');
-            
-            var horas = Number(item.horasDisponibles || 0);
-            if (horas <= 0) {
-                circle.className = 'day-circle bg-dark-green';
-                circle.innerHTML = '<span class="text-white" style="font-weight:700;">LLENO</span>';
-            } else {
-                circle.className = 'day-circle border-green';
-                // El horario es de 7am a medianoche (17 horas máximo de operación diaria por cancha).
-                // El llenado visual representa qué tan "ocupada" está la cancha. 
-                // A menos horas disponibles, mayor el porcentaje de llenado.
-                var maxHoras = 17;
-                var horasOcupadas = Math.max(0, maxHoras - horas);
-                var pct = Math.min((horasOcupadas / maxHoras) * 100, 100);
-                
-                // Redondear a 1 decimal si es necesario
-                var displayHoras = horas % 1 === 0 ? horas : horas.toFixed(1);
-                
-                circle.innerHTML = '<span>' + displayHoras + ' hrs</span><div class="fill green" style="height:' + pct + '%"></div>';
-            }
-
-            col.appendChild(nameSpan);
-            col.appendChild(circle);
-            qsDaysContainer.appendChild(col);
-        });
-    }
-
-    if (btnQsPrev) {
-        btnQsPrev.addEventListener('click', function() {
-            qsCurrentDate.setDate(qsCurrentDate.getDate() - 7);
-            fetchQuickSchedule();
-        });
-    }
-    if (btnQsNext) {
-        btnQsNext.addEventListener('click', function() {
-            qsCurrentDate.setDate(qsCurrentDate.getDate() + 7);
-            fetchQuickSchedule();
-        });
-    }
-
-    if (sucursalFiltro) {
-        fetchQuickSchedule();
-    }
-
-    canchasMountCleanup = function() {
-        mountCleanups.forEach(function(cleanup) {
-            try {
-                cleanup();
-            } catch (error) {
-                console.error('[Canchas] Error during cleanup:', error);
-            }
-        });
-        mountCleanups = [];
-        canchasMountCleanup = null;
-    };
+    // Initial load
+    setVista('tabla');
 }
 
-export function unmount() {
-    if (canchasMountCleanup) {
-        canchasMountCleanup();
-    }
-}
+export function unmount() {}

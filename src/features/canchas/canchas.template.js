@@ -71,34 +71,8 @@ export const canchasTemplate = () => `
             </div>
         </div>
 
-        <!-- Estado: cargando -->
-        <div id="canchas-loading" style="display:flex; align-items:center; justify-content:center; gap:12px; padding:50px; color:#94a3b8; font-size:14px;">
-            <div class="spinner-circle"></div> Cargando canchas...
-        </div>
-
-        <!-- Estado: error -->
-        <div id="canchas-error" style="display:none; flex-direction:column; align-items:center; padding:50px; gap:12px; color:#ef4444; font-size:14px;">
-            <i class='bx bx-error-circle' style="font-size:36px;"></i>
-            <span id="canchas-error-msg">No se pudo conectar con el servidor.</span>
-            <button class="btn btn-primary" id="btn-canchas-retry" style="padding:10px 24px; margin-top:4px;">
-                <i class='bx bx-refresh'></i> Reintentar
-            </button>
-        </div>
-
-        <!-- Vista Tabla -->
-        <table class="canchas-table" id="canchas-table" style="display:none;">
-            <thead>
-                <tr>
-                    <th>NOMBRE DE CANCHA</th>
-                    <th>PRECIO / HORA</th>
-                    <th>ESTADO</th>
-                    <th>DISPONIBILIDAD</th>
-                    <th style="text-align:center;">ACCIONES</th>
-                </tr>
-            </thead>
-            <tbody id="canchas-tbody">
-            </tbody>
-        </table>
+        <!-- View Table (Using Reusable Component) -->
+        <div id="canchas-table-container"></div>
 
         <!-- Vista Grilla -->
         <div id="canchas-grilla" style="display:none; padding:24px;">
@@ -106,23 +80,8 @@ export const canchasTemplate = () => `
             </div>
         </div>
 
-        <!-- Sin resultados -->
-        <div id="canchas-empty" style="display:none; text-align:center; padding:50px; color:#94a3b8; font-size:14px;">
-            <i class='bx bx-search-alt' style="font-size:36px; display:block; margin-bottom:10px;"></i>
-            No se encontraron canchas con ese filtro.
-        </div>
-
-        <!-- Footer unificado -->
-        <div class="pagination-footer" id="canchas-footer" style="display:none;">
-            <span id="canchas-count-label">Mostrando <strong>0</strong> canchas</span>
-            <div class="page-numbers" id="canchas-pagination" style="display:none;">
-                <button class="arr" id="canchas-page-first" title="Primera"><i class='bx bx-chevrons-left'></i></button>
-                <button class="arr" id="canchas-page-prev"  title="Anterior"><i class='bx bx-chevron-left'></i></button>
-                <span style="display:flex;align-items:center;padding:0 8px;font-weight:600;font-size:13px;color:#0f172a;" id="canchas-page-info">Página 1 de 1</span>
-                <button class="arr" id="canchas-page-next"  title="Siguiente"><i class='bx bx-chevron-right'></i></button>
-                <button class="arr" id="canchas-page-last"  title="Última"><i class='bx bx-chevrons-right'></i></button>
-            </div>
-        </div>
+        <!-- Sin resultados se maneja dentro del componente o globalmente -->
+    </div>
     </div>
 
     <!-- Quick Schedule -->
