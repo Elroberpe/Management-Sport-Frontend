@@ -282,3 +282,50 @@
         transform: rotate(360deg);
     }
 }
+/* Inline Actions */
+.table-actions-inline {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.table-action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 20px;
+}
+
+.table-action-icon:hover {
+    background: #f1f5f9;
+    color: var(--table-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.table-action-icon.danger:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.table-action-icon.success:hover {
+    color: #22c55e;
+    background: #f0fdf4;
+}
+
+.table-action-icon.warning:hover {
+    color: #f59e0b;
+    background: #fffbeb;
+}
+
+.table-action-icon i {
+    pointer-events: none;
+}

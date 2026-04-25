@@ -51,6 +51,7 @@ export function mount(container) {
     const table = initTable({
         containerId: 'clientes-table-container',
         pageSize: PAGE_SIZE,
+        actionsStyle: 'inline',
         columns: [
             { 
                 key: 'nombre', 
@@ -108,12 +109,6 @@ export function mount(container) {
             return data;
         },
         actions: [
-            { 
-                label: 'Llamar', 
-                icon: 'bx bxs-phone', 
-                show: (c) => !!c.telefono, 
-                onClick: (c) => window.open(`tel:${c.telefono}`) 
-            },
             { 
                 label: 'WhatsApp', 
                 icon: 'bx bxl-whatsapp', 
