@@ -88,48 +88,9 @@ export const pagosTemplate = () => `
             </div>
         </div>
 
-        <!-- Loading -->
-        <div id="pagos-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;">
-            <div class="spinner-circle" style="width:36px;height:36px;"></div>
-            <p style="color:#94a3b8;font-size:13px;font-weight:600;">Cargando pagos...</p>
-        </div>
-        <!-- Error -->
-        <div id="pagos-error" style="display:none;padding:40px 24px;text-align:center;">
-            <i class='bx bx-error-circle' style="font-size:40px;color:#ef4444;"></i>
-            <p id="pagos-error-msg" style="color:#ef4444;font-weight:600;margin-top:8px;"></p>
-            <button id="pagos-retry" style="margin-top:12px;padding:8px 20px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:#334155;"><i class='bx bx-refresh'></i> Reintentar</button>
-        </div>
-        <!-- Tabla real -->
-        <div id="pagos-table-wrap" style="display:none;">
-            <table class="canchas-table pay-table">
-                <thead>
-                    <tr>
-                        <th>FECHA</th>
-                        <th>TIPO</th>
-                        <th style="text-align:right;">MONTO</th>
-                        <th>ORIGEN</th>
-                        <th>MÉTODO</th>
-                        <th>ESTADO</th>
-                        <th style="text-align:center;">ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody id="pagos-tbody"></tbody>
-            </table>
-            <div id="pagos-empty" style="display:none;padding:50px 20px;text-align:center;">
-                <i class='bx bx-credit-card' style="font-size:48px;color:#cbd5e1;"></i>
-                <p style="color:#94a3b8;font-weight:600;margin-top:10px;">Sin transacciones en este período</p>
-            </div>
-            <div class="pagination-footer" id="pagos-footer">
-                <span id="pagos-page-info-label">Mostrando 0 resultados</span>
-                <div class="page-numbers" id="pagos-pagination" style="display:none;">
-                    <button class="arr" id="pagos-page-first" title="Primera"><i class='bx bx-chevrons-left'></i></button>
-                    <button class="arr" id="pagos-page-prev"  title="Anterior"><i class='bx bx-chevron-left'></i></button>
-                    <span style="display:flex;align-items:center;padding:0 8px;font-weight:600;font-size:13px;color:#0f172a;" id="pagos-page-info">Página 1 de 1</span>
-                    <button class="arr" id="pagos-page-next"  title="Siguiente"><i class='bx bx-chevron-right'></i></button>
-                    <button class="arr" id="pagos-page-last"  title="Última"><i class='bx bx-chevrons-right'></i></button>
-                </div>
-            </div>
-        </div>
+        <!-- New Unified Table Component Container -->
+        <div id="pagos-table-container"></div>
+    </div>
     </div>
 
     <!-- Toast -->

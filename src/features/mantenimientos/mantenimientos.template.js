@@ -74,44 +74,9 @@ export const mantenimientosTemplate = () => `
             </div>
         </div>
 
-        <!-- ===== LOADING / ERROR ===== -->
-        <div id="mant-loading" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:60px;color:#94a3b8;font-size:14px;">
-            <div class="spinner-circle"></div> Cargando mantenimientos...
-        </div>
-        <div id="mant-error" style="display:none;flex-direction:column;align-items:center;padding:48px;gap:10px;color:#ef4444;text-align:center;">
-            <i class='bx bx-error-circle' style="font-size:42px;"></i>
-            <span id="mant-error-msg">No se pudo cargar.</span>
-            <button class="btn btn-primary" id="mant-retry" style="padding:10px 24px;margin-top:4px;"><i class='bx bx-refresh'></i> Reintentar</button>
-        </div>
-
-        <!-- ===== EMPTY STATE ===== -->
-        <div id="mant-empty" style="display:none;flex-direction:column;align-items:center;padding:64px;gap:12px;color:#94a3b8;">
-            <i class='bx bx-wrench' style="font-size:52px;opacity:0.3;"></i>
-            <strong style="font-size:15px;color:#64748b;">Sin mantenimientos</strong>
-            <span style="font-size:13px;">No hay mantenimientos con los filtros seleccionados.</span>
-        </div>
-
-        <!-- ===== TABLE ===== -->
-        <div id="mant-table-wrap" style="display:none; padding: 24px;">
-            <table class="canchas-table" style="margin-bottom: 24px;">
-                <thead>
-                    <tr>
-                        <th>CANCHA ASIGNADA</th>
-                        <th>INICIO PROGRAMADO</th>
-                        <th>FIN ESTIMADO</th>
-                        <th>TIPO</th>
-                        <th>ESTADO</th>
-                        <th>MOTIVO</th>
-                        <th style="text-align:right;">ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody id="mant-tbody"></tbody>
-            </table>
-            
-            <div id="mant-footer" style="padding-top: 14px; border-top: 1px solid #f1f5f9; text-align:right; font-size:13px; color:#94a3b8;">
-                <span id="mant-count-label">Mostrando registros</span>
-            </div>
-        </div>
+        <!-- New Unified Table Component Container -->
+        <div id="mantenimientos-table-container" style="padding: 24px;"></div>
+    </div> <!-- /panel -->
 
     </div> <!-- /panel -->
 

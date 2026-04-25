@@ -77,44 +77,8 @@ export const clientesTemplate = () => `
             </div>
         </div>
 
-        <!-- Loading -->
-        <div id="cli-loading" style="display:flex; align-items:center; justify-content:center; gap:12px; padding:60px; color:#94a3b8; font-size:14px;">
-            <div class="spinner-circle"></div> Cargando clientes...
-        </div>
-
-        <!-- Error -->
-        <div id="cli-error" style="display:none; flex-direction:column; align-items:center; padding:60px; gap:12px; color:#ef4444; font-size:14px;">
-            <i class='bx bx-error-circle' style="font-size:38px;"></i>
-            <span id="cli-error-msg">No se pudo conectar con el servidor.</span>
-            <button class="btn btn-primary" id="btn-cli-retry" style="padding:10px 24px; margin-top:4px;">
-                <i class='bx bx-refresh'></i> Reintentar
-            </button>
-        </div>
-
-        <!-- Empty -->
-        <div id="cli-empty" style="display:none; text-align:center; padding:60px; color:#94a3b8; font-size:14px;">
-            <i class='bx bx-user-x' style="font-size:38px; display:block; margin-bottom:10px;"></i>
-            No se encontraron clientes con esa búsqueda.
-        </div>
-
-        <!-- Table -->
-        <table class="canchas-table clientes-table" id="cli-table" style="display:none;">
-            <thead>
-                <tr>
-                    <th>NOMBRE DEL CLIENTE</th>
-                    <th>DOCUMENTO</th>
-                    <th>CONTACTO</th>
-                    <th style="text-align:right;">ACCIONES</th>
-                </tr>
-            </thead>
-            <tbody id="cli-tbody"></tbody>
-        </table>
-
-        <!-- Pagination footer -->
-        <div class="pagination-footer" id="cli-footer" style="display:none; padding:20px 28px;">
-            <span id="cli-count-label" style="font-weight:700; color:#94a3b8; letter-spacing:1px; font-size:11px;">MOSTRANDO 0 CLIENTES</span>
-            <div class="page-numbers" id="cli-pagination"></div>
-        </div>
+        <!-- New Unified Table Component Container -->
+        <div id="clientes-table-container"></div>
     </div>
 
 </div>
