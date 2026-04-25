@@ -178,39 +178,8 @@ export const reservasTemplate = () => `
             </div>
         </div>
 
-        <!-- Table -->
-        <table class="canchas-table" id="rh-table">
-            <thead>
-                <tr>
-                    <th style="width: 80px;">ID</th>
-                    <th style="width: 160px;">Fecha y Hora</th>
-                    <th>Cliente</th>
-                    <th>Cancha</th>
-                    <th style="width: 130px;">Estado</th>
-                    <th style="width: 100px; text-align:right;">Total</th>
-                    <th style="width: 100px; text-align:right;">Pagado</th>
-                    <th style="width: 100px; text-align:right;">Saldo</th>
-                    <th style="width: 60px; text-align:center;"></th>
-                </tr>
-            </thead>
-            <tbody id="rh-tbody">
-                <!-- Rows injected by JS -->
-                <tr><td colspan="9" style="text-align:center; padding: 40px; color: #94a3b8;">Cargando historial...</td></tr>
-            </tbody>
-        </table>
-
-        <!-- Pagination Footer -->
-        <div class="pagination-footer">
-            <span id="rh-count-label">Mostrando 0 resultados</span>
-            <div class="page-numbers" id="rh-pagination" style="display:none;">
-                <button class="arr" id="rh-page-first" title="Primera"><i class='bx bx-chevrons-left'></i></button>
-                <button class="arr" id="rh-page-prev" title="Anterior"><i class='bx bx-chevron-left'></i></button>
-                <span style="display:flex;align-items:center;padding:0 8px;font-weight:600;font-size:13px;color:#0f172a;" id="rh-page-info">Página 1 de 1</span>
-                <button class="arr" id="rh-page-next" title="Siguiente"><i class='bx bx-chevron-right'></i></button>
-                <button class="arr" id="rh-page-last" title="Última"><i class='bx bx-chevrons-right'></i></button>
-            </div>
-        </div>
+        <!-- New Unified Table Component Container -->
+        <div id="reservas-hist-table-container"></div>
     </div>
-
 </div>
 `;
