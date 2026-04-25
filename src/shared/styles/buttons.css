@@ -1,6 +1,5 @@
 /* src/shared/styles/buttons.css */
 :root {
-    --btn-primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
     --btn-hover-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
 }
 
@@ -10,7 +9,7 @@
     justify-content: center;
     gap: 10px;
     padding: 11px 22px;
-    background: var(--btn-primary-gradient);
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 12px;
