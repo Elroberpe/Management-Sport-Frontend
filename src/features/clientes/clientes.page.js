@@ -3,9 +3,11 @@ import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
+import { clientesModalsTemplate } from './clientes.modals.template.js';
+import { initClienteModal } from './clientes.modals.js';
 
 export function template() {
-    return clientesTemplate();
+    return clientesTemplate() + clientesModalsTemplate();
 }
 
 export function mount(container) {
@@ -157,11 +159,19 @@ export function mount(container) {
     const btnRetry = document.getElementById('btn-cli-retry');
     if (btnRetry) btnRetry.addEventListener('click', () => table.fetch(0));
 
+    const modalNC = initClienteModal({
+        onClienteCreado: () => {
+            table.fetch(0);
+        }
+    });
+
     initActionButton({
         containerId: 'clientes-action-container',
         label: 'Añadir Cliente',
         icon: 'bx bx-user-plus',
-        onClick: () => alert('Modal Nuevo Cliente')
+        onClick: () => {
+            if (modalNC) modalNC.abrir();
+        }
     });
 
     // Initial load

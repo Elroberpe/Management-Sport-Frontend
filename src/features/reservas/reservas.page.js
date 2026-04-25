@@ -9,6 +9,8 @@ import { initModals }             from './reservas.modals.js';
 import { initTabla }              from './reservas.tabla.js';
 import { initCalendario }         from './reservas.calendario.js';
 import { initActionButton }     from '../../shared/components/action-button.js';
+import { clientesModalsTemplate } from '../clientes/clientes.modals.template.js';
+import { initClienteModal }       from '../clientes/clientes.modals.js';
 import { api }   from '../../core/api.js';
 import { Auth }  from '../../core/auth.js';
 import { Store } from '../../core/store.js';
@@ -17,7 +19,7 @@ var reservasMountCleanup = null;
 
 export function template() {
     // El HTML del calendario + tabla va primero, luego los modales.
-    return reservasTemplate() + reservasModalsTemplate();
+    return reservasTemplate() + reservasModalsTemplate() + clientesModalsTemplate();
 }
 
 export function mount(container) {
@@ -50,7 +52,8 @@ export function mount(container) {
         sedeActiva:       sedeActiva,
         addCleanup:       addCleanup,
         addGlobalListener:addGlobalListener,
-        Store:            Store
+        Store:            Store,
+        initClienteModal: initClienteModal
     });
 
     // ─── 2. Inicializar Tabla Histórica ─────────────────────────────────────

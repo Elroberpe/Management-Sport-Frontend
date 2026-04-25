@@ -79,6 +79,7 @@ export function initModals(ctx) {
     var btnNrSubmit   = document.getElementById('btn-nr-submit');
     var nrSubmitText  = document.getElementById('nr-submit-text');
     var nrSubmitLoad  = document.getElementById('nr-submit-loader');
+    var nrBtnNuevoCli  = document.getElementById('nr-btn-nuevo-cliente');
 
     var _nrPrecioHora  = 0;
     var _nrClienteDebounce;
@@ -214,6 +215,28 @@ export function initModals(ctx) {
     }
 
     function cerrarModalNuevaReserva() { modalNR.style.display = 'none'; }
+
+    /* ─── Inicializar Modal de Nuevo Cliente (Inyectado) ─── */
+    var modalNuevoCli = null;
+    if (ctx.initClienteModal) {
+        modalNuevoCli = ctx.initClienteModal({
+            onClienteCreado: function(c) {
+                if (nrClienteIn && nrClienteId) {
+                    nrClienteIn.value = c.nombre;
+                    nrClienteId.value = c.clienteId || c.id;
+                    var errCli = document.getElementById('nr-err-cliente');
+                    if (errCli) errCli.textContent = '';
+                }
+            }
+        });
+    }
+
+    if (nrBtnNuevoCli) {
+        nrBtnNuevoCli.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (modalNuevoCli) modalNuevoCli.abrir();
+        });
+    }
 
     document.getElementById('btn-nr-close').addEventListener('click', cerrarModalNuevaReserva);
     document.getElementById('btn-nr-cancel').addEventListener('click', cerrarModalNuevaReserva);
