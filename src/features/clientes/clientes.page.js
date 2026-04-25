@@ -2,6 +2,7 @@ import { clientesTemplate } from './clientes.template.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
+import { initActionButton } from '../../shared/components/action-button.js';
 
 export function template() {
     return clientesTemplate();
@@ -156,8 +157,12 @@ export function mount(container) {
     const btnRetry = document.getElementById('btn-cli-retry');
     if (btnRetry) btnRetry.addEventListener('click', () => table.fetch(0));
 
-    const btnNuevo = document.getElementById('btn-nuevo-cliente');
-    if (btnNuevo) btnNuevo.addEventListener('click', () => alert('Modal Nuevo Cliente'));
+    initActionButton({
+        containerId: 'clientes-action-container',
+        label: 'Añadir Cliente',
+        icon: 'bx bx-user-plus',
+        onClick: () => alert('Modal Nuevo Cliente')
+    });
 
     // Initial load
     table.fetch(0);

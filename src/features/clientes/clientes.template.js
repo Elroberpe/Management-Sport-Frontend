@@ -11,9 +11,7 @@ export const clientesTemplate = () => `
             <button class="btn btn-export-csv" id="btn-export-csv">
                 <i class='bx bx-download'></i> Exportar CSV
             </button>
-            <button class="btn btn-primary new-booking-btn" id="btn-nuevo-cliente">
-                <i class='bx bx-user-plus'></i> Añadir Cliente
-            </button>
+            <div id="clientes-action-container"></div>
         </div>
     </div>
 

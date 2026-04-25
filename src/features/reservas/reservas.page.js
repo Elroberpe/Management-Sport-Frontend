@@ -8,6 +8,7 @@ import { reservasModalsTemplate } from './reservas.modals.template.js';
 import { initModals }             from './reservas.modals.js';
 import { initTabla }              from './reservas.tabla.js';
 import { initCalendario }         from './reservas.calendario.js';
+import { initActionButton }     from '../../shared/components/action-button.js';
 import { api }   from '../../core/api.js';
 import { Auth }  from '../../core/auth.js';
 import { Store } from '../../core/store.js';
@@ -90,7 +91,12 @@ export function mount(container) {
     modals.setRhCurrentPage(tabla.currentPageRef);
 
     // ─── 5. Botón "Nueva Reserva" del header del calendario ────────────────
-    document.querySelector('.new-booking-btn').addEventListener('click', modals.abrirModalNuevaReserva);
+    initActionButton({
+        containerId: 'reservas-action-container',
+        label: 'Nueva Reserva',
+        icon: 'bx bx-plus',
+        onClick: modals.abrirModalNuevaReserva
+    });
 
     // ─── 6. Carga inicial ───────────────────────────────────────────────────
     tabla.poblarCanchasSelect();

@@ -7,9 +7,7 @@ export const canchasTemplate = () => `
             <h1 class="page-title">Gestión de Canchas</h1>
             <p class="page-subtitle" id="canchas-subtitle">Configura, monitorea y gestiona tus canchas.</p>
         </div>
-        <button class="btn btn-primary new-booking-btn" id="btn-nueva-cancha" style="height:42px; padding:0 24px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
-            <i class='bx bx-plus'></i> Nueva Cancha
-        </button>
+        <div id="canchas-action-container"></div>
     </div>
 
     <!-- Stats Section -->

@@ -4,6 +4,7 @@ import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
+import { initActionButton } from '../../shared/components/action-button.js';
 
 export function template() {
     return canchasTemplate();
@@ -200,7 +201,16 @@ export function mount(container) {
 
     // --- MODAL NUEVA CANCHA ---
     const modalNC = document.getElementById('modal-nueva-cancha');
-    const btnNuevaC = document.getElementById('btn-nueva-cancha');
+    initActionButton({
+        containerId: 'canchas-action-container',
+        label: 'Nueva Cancha',
+        icon: 'bx bx-plus',
+        onClick: () => {
+            modalNC.style.display = 'flex';
+            cargarSucursalesDropdown();
+        }
+    });
+
     const ncForm = {
         sucursal: document.getElementById('nc-sucursal'),
         nombre: document.getElementById('nc-nombre'),
@@ -224,10 +234,7 @@ export function mount(container) {
         });
     }
 
-    btnNuevaC.onclick = () => {
-        modalNC.style.display = 'flex';
-        cargarSucursalesDropdown();
-    };
+
 
     ncForm.close.onclick = ncForm.cancel.onclick = () => modalNC.style.display = 'none';
 

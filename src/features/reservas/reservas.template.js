@@ -28,7 +28,7 @@ export const reservasTemplate = () => `
                     <option value="COMPLETADO">Completada</option>
                 </select>
             </div>
-            <button class="btn btn-primary new-booking-btn" style="height:42px; padding:0 24px; display:flex; align-items:center; gap:6px;"><i class='bx bx-plus'></i> Nueva Reserva</button>
+            <div id="reservas-action-container"></div>
         </div>
     </div>
 
