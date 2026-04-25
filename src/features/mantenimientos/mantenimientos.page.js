@@ -1,8 +1,9 @@
-import { mantenimientosTemplate, mantenimientosEditFormTemplate } from './mantenimientos.template.js';
+import { mantenimientosTemplate } from './mantenimientos.template.js';
+import { MantenimientoService } from './mantenimientos.service.js';
+import { initMantenimientoModals } from './mantenimientos.modals.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
-import { initModalShell } from '../../shared/components/modal-shell.js';
 
 export function template() {
     return mantenimientosTemplate();
@@ -11,7 +12,7 @@ export function template() {
 export function mount(container) {
     const PAGE_SIZE = 20;
     
-    // Formateadores
+    // --- Utils ---
     const fmtDate = (iso) => {
         if (!iso) return '—';
         const d = new Date(iso);
@@ -23,6 +24,7 @@ export function mount(container) {
         return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}h`;
     };
 
+    // --- Components ---
     const stats = initStats('mantenimientos-stats-container', [
         { id: 'total', label: 'Total Mantenimientos', icon: 'bx bx-list-ul', colorClass: 'gray' },
         { id: 'programados', label: 'Programados', icon: 'bx bx-calendar-check', colorClass: 'blue' },
@@ -44,9 +46,12 @@ export function mount(container) {
         });
     }
 
+    const modals = initMantenimientoModals(() => table.fetch(0));
+
     const table = initTable({
         containerId: 'mantenimientos-table-container',
         pageSize: PAGE_SIZE,
+        actionsStyle: 'inline',
         columns: [
             { 
                 key: 'nombreCancha', 
@@ -98,27 +103,26 @@ export function mount(container) {
                     const MAP = { PROGRAMADO: 'badge-blue', EN_PROCESO: 'badge-yellow', COMPLETADO: 'badge-green', CANCELADO: 'badge-gray' };
                     return `<span class="status-badge ${MAP[v] || 'badge-gray'}"><span class="dot"></span> ${v}</span>`;
                 }
-            },
-            {
-                key: 'motivo',
-                label: 'Motivo',
-                render: (v) => `<div style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:#64748b;" title="${v}">${v || '—'}</div>`
             }
         ],
         fetchData: async (page) => {
-            const params = new URLSearchParams({ page, size: PAGE_SIZE, sort: 'horaInicio,desc' });
+            const filters = { 
+                page, 
+                size: PAGE_SIZE, 
+                sort: 'horaInicio,desc' 
+            };
             
             const canchaId = document.getElementById('mf-cancha').value;
             const estado = document.getElementById('mf-estado').value;
             const desde = document.getElementById('mf-desde').value;
             const hasta = document.getElementById('mf-hasta').value;
 
-            if (canchaId) params.append('canchaId', canchaId);
-            if (estado) params.append('estadoMantenimiento', estado);
-            if (desde) params.append('fechaDesde', desde);
-            if (hasta) params.append('fechaHasta', hasta);
+            if (canchaId) filters.canchaId = canchaId;
+            if (estado) filters.estadoMantenimiento = estado;
+            if (desde) filters.fechaDesde = desde;
+            if (hasta) filters.fechaHasta = hasta;
 
-            const data = await api.get(`/mantenimientos?${params.toString()}`);
+            const data = await MantenimientoService.listar(filters);
             actualizarStats(data);
             return data;
         },
@@ -129,7 +133,7 @@ export function mount(container) {
                 show: (m) => m.estadoMantenimiento === 'PROGRAMADO',
                 onClick: async (m) => {
                     try {
-                        await api.patch(`/mantenimientos/${m.id}/estado`, { estado: 'EN_PROCESO' });
+                        await MantenimientoService.actualizarEstado(m.id, 'EN_PROCESO');
                         table.fetch(0);
                     } catch(e) { alert(e.message); }
                 }
@@ -141,7 +145,7 @@ export function mount(container) {
                 show: (m) => m.estadoMantenimiento === 'EN_PROCESO',
                 onClick: async (m) => {
                     try {
-                        await api.patch(`/mantenimientos/${m.id}/estado`, { estado: 'COMPLETADO' });
+                        await MantenimientoService.actualizarEstado(m.id, 'COMPLETADO');
                         table.fetch(0);
                     } catch(e) { alert(e.message); }
                 }
@@ -150,25 +154,24 @@ export function mount(container) {
                 label: 'Editar', 
                 icon: 'bx bx-edit-alt', 
                 show: (m) => m.estadoMantenimiento === 'PROGRAMADO',
-                onClick: (m) => abrirModalEditar(m)
+                onClick: (m) => modals.abrirEditar(m)
             },
             { 
                 label: 'Cancelar', 
                 icon: 'bx bx-x-circle', 
                 class: 'danger',
                 show: (m) => ['PROGRAMADO', 'EN_PROCESO'].includes(m.estadoMantenimiento),
-                onClick: (m) => abrirModalCancelar(m)
+                onClick: (m) => modals.abrirCancelar(m)
             }
         ]
     });
 
-    // Filtros
+    // --- Events ---
     document.getElementById('mf-apply').addEventListener('click', () => table.fetch(0));
     document.getElementById('mf-clear').addEventListener('click', () => {
-        document.getElementById('mf-cancha').value = '';
-        document.getElementById('mf-estado').value = '';
-        document.getElementById('mf-desde').value = '';
-        document.getElementById('mf-hasta').value = '';
+        ['mf-cancha', 'mf-estado', 'mf-desde', 'mf-hasta'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
         table.fetch(0);
     });
 
@@ -182,86 +185,6 @@ export function mount(container) {
             sel.appendChild(opt);
         });
     }).catch(() => {});
-
-    /* ========================================
-       MODALES ESTANDARIZADOS
-    ======================================== */
-    let _editManId = null;
-    const modalEdit = initModalShell({
-        id: 'modal-mant-edit',
-        title: 'Editar Mantenimiento',
-        subtitle: 'Modifica la programación del mantenimiento',
-        icon: 'bx bx-edit-alt',
-        confirmText: 'Guardar Cambios',
-        contentHtml: mantenimientosEditFormTemplate(),
-        onConfirm: async (ctx) => {
-            const ini = document.getElementById('edit-inicio').value;
-            const fin = document.getElementById('edit-fin').value;
-            const tip = document.getElementById('edit-tipo').value;
-            const mot = document.getElementById('edit-motivo').value.trim();
-
-            if (!ini) return ctx.showFieldError('edit-inicio', 'Requerido');
-            if (!fin) return ctx.showFieldError('edit-fin', 'Requerido');
-            if (!tip) return ctx.showFieldError('edit-tipo', 'Requerido');
-            if (!mot) return ctx.showFieldError('edit-motivo', 'Requerido');
-
-            ctx.setLoading(true);
-            try {
-                await api.put(`/mantenimientos/${_editManId}`, {
-                    horaInicio: ini,
-                    horaFin: fin,
-                    tipoMantenimiento: tip,
-                    motivo: mot
-                });
-                ctx.showToast('Mantenimiento actualizado');
-                ctx.close();
-                table.fetch(0);
-            } catch (err) {
-                ctx.setLoading(false);
-                ctx.showError(err.message);
-            }
-        }
-    });
-
-    function abrirModalEditar(m) {
-        _editManId = m.id;
-        modalEdit.open();
-        // Cargar datos
-        document.getElementById('edit-inicio').value = m.horaInicio ? m.horaInicio.substring(0, 16) : '';
-        document.getElementById('edit-fin').value = m.horaFin ? m.horaFin.substring(0, 16) : '';
-        document.getElementById('edit-tipo').value = m.tipoMantenimiento || '';
-        document.getElementById('edit-motivo').value = m.motivo || '';
-        
-        const area = document.getElementById('edit-motivo');
-        const count = document.getElementById('edit-char-count');
-        area.oninput = () => count.textContent = `${area.value.length}/200`;
-        count.textContent = `${area.value.length}/200`;
-    }
-
-    function abrirModalCancelar(m) {
-        const modalConfirm = initModalShell({
-            id: 'modal-mant-cancel',
-            title: '¿Cancelar Mantenimiento?',
-            subtitle: 'Esta acción es irreversible',
-            icon: 'bx bx-trash-alt',
-            confirmText: 'Sí, Cancelar',
-            confirmClass: 'danger',
-            contentHtml: `<p style="font-size:14px; color:#4b5563;">¿Estás seguro de que deseas cancelar el mantenimiento programado para la cancha <strong>${m.nombreCancha}</strong> el día ${fmtDate(m.horaInicio)}?</p>`,
-            onConfirm: async (ctx) => {
-                ctx.setLoading(true);
-                try {
-                    await api.patch(`/mantenimientos/${m.id}/cancelar`);
-                    ctx.showToast('Mantenimiento cancelado');
-                    ctx.close();
-                    table.fetch(0);
-                } catch (err) {
-                    ctx.setLoading(false);
-                    ctx.showError(err.message);
-                }
-            }
-        });
-        modalConfirm.open();
-    }
 
     table.fetch(0);
 }

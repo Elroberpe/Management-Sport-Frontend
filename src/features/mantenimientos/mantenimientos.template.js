@@ -81,4 +81,3 @@ export const mantenimientosEditFormTemplate = () => `
         </div>
     </div>
 `;
-`;
