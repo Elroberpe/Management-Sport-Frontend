@@ -7,7 +7,7 @@ export function template() {
 }
 
 export function mount(container) {
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 20;
     
     // Formateadores
     const fmtDate = (iso) => {

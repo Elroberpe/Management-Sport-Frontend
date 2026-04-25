@@ -7,7 +7,7 @@ export function template() {
 }
 
 export function mount(container) {
-    const PAGE_SIZE = 15;
+    const PAGE_SIZE = 20;
     let debounceTimer = null;
     let currentData = [];
 

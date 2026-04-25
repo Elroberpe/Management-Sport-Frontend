@@ -130,7 +130,7 @@ export function initTabla(ctx) {
         ],
         fetchData: (page) => {
             currentPageRef.value = page;
-            const params = new URLSearchParams({ page, size: 10, sort: 'fecha,desc' });
+            const params = new URLSearchParams({ page, size: 20, sort: 'fecha,desc' });
             
             const fDesde = document.getElementById('rh-desde').value;
             const fHasta = document.getElementById('rh-hasta').value;
