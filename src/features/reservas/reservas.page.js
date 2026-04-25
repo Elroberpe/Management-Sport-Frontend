@@ -19,7 +19,7 @@ var reservasMountCleanup = null;
 
 export function template() {
     // El HTML del calendario + tabla va primero, luego los modales.
-    return reservasTemplate() + reservasModalsTemplate() + clientesModalsTemplate();
+    return reservasTemplate() + reservasModalsTemplate();
 }
 
 export function mount(container) {

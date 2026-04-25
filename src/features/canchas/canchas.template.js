@@ -1,3 +1,5 @@
+// src/features/canchas/canchas.template.js
+
 export const canchasTemplate = () => `
 <div class="canchas-module">
 
@@ -48,9 +50,6 @@ export const canchasTemplate = () => `
             <div id="canchas-grilla-inner" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:16px;">
             </div>
         </div>
-
-        <!-- Sin resultados se maneja dentro del componente o globalmente -->
-    </div>
     </div>
 
     <!-- Quick Schedule -->
@@ -71,241 +70,109 @@ export const canchasTemplate = () => `
         </div>
     </div>
 </div>
+`;
 
-<!-- ===== MODAL: NUEVA CANCHA ===== -->
-<div id="modal-nueva-cancha" class="nc-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-nc-title">
-    <div class="nc-modal">
-
-        <!-- Header -->
-        <div class="nc-header">
-            <div class="nc-header-icon"><i class='bx bx-football'></i></div>
-            <div>
-                <h2 class="nc-title" id="modal-nc-title">Nueva Cancha</h2>
-                <p class="nc-subtitle">Completa los datos para registrar la cancha</p>
-            </div>
-            <button class="nc-close" id="btn-nc-close" title="Cerrar"><i class='bx bx-x'></i></button>
-        </div>
-
-        <!-- Body -->
-        <div class="nc-body">
-
-            <!-- Error general -->
-            <div class="nc-alert-error" id="nc-error-general" style="display:none;">
-                <i class='bx bx-error-circle'></i>
-                <span id="nc-error-general-msg">Ha ocurrido un error.</span>
-            </div>
-
-            <!-- Campo: Sucursal -->
-            <div class="nc-field" id="nc-field-sucursal">
-                <label class="nc-label" for="nc-sucursal">
-                    <i class='bx bx-map-pin'></i> Seleccionar Sucursal <span class="nc-required">*</span>
-                </label>
-                <div class="nc-select-wrap" id="nc-sucursal-wrap">
-                    <select id="nc-sucursal" class="nc-input nc-select" required>
-                        <option value="">Cargando sucursales...</option>
-                    </select>
-                    <i class='bx bx-chevron-down nc-select-arrow'></i>
-                </div>
-                <span class="nc-field-error" id="nc-err-sucursal"></span>
-            </div>
-
-            <!-- Campo: Nombre -->
-            <div class="nc-field" id="nc-field-nombre">
-                <label class="nc-label" for="nc-nombre">
-                    <i class='bx bx-rename'></i> Nombre de la Cancha <span class="nc-required">*</span>
-                </label>
-                <input type="text" id="nc-nombre" class="nc-input" maxlength="50"
-                    placeholder="Ej: Cancha 1 - Fútbol 5" autocomplete="off">
-                <div class="nc-input-footer">
-                    <span class="nc-field-error" id="nc-err-nombre"></span>
-                    <span class="nc-char-count" id="nc-char-nombre">0/50</span>
-                </div>
-            </div>
-
-            <!-- Campo: Precio -->
-            <div class="nc-field" id="nc-field-precio">
-                <label class="nc-label" for="nc-precio">
-                    <i class='bx bx-money'></i> Precio por Hora <span class="nc-required">*</span>
-                </label>
-                <div class="nc-precio-wrap">
-                    <span class="nc-currency">S/</span>
-                    <input type="number" id="nc-precio" class="nc-input nc-input-precio"
-                        min="0.01" step="0.01" placeholder="50.00">
-                </div>
-                <span class="nc-field-error" id="nc-err-precio"></span>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="nc-footer">
-            <button class="nc-btn-cancel" id="btn-nc-cancel">Cancelar</button>
-            <button class="nc-btn-submit" id="btn-nc-submit">
-                <span id="nc-submit-text"><i class='bx bx-plus'></i> Crear Cancha</span>
-                <span id="nc-submit-loader" style="display:none;"><div class="nc-spinner"></div> Creando...</span>
-            </button>
-        </div>
-
+export const canchasNewFormTemplate = () => `
+    <!-- Campo: Sucursal -->
+    <div class="modal-shell-field" id="nc-field-sucursal">
+        <label class="modal-shell-label" for="nc-sucursal">
+            <i class='bx bx-map-pin'></i> Seleccionar Sucursal <span style="color:#ef4444;">*</span>
+        </label>
+        <select id="nc-sucursal" class="modal-shell-input">
+            <option value="">Cargando sucursales...</option>
+        </select>
+        <span class="modal-shell-error-text" id="nc-sucursal-err"></span>
     </div>
-</div>
 
-<!-- Toast de éxito -->
-<div class="nc-toast" id="nc-toast" style="display:none;">
-    <i class='bx bx-check-circle'></i>
-    <span id="nc-toast-msg">¡Cancha creada con éxito!</span>
-</div>
-
-<!-- ===== MODAL: PROGRAMAR MANTENIMIENTO ===== -->
-<div id="modal-mant" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-mant-title">
-    <div class="pm-modal">
-
-        <!-- Header -->
-        <div class="pm-header">
-            <div class="pm-header-icon"><i class='bx bx-wrench'></i></div>
-            <div>
-                <h2 class="pm-title" id="modal-mant-title">Programar Mantenimiento</h2>
-                <p class="pm-subtitle" id="pm-cancha-label">Cancha seleccionada</p>
-            </div>
-            <button class="pm-close" id="btn-pm-close" title="Cerrar"><i class='bx bx-x'></i></button>
-        </div>
-
-        <!-- Body -->
-        <div class="pm-body">
-
-            <!-- Error general -->
-            <div class="pm-alert-error" id="pm-error-general" style="display:none;">
-                <i class='bx bx-error-circle'></i>
-                <span id="pm-error-general-msg">Ha ocurrido un error.</span>
-            </div>
-
-            <!-- Fila: Inicio / Fin -->
-            <div class="pm-row-2">
-                <div class="pm-field">
-                    <label class="pm-label" for="pm-inicio">
-                        <i class='bx bx-calendar-plus'></i> Inicio del Mantenimiento <span class="pm-required">*</span>
-                    </label>
-                    <input type="datetime-local" id="pm-inicio" class="pm-input">
-                    <span class="pm-field-error" id="pm-err-inicio"></span>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label" for="pm-fin">
-                        <i class='bx bx-calendar-check'></i> Fin del Mantenimiento <span class="pm-required">*</span>
-                    </label>
-                    <input type="datetime-local" id="pm-fin" class="pm-input">
-                    <span class="pm-field-error" id="pm-err-fin"></span>
-                </div>
-            </div>
-
-            <!-- Tipo -->
-            <div class="pm-field">
-                <label class="pm-label" for="pm-tipo">
-                    <i class='bx bx-category'></i> Tipo <span class="pm-required">*</span>
-                </label>
-                <div class="pm-select-wrap">
-                    <select id="pm-tipo" class="pm-input pm-select">
-                        <option value="">— Seleccionar tipo —</option>
-                        <option value="PREVENTIVO">Preventivo</option>
-                        <option value="CORRECTIVO">Correctivo</option>
-                        <option value="URGENTE">Urgente</option>
-                    </select>
-                    <i class='bx bx-chevron-down pm-select-arrow'></i>
-                </div>
-                <span class="pm-field-error" id="pm-err-tipo"></span>
-            </div>
-
-            <!-- Motivo -->
-            <div class="pm-field">
-                <label class="pm-label" for="pm-motivo">
-                    <i class='bx bx-note'></i> Motivo del Mantenimiento <span class="pm-required">*</span>
-                </label>
-                <textarea id="pm-motivo" class="pm-input pm-textarea" maxlength="200"
-                    placeholder="Ej: Pintado de líneas, reparación de red, etc."></textarea>
-                <div class="pm-input-footer">
-                    <span class="pm-field-error" id="pm-err-motivo"></span>
-                    <span class="pm-char-count" id="pm-char-motivo">0/200</span>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="pm-footer">
-            <button class="pm-btn-cancel" id="btn-pm-cancel">Cancelar</button>
-            <button class="pm-btn-submit" id="btn-pm-submit">
-                <span id="pm-submit-text"><i class='bx bx-calendar-event'></i> Programar</span>
-                <span id="pm-submit-loader" style="display:none;"><div class="pm-spinner"></div> Programando...</span>
-            </button>
-        </div>
-
+    <!-- Campo: Nombre -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="nc-nombre">
+            <i class='bx bx-rename'></i> Nombre de la Cancha <span style="color:#ef4444;">*</span>
+        </label>
+        <input type="text" id="nc-nombre" class="modal-shell-input" maxlength="50" placeholder="Ej: Cancha 1 - Fútbol 5">
+        <span class="modal-shell-error-text" id="nc-nombre-err"></span>
     </div>
-</div>
 
-<!-- ===== MODAL: EDITAR CANCHA ===== -->
-<div id="modal-edit-cancha" class="nc-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-ec-title">
-    <div class="nc-modal">
-
-        <!-- Header -->
-        <div class="nc-header">
-            <div class="nc-header-icon" style="background: #f1f5f9; color: #1e40af;"><i class='bx bx-pencil'></i></div>
-            <div>
-                <h2 class="nc-title" id="modal-ec-title">Editar Cancha</h2>
-                <p class="nc-subtitle">Modifica los detalles de la cancha seleccionada</p>
-            </div>
-            <button class="nc-close" id="btn-ec-close" title="Cerrar"><i class='bx bx-x'></i></button>
+    <!-- Campo: Precio -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="nc-precio">
+            <i class='bx bx-money'></i> Precio por Hora <span style="color:#ef4444;">*</span>
+        </label>
+        <div style="position:relative;">
+            <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; font-weight:600;">S/</span>
+            <input type="number" id="nc-precio" class="modal-shell-input" style="padding-left:35px;" min="0.01" step="0.01" placeholder="50.00">
         </div>
-
-        <!-- Body -->
-        <div class="nc-body">
-
-            <!-- Error general -->
-            <div class="nc-alert-error" id="ec-error-general" style="display:none;">
-                <i class='bx bx-error-circle'></i>
-                <span id="ec-error-general-msg">Ha ocurrido un error.</span>
-            </div>
-
-            <!-- Campo: Sucursal (Deshabilitado) -->
-            <div class="nc-field">
-                <label class="nc-label" for="ec-sucursal">
-                    <i class='bx bx-map-pin'></i> Sucursal (No editable)
-                </label>
-                <input type="text" id="ec-sucursal" class="nc-input" disabled style="background:#f1f5f9; cursor:not-allowed; border-color:#e2e8f0; color:#64748b; font-weight:600;">
-            </div>
-
-            <!-- Campo: Nombre -->
-            <div class="nc-field">
-                <label class="nc-label" for="ec-nombre">
-                    <i class='bx bx-rename'></i> Nombre de la Cancha <span class="nc-required">*</span>
-                </label>
-                <input type="text" id="ec-nombre" class="nc-input" maxlength="50" placeholder="Ej: Cancha 1 - Fútbol 6" autocomplete="off">
-                <div class="nc-input-footer">
-                    <span class="nc-field-error" id="ec-err-nombre"></span>
-                    <span class="nc-char-count" id="ec-char-nombre">0/50</span>
-                </div>
-            </div>
-
-            <!-- Campo: Precio -->
-            <div class="nc-field">
-                <label class="nc-label" for="ec-precio">
-                    <i class='bx bx-money'></i> Precio por Hora <span class="nc-required">*</span>
-                </label>
-                <div class="nc-precio-wrap">
-                    <span class="nc-currency">S/</span>
-                    <input type="number" id="ec-precio" class="nc-input nc-input-precio" min="0.01" step="0.01" placeholder="85.00">
-                </div>
-                <span class="nc-field-error" id="ec-err-precio"></span>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="nc-footer">
-            <button class="nc-btn-cancel" id="btn-ec-cancel">Cancelar</button>
-            <button class="nc-btn-submit" id="btn-ec-submit">
-                <span id="ec-submit-text"><i class='bx bx-save'></i> Guardar Cambios</span>
-                <span id="ec-submit-loader" style="display:none;"><div class="nc-spinner"></div> Guardando...</span>
-            </button>
-        </div>
-
+        <span class="modal-shell-error-text" id="nc-precio-err"></span>
     </div>
-</div>
+`;
+
+export const canchasEditFormTemplate = () => `
+    <!-- Campo: Sucursal (Solo lectura) -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-sucursal">
+            <i class='bx bx-map-pin'></i> Sucursal (No editable)
+        </label>
+        <input type="text" id="ec-sucursal" class="modal-shell-input" disabled style="background:#f1f5f9; color:#64748b;">
+    </div>
+
+    <!-- Campo: Nombre -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-nombre">
+            <i class='bx bx-rename'></i> Nombre de la Cancha <span style="color:#ef4444;">*</span>
+        </label>
+        <input type="text" id="ec-nombre" class="modal-shell-input" maxlength="50" placeholder="Ej: Cancha 1 - Fútbol 6">
+        <span class="modal-shell-error-text" id="ec-nombre-err"></span>
+    </div>
+
+    <!-- Campo: Precio -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-precio">
+            <i class='bx bx-money'></i> Precio por Hora <span style="color:#ef4444;">*</span>
+        </label>
+        <div style="position:relative;">
+            <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; font-weight:600;">S/</span>
+            <input type="number" id="ec-precio" class="modal-shell-input" style="padding-left:35px;" min="0.01" step="0.01" placeholder="85.00">
+        </div>
+        <span class="modal-shell-error-text" id="ec-precio-err"></span>
+    </div>
+`;
+
+export const canchasMantenimientoFormTemplate = () => `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="modal-shell-field">
+            <label class="modal-shell-label" for="pm-inicio">
+                <i class='bx bx-calendar-plus'></i> Inicio <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="datetime-local" id="pm-inicio" class="modal-shell-input">
+            <span class="modal-shell-error-text" id="pm-inicio-err"></span>
+        </div>
+        <div class="modal-shell-field">
+            <label class="modal-shell-label" for="pm-fin">
+                <i class='bx bx-calendar-check'></i> Fin <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="datetime-local" id="pm-fin" class="modal-shell-input">
+            <span class="modal-shell-error-text" id="pm-fin-err"></span>
+        </div>
+    </div>
+
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="pm-tipo">
+            <i class='bx bx-category'></i> Tipo <span style="color:#ef4444;">*</span>
+        </label>
+        <select id="pm-tipo" class="modal-shell-input">
+            <option value="">— Seleccionar tipo —</option>
+            <option value="PREVENTIVO">Preventivo</option>
+            <option value="CORRECTIVO">Correctivo</option>
+            <option value="URGENTE">Urgente</option>
+        </select>
+        <span class="modal-shell-error-text" id="pm-tipo-err"></span>
+    </div>
+
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="pm-motivo">
+            <i class='bx bx-note'></i> Motivo <span style="color:#ef4444;">*</span>
+        </label>
+        <textarea id="pm-motivo" class="modal-shell-input" style="height:100px; resize:none;" maxlength="200" placeholder="Ej: Pintado de líneas..."></textarea>
+        <span class="modal-shell-error-text" id="pm-motivo-err"></span>
+    </div>
 `;

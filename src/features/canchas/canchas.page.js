@@ -1,10 +1,11 @@
-import { canchasTemplate } from './canchas.template.js';
+import { canchasTemplate, canchasNewFormTemplate, canchasEditFormTemplate, canchasMantenimientoFormTemplate } from './canchas.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
+import { initModalShell } from '../../shared/components/modal-shell.js';
 
 export function template() {
     return canchasTemplate();
@@ -155,7 +156,7 @@ export function mount(container) {
                         api.delete(`/canchas/${c.canchaId || c.id}`)
                             .then(() => {
                                 table.fetch(0);
-                                mostrarToast('Cancha eliminada correctamente');
+                                if (modalNC) modalNC.showToast('Cancha eliminada correctamente');
                             })
                             .catch(err => alert('Error: ' + err.message));
                     }
@@ -190,138 +191,152 @@ export function mount(container) {
        MODALES Y FUNCIONALIDAD ADICIONAL
     ======================================== */
     
-    // Toast Helper
-    const ncToast = document.getElementById('nc-toast');
-    const ncToastMsg = document.getElementById('nc-toast-msg');
-    function mostrarToast(msg) {
-        ncToastMsg.textContent = msg;
-        ncToast.style.display = 'flex';
-        setTimeout(() => { ncToast.style.display = 'none'; }, 3500);
-    }
+    /* ========================================
+       MODALES ESTANDARIZADOS
+    ======================================== */
 
-    // --- MODAL NUEVA CANCHA ---
-    const modalNC = document.getElementById('modal-nueva-cancha');
+    // --- 1. MODAL NUEVA CANCHA ---
+    const modalNC = initModalShell({
+        id: 'modal-nueva-cancha',
+        title: 'Nueva Cancha',
+        subtitle: 'Registra una nueva cancha para tus sucursales',
+        icon: 'bx bx-football',
+        confirmText: 'Crear Cancha',
+        contentHtml: canchasNewFormTemplate(),
+        onConfirm: async (ctx) => {
+            const sid = document.getElementById('nc-sucursal').value;
+            const nom = document.getElementById('nc-nombre').value.trim();
+            const pre = document.getElementById('nc-precio').value;
+
+            if (!sid) return ctx.showFieldError('nc-sucursal', 'Selecciona una sede');
+            if (!nom) return ctx.showFieldError('nc-nombre', 'El nombre es obligatorio');
+            if (!pre) return ctx.showFieldError('nc-precio', 'El precio es obligatorio');
+
+            ctx.setLoading(true);
+            try {
+                await api.post('/canchas', { sucursalId: parseInt(sid), nombre: nom, precioHora: parseFloat(pre) });
+                ctx.showToast('Cancha creada con éxito');
+                ctx.close();
+                table.fetch(0);
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message || 'Error al crear la cancha');
+            }
+        }
+    });
+
     initActionButton({
         containerId: 'canchas-action-container',
         label: 'Nueva Cancha',
         icon: 'bx bx-plus',
         onClick: () => {
-            modalNC.style.display = 'flex';
-            cargarSucursalesDropdown();
+            modalNC.open();
+            cargarSucursalesDropdown('nc-sucursal');
         }
     });
 
-    const ncForm = {
-        sucursal: document.getElementById('nc-sucursal'),
-        nombre: document.getElementById('nc-nombre'),
-        precio: document.getElementById('nc-precio'),
-        submit: document.getElementById('btn-nc-submit'),
-        cancel: document.getElementById('btn-nc-cancel'),
-        close: document.getElementById('btn-nc-close')
-    };
-
-    function cargarSucursalesDropdown() {
-        ncForm.sucursal.innerHTML = '<option value="">Cargando sucursales...</option>';
+    function cargarSucursalesDropdown(selectId) {
+        const el = document.getElementById(selectId);
+        if (!el) return;
+        el.innerHTML = '<option value="">Cargando...</option>';
         api.get('/sucursales').then(sucursales => {
-            ncForm.sucursal.innerHTML = '<option value="">— Seleccionar Sucursal —</option>';
+            el.innerHTML = '<option value="">— Seleccionar Sucursal —</option>';
             sucursales.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.sucursalId || s.id;
                 opt.textContent = s.nombre;
                 if (sucursalFiltro && opt.value == sucursalFiltro) opt.selected = true;
-                ncForm.sucursal.appendChild(opt);
+                el.appendChild(opt);
             });
         });
     }
 
-
-
-    ncForm.close.onclick = ncForm.cancel.onclick = () => modalNC.style.display = 'none';
-
-    ncForm.submit.onclick = () => {
-        const payload = {
-            sucursalId: parseInt(ncForm.sucursal.value),
-            nombre: ncForm.nombre.value.trim(),
-            precioHora: parseFloat(ncForm.precio.value)
-        };
-        if (!payload.nombre || !payload.precioHora) return alert('Completa los campos');
-
-        api.post('/canchas', payload).then(() => {
-            modalNC.style.display = 'none';
-            table.fetch(0);
-            mostrarToast('Cancha creada con éxito');
-        }).catch(err => alert('Error: ' + err.message));
-    };
-
-    // --- MODAL EDITAR CANCHA ---
-    const modalEC = document.getElementById('modal-edit-cancha');
-    const ecForm = {
-        sucursal: document.getElementById('ec-sucursal'),
-        nombre: document.getElementById('ec-nombre'),
-        precio: document.getElementById('ec-precio'),
-        submit: document.getElementById('btn-ec-submit'),
-        cancel: document.getElementById('btn-ec-cancel'),
-        close: document.getElementById('btn-ec-close')
-    };
-
+    // --- 2. MODAL EDITAR CANCHA ---
     let editingId = null;
+    const modalEC = initModalShell({
+        id: 'modal-edit-cancha',
+        title: 'Editar Cancha',
+        subtitle: 'Modifica los detalles de la cancha seleccionada',
+        icon: 'bx bx-pencil',
+        confirmText: 'Guardar Cambios',
+        contentHtml: canchasEditFormTemplate(),
+        onConfirm: async (ctx) => {
+            const nom = document.getElementById('ec-nombre').value.trim();
+            const pre = document.getElementById('ec-precio').value;
+
+            if (!nom) return ctx.showFieldError('ec-nombre', 'El nombre es obligatorio');
+            if (!pre) return ctx.showFieldError('ec-precio', 'El precio es obligatorio');
+
+            ctx.setLoading(true);
+            try {
+                await api.put(`/canchas/${editingId}`, { nombre: nom, precioHora: parseFloat(pre) });
+                ctx.showToast('Cancha actualizada');
+                ctx.close();
+                table.fetch(0);
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message || 'Error al actualizar');
+            }
+        }
+    });
+
     function abrirModalEditar(id) {
         editingId = id;
         api.get(`/canchas/${id}`).then(c => {
-            ecForm.sucursal.value = c.sucursalNombre || `Sede ${c.sucursalId}`;
-            ecForm.nombre.value = c.nombre;
-            ecForm.precio.value = c.precioHora;
-            modalEC.style.display = 'flex';
+            const inSuc = document.getElementById('ec-sucursal');
+            const inNom = document.getElementById('ec-nombre');
+            const inPre = document.getElementById('ec-precio');
+            if (inSuc) inSuc.value = c.sucursalNombre || `Sede ${c.sucursalId}`;
+            if (inNom) inNom.value = c.nombre;
+            if (inPre) inPre.value = c.precioHora;
+            modalEC.open();
         });
     }
 
-    ecForm.close.onclick = ecForm.cancel.onclick = () => modalEC.style.display = 'none';
-    ecForm.submit.onclick = () => {
-        const payload = {
-            nombre: ecForm.nombre.value.trim(),
-            precioHora: parseFloat(ecForm.precio.value)
-        };
-        api.put(`/canchas/${editingId}`, payload).then(() => {
-            modalEC.style.display = 'none';
-            table.fetch(0);
-            mostrarToast('Cancha actualizada');
-        });
-    };
-
-    // --- MODAL MANTENIMIENTO ---
-    const modalMant = document.getElementById('modal-mant');
-    const pmForm = {
-        canchaLabel: document.getElementById('pm-cancha-label'),
-        inicio: document.getElementById('pm-inicio'),
-        fin: document.getElementById('pm-fin'),
-        tipo: document.getElementById('pm-tipo'),
-        motivo: document.getElementById('pm-motivo'),
-        submit: document.getElementById('btn-pm-submit'),
-        cancel: document.getElementById('btn-pm-cancel'),
-        close: document.getElementById('btn-pm-close')
-    };
-
+    // --- 3. MODAL MANTENIMIENTO ---
     let mantCanchaId = null;
+    const modalMant = initModalShell({
+        id: 'modal-mantenimiento',
+        title: 'Programar Mantenimiento',
+        icon: 'bx bx-wrench',
+        confirmText: 'Programar',
+        contentHtml: canchasMantenimientoFormTemplate(),
+        onConfirm: async (ctx) => {
+            const ini = document.getElementById('pm-inicio').value;
+            const fin = document.getElementById('pm-fin').value;
+            const tip = document.getElementById('pm-tipo').value;
+            const mot = document.getElementById('pm-motivo').value.trim();
+
+            if (!ini) return ctx.showFieldError('pm-inicio', 'Requerido');
+            if (!fin) return ctx.showFieldError('pm-fin', 'Requerido');
+            if (!tip) return ctx.showFieldError('pm-tipo', 'Requerido');
+            if (!mot) return ctx.showFieldError('pm-motivo', 'Requerido');
+
+            ctx.setLoading(true);
+            try {
+                const payload = {
+                    canchaId: mantCanchaId,
+                    horaInicio: ini + ':00',
+                    horaFin: fin + ':00',
+                    tipoMantenimiento: tip,
+                    motivo: mot
+                };
+                await api.post('/mantenimientos', payload);
+                ctx.showToast('Mantenimiento programado');
+                ctx.close();
+                table.fetch(0);
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message || 'Error al programar');
+            }
+        }
+    });
+
     function abrirModalMant(id, nombre) {
         mantCanchaId = id;
-        pmForm.canchaLabel.textContent = nombre;
-        modalMant.style.display = 'flex';
+        modalMant.open();
+        // Personalizar subtítulo dinámicamente si es posible, o simplemente confiar en el shell
     }
-
-    pmForm.close.onclick = pmForm.cancel.onclick = () => modalMant.style.display = 'none';
-    pmForm.submit.onclick = () => {
-        const payload = {
-            canchaId: mantCanchaId,
-            horaInicio: pmForm.inicio.value + ':00',
-            horaFin: pmForm.fin.value + ':00',
-            tipoMantenimiento: pmForm.tipo.value,
-            motivo: pmForm.motivo.value
-        };
-        api.post('/mantenimientos', payload).then(() => {
-            modalMant.style.display = 'none';
-            mostrarToast('Mantenimiento programado');
-        }).catch(err => alert(err.message));
-    };
 
     // Initial load
     setVista('tabla');

@@ -7,7 +7,7 @@ import { clientesModalsTemplate } from './clientes.modals.template.js';
 import { initClienteModal } from './clientes.modals.js';
 
 export function template() {
-    return clientesTemplate() + clientesModalsTemplate();
+    return clientesTemplate();
 }
 
 export function mount(container) {
