@@ -3,8 +3,7 @@ import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
-import { clientesModalsTemplate } from './clientes.modals.template.js';
-import { initClienteModal } from './clientes.modals.js';
+import { initClienteModal, initEditClienteModal } from './clientes.modals.js';
 
 export function template() {
     return clientesTemplate();
@@ -42,6 +41,13 @@ export function mount(container) {
         });
     }
 
+    // Modal para editar
+    const modalEC = initEditClienteModal({
+        onClienteActualizado: () => {
+            table.fetch(table.currentPageRef ? table.currentPageRef.current : 0);
+        }
+    });
+
     const table = initTable({
         containerId: 'clientes-table-container',
         pageSize: PAGE_SIZE,
@@ -67,7 +73,7 @@ export function mount(container) {
                 render: (v, c) => `
                     <div style='display:flex; flex-direction:column; gap:4px;'>
                         <span class="status-badge badge-gray" style="font-size:10px; padding:2px 8px;">${c.tipoDocumento || '—'}</span>
-                        <span style='font-size:13px; font-weight:600; color:#334155;'>${v || '—'}</span>
+                        <span style='font-size:13px; font-weight:600; color:#334155;'>${v || c.numDocumento || '—'}</span>
                     </div>
                 `
             },
@@ -89,14 +95,9 @@ export function mount(container) {
         fetchData: async (page) => {
             const searchIn = document.getElementById('cli-search');
             const q = searchIn ? searchIn.value.trim() : '';
-            const filterTipo = document.getElementById('cli-filter-tipo');
-            const tipo = filterTipo ? filterTipo.value : '';
 
             let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
             if (q) url += `&nombre=${encodeURIComponent(q)}`;
-            // Note: If the API doesn't support 'tipo' on server side, we might need local filtering, 
-            // but for a reusable table it's better to use server-side. 
-            // Assuming current API supports it or we'll refactor later.
 
             const data = await api.get(url);
             const items = Array.isArray(data) ? data : (data.content || []);
@@ -123,7 +124,7 @@ export function mount(container) {
             { 
                 label: 'Editar', 
                 icon: 'bx bx-pencil', 
-                onClick: (c) => alert('Editar cliente: ' + c.nombre) 
+                onClick: (c) => modalEC.abrir(c.clienteId || c.id) 
             },
             { 
                 label: 'Eliminar', 
@@ -170,7 +171,7 @@ export function mount(container) {
         label: 'Añadir Cliente',
         icon: 'bx bx-user-plus',
         onClick: () => {
-            if (modalNC) modalNC.abrir();
+            if (modalNC) modalNC.open();
         }
     });
 

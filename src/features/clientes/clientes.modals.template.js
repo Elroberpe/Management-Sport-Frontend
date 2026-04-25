@@ -49,3 +49,44 @@ export const clientesNewFormTemplate = () => `
         <span class="modal-shell-error-text" id="nc-telefono-err"></span>
     </div>
 `;
+
+export const clientesEditFormTemplate = () => `
+    <!-- Fila: Tipo y Número de Documento (Lectura) -->
+    <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:12px; opacity:0.8;">
+        <div class="modal-shell-field">
+            <label class="modal-shell-label" for="ec-tipo-doc">Tipo Doc</label>
+            <input type="text" id="ec-tipo-doc" class="modal-shell-input" disabled style="background:#f1f5f9; cursor:not-allowed;">
+        </div>
+        <div class="modal-shell-field">
+            <label class="modal-shell-label" for="ec-num-doc">N° Documento</label>
+            <input type="text" id="ec-num-doc" class="modal-shell-input" disabled style="background:#f1f5f9; cursor:not-allowed;">
+        </div>
+    </div>
+
+    <!-- Campo: Nombre Completo -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-nombre">
+            <i class='bx bx-user'></i> Nombre Completo <span style="color:#ef4444;">*</span>
+        </label>
+        <input type="text" id="ec-nombre" class="modal-shell-input" maxlength="150" placeholder="Ej: Juan Pérez García">
+        <span class="modal-shell-error-text" id="ec-nombre-err"></span>
+    </div>
+
+    <!-- Campo: Email -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-email">
+            <i class='bx bx-envelope'></i> Email (Opcional)
+        </label>
+        <input type="email" id="ec-email" class="modal-shell-input" maxlength="100" placeholder="ejemplo@correo.com">
+        <span class="modal-shell-error-text" id="ec-email-err"></span>
+    </div>
+
+    <!-- Campo: Teléfono -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-telefono">
+            <i class='bx bx-phone'></i> Teléfono (Opcional)
+        </label>
+        <input type="tel" id="ec-telefono" class="modal-shell-input" maxlength="20" placeholder="Ej: 987654321">
+        <span class="modal-shell-error-text" id="ec-telefono-err"></span>
+    </div>
+`;

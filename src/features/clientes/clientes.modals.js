@@ -1,7 +1,7 @@
 // src/features/clientes/clientes.modals.js
 import { api } from '../../core/api.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
-import { clientesNewFormTemplate } from './clientes.modals.template.js';
+import { clientesNewFormTemplate, clientesEditFormTemplate } from './clientes.modals.template.js';
 
 export function initClienteModal({ onClienteCreado }) {
     const modal = initModalShell({
@@ -52,4 +52,69 @@ export function initClienteModal({ onClienteCreado }) {
     });
 
     return modal;
+}
+
+export function initEditClienteModal({ onClienteActualizado }) {
+    let currentClienteId = null;
+
+    const modal = initModalShell({
+        id: 'modal-editar-cliente',
+        title: 'Editar Cliente',
+        subtitle: 'Actualiza los datos del cliente seleccionado',
+        icon: 'bx bx-pencil',
+        confirmText: 'Guardar Cambios',
+        contentHtml: clientesEditFormTemplate(),
+        onConfirm: async (ctx) => {
+            const nombre = document.getElementById('ec-nombre').value.trim();
+            const email = document.getElementById('ec-email').value.trim();
+            const telefono = document.getElementById('ec-telefono').value.trim();
+
+            let hasError = false;
+            if (!nombre) {
+                ctx.showFieldError('ec-nombre', 'El nombre es obligatorio.');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            ctx.setLoading(true);
+            try {
+                const payload = { nombre, email, telefono };
+                const clienteActualizado = await api.put(`/clientes/${currentClienteId}`, payload);
+                
+                ctx.showToast(`Cliente "${clienteActualizado.nombre}" actualizado con éxito.`);
+                ctx.close();
+                
+                if (onClienteActualizado) onClienteActualizado(clienteActualizado);
+            } catch (err) {
+                ctx.setLoading(false);
+                if (err.status === 400) {
+                    ctx.showError(err.message || 'Error en los datos enviados.');
+                } else {
+                    ctx.showError('Error al conectar con el servidor.');
+                }
+            }
+        }
+    });
+
+    return {
+        ...modal,
+        abrir: async (clienteId) => {
+            currentClienteId = clienteId;
+            modal.open();
+            
+            // Cargar datos frescos
+            try {
+                const c = await api.get(`/clientes/${clienteId}`);
+                document.getElementById('ec-tipo-doc').value = c.tipoDocumento || 'DNI';
+                document.getElementById('ec-num-doc').value = c.documento || c.numDocumento || '';
+                document.getElementById('ec-nombre').value = c.nombre || '';
+                document.getElementById('ec-email').value = c.email || '';
+                document.getElementById('ec-telefono').value = c.telefono || '';
+            } catch (err) {
+                console.error('Error al cargar cliente:', err);
+                modal.showError('No se pudo cargar la información del cliente.');
+            }
+        }
+    };
 }
