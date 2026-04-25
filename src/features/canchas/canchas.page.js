@@ -204,5 +204,3 @@ export function mount(container) {
 }
 
 export function unmount() {}
-
-export function unmount() {}
