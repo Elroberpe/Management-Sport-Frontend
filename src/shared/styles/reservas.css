@@ -1744,3 +1744,181 @@
 .rh-menu-item.danger-action:hover {
     background: #fef2f2;
 }
+
+/* ========================================= */
+/*      MODAL DETALLE RESERVA (DR-)         */
+/* ========================================= */
+
+.dr-tabs-header {
+    display: flex;
+    padding: 0 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 20px;
+}
+
+.dr-tab-btn {
+    padding: 14px 4px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.dr-tab-btn i {
+    font-size: 16px;
+}
+
+.dr-tab-btn:hover {
+    color: #1e40af;
+}
+
+.dr-tab-btn.active {
+    color: #1e40af;
+    border-bottom-color: #1e40af;
+}
+
+.dr-tab-content {
+    display: none;
+    animation: nc-fade-in 0.3s ease;
+}
+
+.dr-tab-content.active {
+    display: block;
+}
+
+.dr-dos-columnas {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+}
+
+@media (max-width: 600px) {
+    .dr-dos-columnas {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dr-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dr-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dr-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dr-lbl i {
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+.dr-val {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.dr-finance-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dr-fin-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #475569;
+}
+
+.dr-fin-row strong {
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.dr-fin-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+
+.dr-fin-saldo-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.dr-fin-saldo-box span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.dr-saldo-val {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'Manrope', sans-serif;
+}
+
+.dr-logs-feed {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dr-logs-feed li {
+    font-size: 13px;
+    color: #475569;
+    padding-left: 20px;
+    position: relative;
+}
+
+.dr-logs-feed li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+}
+
+.dr-log-time {
+    font-weight: 700;
+    color: #94a3b8;
+    margin-right: 8px;
+    font-size: 11px;
+}
