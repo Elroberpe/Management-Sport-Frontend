@@ -1,7 +1,6 @@
 /* src/shared/styles/buttons.css */
 :root {
     --btn-primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    --btn-primary-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
     --btn-hover-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
 }
 
@@ -19,9 +18,9 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--btn-primary-shadow);
+    box-shadow: var(--shadow-btn);
     white-space: nowrap;
-    font-family: 'Manrope', sans-serif;
+    font-family: var(--font-heading);
     outline: none;
     user-select: none;
 }
