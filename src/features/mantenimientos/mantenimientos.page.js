@@ -1,7 +1,8 @@
-import { mantenimientosTemplate } from './mantenimientos.template.js';
+import { mantenimientosTemplate, mantenimientosEditFormTemplate } from './mantenimientos.template.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
+import { initModalShell } from '../../shared/components/modal-shell.js';
 
 export function template() {
     return mantenimientosTemplate();
@@ -149,20 +150,14 @@ export function mount(container) {
                 label: 'Editar', 
                 icon: 'bx bx-edit-alt', 
                 show: (m) => m.estadoMantenimiento === 'PROGRAMADO',
-                onClick: (m) => alert('Abrir modal editar para ID: ' + m.id)
+                onClick: (m) => abrirModalEditar(m)
             },
             { 
                 label: 'Cancelar', 
                 icon: 'bx bx-x-circle', 
                 class: 'danger',
                 show: (m) => ['PROGRAMADO', 'EN_PROCESO'].includes(m.estadoMantenimiento),
-                onClick: async (m) => {
-                    if (!confirm('¿Cancelar este mantenimiento?')) return;
-                    try {
-                        await api.patch(`/mantenimientos/${m.id}/cancelar`);
-                        table.fetch(0);
-                    } catch(e) { alert(e.message); }
-                }
+                onClick: (m) => abrirModalCancelar(m)
             }
         ]
     });
@@ -187,6 +182,86 @@ export function mount(container) {
             sel.appendChild(opt);
         });
     }).catch(() => {});
+
+    /* ========================================
+       MODALES ESTANDARIZADOS
+    ======================================== */
+    let _editManId = null;
+    const modalEdit = initModalShell({
+        id: 'modal-mant-edit',
+        title: 'Editar Mantenimiento',
+        subtitle: 'Modifica la programación del mantenimiento',
+        icon: 'bx bx-edit-alt',
+        confirmText: 'Guardar Cambios',
+        contentHtml: mantenimientosEditFormTemplate(),
+        onConfirm: async (ctx) => {
+            const ini = document.getElementById('edit-inicio').value;
+            const fin = document.getElementById('edit-fin').value;
+            const tip = document.getElementById('edit-tipo').value;
+            const mot = document.getElementById('edit-motivo').value.trim();
+
+            if (!ini) return ctx.showFieldError('edit-inicio', 'Requerido');
+            if (!fin) return ctx.showFieldError('edit-fin', 'Requerido');
+            if (!tip) return ctx.showFieldError('edit-tipo', 'Requerido');
+            if (!mot) return ctx.showFieldError('edit-motivo', 'Requerido');
+
+            ctx.setLoading(true);
+            try {
+                await api.put(`/mantenimientos/${_editManId}`, {
+                    horaInicio: ini,
+                    horaFin: fin,
+                    tipoMantenimiento: tip,
+                    motivo: mot
+                });
+                ctx.showToast('Mantenimiento actualizado');
+                ctx.close();
+                table.fetch(0);
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message);
+            }
+        }
+    });
+
+    function abrirModalEditar(m) {
+        _editManId = m.id;
+        modalEdit.open();
+        // Cargar datos
+        document.getElementById('edit-inicio').value = m.horaInicio ? m.horaInicio.substring(0, 16) : '';
+        document.getElementById('edit-fin').value = m.horaFin ? m.horaFin.substring(0, 16) : '';
+        document.getElementById('edit-tipo').value = m.tipoMantenimiento || '';
+        document.getElementById('edit-motivo').value = m.motivo || '';
+        
+        const area = document.getElementById('edit-motivo');
+        const count = document.getElementById('edit-char-count');
+        area.oninput = () => count.textContent = `${area.value.length}/200`;
+        count.textContent = `${area.value.length}/200`;
+    }
+
+    function abrirModalCancelar(m) {
+        const modalConfirm = initModalShell({
+            id: 'modal-mant-cancel',
+            title: '¿Cancelar Mantenimiento?',
+            subtitle: 'Esta acción es irreversible',
+            icon: 'bx bx-trash-alt',
+            confirmText: 'Sí, Cancelar',
+            confirmClass: 'danger',
+            contentHtml: `<p style="font-size:14px; color:#4b5563;">¿Estás seguro de que deseas cancelar el mantenimiento programado para la cancha <strong>${m.nombreCancha}</strong> el día ${fmtDate(m.horaInicio)}?</p>`,
+            onConfirm: async (ctx) => {
+                ctx.setLoading(true);
+                try {
+                    await api.patch(`/mantenimientos/${m.id}/cancelar`);
+                    ctx.showToast('Mantenimiento cancelado');
+                    ctx.close();
+                    table.fetch(0);
+                } catch (err) {
+                    ctx.setLoading(false);
+                    ctx.showError(err.message);
+                }
+            }
+        });
+        modalConfirm.open();
+    }
 
     table.fetch(0);
 }

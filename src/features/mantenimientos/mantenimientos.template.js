@@ -1,21 +1,13 @@
 export const mantenimientosTemplate = () => `
 <div class="mant-module">
-
-    <!-- ===== HEADER ===== -->
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
         <div>
             <h1 class="page-title" style="margin:0 0 4px;">Gestión de Mantenimientos</h1>
             <p class="page-subtitle" style="margin:0;">Administra y supervisa todos los mantenimientos programados</p>
         </div>
     </div>
-
-    <!-- Stats Section -->
     <div id="mantenimientos-stats-container"></div>
-
-    <!-- ===== PANEL UNIFICADO (Filtros + Tabla) ===== -->
     <div class="panel table-container-full" style="padding:0; overflow:hidden; margin-bottom:40px;">
-        
-        <!-- TOOLBAR FILTROS -->
         <div class="table-toolbar" style="padding: 16px 24px; border-bottom: 1px solid #eef2f6; display:flex; gap:12px; justify-content:space-between; align-items:flex-end;">
             <div class="toolbar-left" style="display:flex; gap:12px; align-items:center;">
                 <div class="select-wrap">
@@ -52,108 +44,41 @@ export const mantenimientosTemplate = () => `
                 </button>
             </div>
         </div>
-
-        <!-- New Unified Table Component Container -->
         <div id="mantenimientos-table-container" style="padding: 24px;"></div>
-    </div> <!-- /panel -->
-
-    </div> <!-- /panel -->
-
-</div><!-- /mant-module -->
-
-<!-- ===== MODAL EDITAR MANTENIMIENTO ===== -->
-<div id="modal-mant-edit" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
-    <div class="pm-modal">
-        <div class="pm-header">
-            <div class="pm-header-icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
-                <i class='bx bx-edit-alt'></i>
-            </div>
-            <div>
-                <h2 class="pm-title">Editar Mantenimiento</h2>
-                <p class="pm-subtitle" id="edit-cancha-label">Cancha seleccionada</p>
-            </div>
-            <button class="pm-close" id="btn-edit-close"><i class='bx bx-x'></i></button>
-        </div>
-        <div class="pm-body">
-            <div class="pm-alert-error" id="edit-error-box" style="display:none;">
-                <i class='bx bx-error-circle'></i>
-                <span id="edit-error-msg">Error</span>
-            </div>
-            <div class="pm-row-2">
-                <div class="pm-field">
-                    <label class="pm-label"><i class='bx bx-calendar-plus'></i> Inicio <span class="pm-required">*</span></label>
-                    <input type="datetime-local" id="edit-inicio" class="pm-input">
-                    <span class="pm-field-error" id="edit-err-inicio"></span>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label"><i class='bx bx-calendar-check'></i> Fin <span class="pm-required">*</span></label>
-                    <input type="datetime-local" id="edit-fin" class="pm-input">
-                    <span class="pm-field-error" id="edit-err-fin"></span>
-                </div>
-            </div>
-            <div class="pm-field">
-                <label class="pm-label"><i class='bx bx-category'></i> Tipo <span class="pm-required">*</span></label>
-                <div class="pm-select-wrap">
-                    <select id="edit-tipo" class="pm-input pm-select">
-                        <option value="">— Seleccionar tipo —</option>
-                        <option value="PREVENTIVO">Preventivo</option>
-                        <option value="CORRECTIVO">Correctivo</option>
-                        <option value="URGENTE">Urgente</option>
-                    </select>
-                    <i class='bx bx-chevron-down pm-select-arrow'></i>
-                </div>
-                <span class="pm-field-error" id="edit-err-tipo"></span>
-            </div>
-            <div class="pm-field">
-                <label class="pm-label"><i class='bx bx-note'></i> Motivo <span class="pm-required">*</span></label>
-                <textarea id="edit-motivo" class="pm-input pm-textarea" maxlength="200" placeholder="Describe el motivo del mantenimiento..."></textarea>
-                <div class="pm-input-footer">
-                    <span class="pm-field-error" id="edit-err-motivo"></span>
-                    <span class="pm-char-count" id="edit-char-motivo">0/200</span>
-                </div>
-            </div>
-        </div>
-        <div class="pm-footer">
-            <button class="pm-btn-cancel" id="btn-edit-cancel">Cancelar</button>
-            <button class="pm-btn-submit" id="btn-edit-submit" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
-                <span id="edit-submit-text"><i class='bx bx-save'></i> Guardar Cambios</span>
-                <span id="edit-submit-loader" style="display:none;"><div class="pm-spinner"></div> Guardando...</span>
-            </button>
-        </div>
     </div>
 </div>
+`;
 
-<!-- ===== CONFIRM CANCELAR ===== -->
-
-<!-- ===== CONFIRM CANCELAR ===== -->
-<div id="modal-mant-confirm" class="pm-overlay" style="display:none;" role="dialog" aria-modal="true">
-    <div class="pm-modal" style="max-width:380px;">
-        <div class="pm-header">
-            <div class="pm-header-icon" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
-                <i class='bx bx-trash-alt'></i>
-            </div>
-            <div>
-                <h2 class="pm-title">¿Cancelar Mantenimiento?</h2>
-                <p class="pm-subtitle">Esta acción liberará el horario seleccionado</p>
-            </div>
-            <button class="pm-close" id="btn-confirm-close"><i class='bx bx-x'></i></button>
+export const mantenimientosEditFormTemplate = () => `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="modal-shell-field">
+            <label class="modal-shell-label"><i class='bx bx-calendar-plus'></i> Inicio <span style="color:#ef4444;">*</span></label>
+            <input type="datetime-local" id="edit-inicio" class="modal-shell-input">
+            <span class="modal-shell-error-text" id="edit-inicio-err"></span>
         </div>
-        <div class="pm-body">
-            <p id="mant-confirm-msg" style="font-size:13.5px;color:#374151;margin:0;line-height:1.6;"></p>
-        </div>
-        <div class="pm-footer">
-            <button class="pm-btn-cancel" id="btn-confirm-no">No, Mantener Programación</button>
-            <button class="pm-btn-submit" id="btn-confirm-yes" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
-                <span id="confirm-text"><i class='bx bx-check-circle'></i> Sí, Cancelar Mantenimiento</span>
-                <span id="confirm-loader" style="display:none;"><div class="pm-spinner"></div> Procesando...</span>
-            </button>
+        <div class="modal-shell-field">
+            <label class="modal-shell-label"><i class='bx bx-calendar-check'></i> Fin <span style="color:#ef4444;">*</span></label>
+            <input type="datetime-local" id="edit-fin" class="modal-shell-input">
+            <span class="modal-shell-error-text" id="edit-fin-err"></span>
         </div>
     </div>
-</div>
-
-<!-- ===== TOAST ===== -->
-<div class="nc-toast" id="mant-toast" style="display:none;">
-    <i class='bx bx-check-circle'></i>
-    <span id="mant-toast-msg">Operación exitosa</span>
-</div>
+    <div class="modal-shell-field">
+        <label class="modal-shell-label"><i class='bx bx-category'></i> Tipo <span style="color:#ef4444;">*</span></label>
+        <select id="edit-tipo" class="modal-shell-input">
+            <option value="">— Seleccionar tipo —</option>
+            <option value="PREVENTIVO">Preventivo</option>
+            <option value="CORRECTIVO">Correctivo</option>
+            <option value="URGENTE">Urgente</option>
+        </select>
+        <span class="modal-shell-error-text" id="edit-tipo-err"></span>
+    </div>
+    <div class="modal-shell-field">
+        <label class="modal-shell-label"><i class='bx bx-note'></i> Motivo <span style="color:#ef4444;">*</span></label>
+        <textarea id="edit-motivo" class="modal-shell-input" style="height:100px; resize:none;" maxlength="200" placeholder="Describe el motivo..."></textarea>
+        <div style="display:flex; justify-content:space-between; margin-top:4px;">
+            <span class="modal-shell-error-text" id="edit-motivo-err"></span>
+            <span style="font-size:10px; color:#94a3b8;" id="edit-char-count">0/200</span>
+        </div>
+    </div>
+`;
 `;

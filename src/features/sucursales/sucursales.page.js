@@ -1,8 +1,9 @@
-import { sucursalesTemplate } from './sucursales.template.js';
+import { sucursalesTemplate, sucursalNewFormTemplate, sucursalEditFormTemplate } from './sucursales.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initActionButton } from '../../shared/components/action-button.js';
+import { initModalShell } from '../../shared/components/modal-shell.js';
 
 export function template() {
     return sucursalesTemplate();
@@ -10,129 +11,32 @@ export function template() {
 
 export function mount(container) {
 
-    var BASE_URL = 'http://localhost:8080/api/v1';
-
-    // Leer sesión para filtrar por rol
-    var session = Auth ? Auth.getSession() : null;
-    var isSuperAdmin = session && session.rol === 'superadmin';
-    var sucursalFiltro = (!isSuperAdmin && session) ? session.sucursalId : null;
-
-    /* ---- Servicio inline (sin import) ---- */
-    var SucursalService = {
-        listar: function (empresaId) {
-            var url = BASE_URL + '/sucursales';
-            if (empresaId) url += '?empresaId=' + empresaId;
-            return fetch(url).then(function (res) {
-                if (!res.ok) throw new Error('Error ' + res.status + ' al listar sucursales');
-                return res.json();
-            });
-        },
-        activar: function (id) {
-            return fetch(BASE_URL + '/sucursales/' + id + '/activar', { method: 'PATCH' })
-                .then(function (res) {
-                    if (!res.ok) throw new Error('Error ' + res.status + ' al activar');
-                    return res.json();
-                });
-        },
-        desactivar: function (id) {
-            return fetch(BASE_URL + '/sucursales/' + id + '/desactivar', { method: 'PATCH' })
-                .then(function (res) {
-                    if (!res.ok) throw new Error('Error ' + res.status + ' al desactivar');
-                    return res.json();
-                });
-        },
-        eliminar: function (id) {
-            return fetch(BASE_URL + '/sucursales/' + id, { method: 'DELETE' })
-                .then(function (res) {
-                    if (res.status === 400) throw new Error('La sucursal tiene canchas asociadas.');
-                    if (res.status === 404) throw new Error('Sucursal no encontrada.');
-                    if (!res.ok) throw new Error('Error ' + res.status + ' al eliminar');
-                });
-        },
-        crear: function (payload) {
-            return fetch(BASE_URL + '/sucursales', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(function (res) {
-                if (res.status === 201) return res.json();
-                if (res.status === 400) {
-                    return res.json().then(function (err) {
-                        throw new Error(err.message || 'Error de validación');
-                    });
-                }
-                throw new Error('Error ' + res.status + ' al crear sede');
-            });
-        },
-        obtener: function (id) {
-            return fetch(BASE_URL + '/sucursales/' + id)
-                .then(function (res) {
-                    if (!res.ok) throw new Error('Error ' + res.status + ' al obtener la sede');
-                    return res.json();
-                });
-        },
-        actualizar: function (id, payload) {
-            return fetch(BASE_URL + '/sucursales/' + id, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(function (res) {
-                if (res.status === 200) return res.json();
-                if (res.status === 400) {
-                    return res.json().then(function (err) {
-                        throw new Error(err.message || err.error || 'Error de validación');
-                    });
-                }
-                throw new Error('Error ' + res.status + ' al actualizar sede');
-            });
-        }
+    const SucursalService = {
+        listar: (empresaId) => api.get(`/sucursales${empresaId ? '?empresaId='+empresaId : ''}`),
+        activar: (id) => api.patch(`/sucursales/${id}/activar`),
+        desactivar: (id) => api.patch(`/sucursales/${id}/desactivar`),
+        eliminar: (id) => api.delete(`/sucursales/${id}`),
+        crear: (payload) => api.post('/sucursales', payload),
+        obtener: (id) => api.get(`/sucursales/${id}`),
+        actualizar: (id, payload) => api.put(`/sucursales/${id}`, payload)
     };
 
     /* ---- Referencias DOM ---- */
-    var grid         = document.getElementById('sedes-grid');
-    var loading      = document.getElementById('sedes-loading');
-    var errorBox     = document.getElementById('sedes-error');
-    var errorMsg     = document.getElementById('sedes-error-msg');
-    var btnRetry     = document.getElementById('btn-retry');
-    var cardAdd      = document.getElementById('card-add-sede');
-    var statTotal    = document.getElementById('stat-total');
-    var statActivas  = document.getElementById('stat-activas');
-    var statInact    = document.getElementById('stat-inactivas');
+    /* ---- Referencias DOM ---- */
+    const grid      = document.getElementById('sedes-grid');
+    const loading   = document.getElementById('sedes-loading');
+    const errorBox  = document.getElementById('sedes-error');
+    const errorMsg  = document.getElementById('sedes-error-msg');
+    const btnRetry  = document.getElementById('btn-retry');
+    const cardAdd   = document.getElementById('card-add-sede');
+    const statTotal = document.getElementById('stat-total');
+    const statAct   = document.getElementById('stat-activas');
+    const statInact = document.getElementById('stat-inactivas');
 
-    /* ---- Refs Modal Nueva Sede ---- */
-    var modalNS       = document.getElementById('modal-nueva-sede');
-    var btnNsClose    = document.getElementById('btn-ns-close');
-    var btnNsCancel   = document.getElementById('btn-ns-cancel');
-    var btnNsSubmit   = document.getElementById('btn-ns-submit');
-    var nsSubmitText  = document.getElementById('ns-submit-text');
-    var nsSubmitLoad  = document.getElementById('ns-submit-loader');
-    var nsNombre      = document.getElementById('ns-nombre');
-    var nsDireccion   = document.getElementById('ns-direccion');
-    var nsTelefono    = document.getElementById('ns-telefono');
-    var nsErrNombre   = document.getElementById('ns-err-nombre');
-    var nsErrDir      = document.getElementById('ns-err-direccion');
-    var nsErrGen      = document.getElementById('ns-error-general');
-    var nsErrGenMsg   = document.getElementById('ns-error-general-msg');
-    var nsToast       = document.getElementById('ns-toast');
-    var nsToastMsg    = document.getElementById('ns-toast-msg');
-
-    /* ---- Refs Modal Editar Sede ---- */
-    var modalES      = document.getElementById('modal-edit-sede');
-    var btnEsClose   = document.getElementById('btn-es-close');
-    var btnEsCancel  = document.getElementById('btn-es-cancel');
-    var btnEsSubmit  = document.getElementById('btn-es-submit');
-    var esSubmitText = document.getElementById('es-submit-text');
-    var esSubmitLoad = document.getElementById('es-submit-loader');
-    var esEmpresa    = document.getElementById('es-empresa');
-    var esEstado     = document.getElementById('es-estado');
-    var esNombre     = document.getElementById('es-nombre');
-    var esDireccion  = document.getElementById('es-direccion');
-    var esTelefono   = document.getElementById('es-telefono');
-    var esErrNombre  = document.getElementById('es-err-nombre');
-    var esErrDir     = document.getElementById('es-err-direccion');
-    var esErrGen     = document.getElementById('es-error-general');
-    var esErrGenMsg  = document.getElementById('es-error-general-msg');
-    var _editSedeId  = null;
+    let _editSedeId = null;
+    const session = Auth ? Auth.getSession() : null;
+    const isSuperAdmin = session && session.rol === 'superadmin';
+    const sucursalFiltro = (!isSuperAdmin && session) ? session.sucursalId : null;
 
     var COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706'];
 
@@ -191,10 +95,10 @@ export function mount(container) {
     }
 
     function updateStats(sucursales) {
-        var activas = sucursales.filter(function (s) { return s.activo; }).length;
-        statTotal.textContent   = sucursales.length;
-        statActivas.textContent = activas;
-        statInact.textContent   = sucursales.length - activas;
+        const activas = sucursales.filter(s => s.activo).length;
+        statTotal.textContent = sucursales.length;
+        statAct.textContent   = activas;
+        statInact.textContent = sucursales.length - activas;
     }
 
     function bindEvents() {
@@ -279,222 +183,97 @@ export function mount(container) {
     }
 
     /* ========================================
-       LÓGICA MODAL NUEVA SEDE
+       MODALES ESTANDARIZADOS (SHELL)
     ======================================== */
 
-    function abrirModal() {
-        resetModal();
-        modalNS.style.display = 'flex';
-        nsNombre.focus();
-    }
+    const modalNS = initModalShell({
+        id: 'modal-nueva-sede',
+        title: 'Nueva Sede',
+        subtitle: 'Registra una nueva sucursal para tu empresa',
+        icon: 'bx bx-map-pin',
+        confirmText: 'Crear Sede',
+        contentHtml: sucursalNewFormTemplate(),
+        onConfirm: async (ctx) => {
+            const nom = document.getElementById('ns-nombre').value.trim();
+            const dir = document.getElementById('ns-direccion').value.trim();
+            const tel = document.getElementById('ns-telefono').value.trim();
 
-    function cerrarModal() {
-        modalNS.style.display = 'none';
-    }
+            if (!nom) return ctx.showFieldError('ns-nombre', 'El nombre es obligatorio.');
+            if (!dir) return ctx.showFieldError('ns-direccion', 'La dirección es obligatoria.');
 
-    function resetModal() {
-        nsNombre.value    = '';
-        nsDireccion.value = '';
-        nsTelefono.value  = '';
-        limpiarErrores();
-        setLoading(false);
-    }
-
-    function limpiarErrores() {
-        [nsErrNombre, nsErrDir].forEach(function(el){ el.textContent = ''; });
-        [nsNombre, nsDireccion].forEach(function(el){ el.classList.remove('nc-input-error'); });
-        nsErrGen.style.display = 'none';
-    }
-
-    function setError(inputEl, errEl, msg) {
-        inputEl.classList.add('nc-input-error');
-        errEl.textContent = msg;
-    }
-
-    function setLoading(on) {
-        btnNsSubmit.disabled = on;
-        nsSubmitText.style.display = on ? 'none' : 'flex';
-        nsSubmitLoad.style.display = on ? 'flex' : 'none';
-    }
-
-    function mostrarToast(msg) {
-        nsToastMsg.textContent = msg;
-        nsToast.style.display = 'flex';
-        setTimeout(function() { nsToast.style.display = 'none'; }, 3500);
-    }
-
-    function guardarSede() {
-        limpiarErrores();
-        var ok = true;
-
-        var nombre = nsNombre.value.trim();
-        if (!nombre) {
-            setError(nsNombre, nsErrNombre, 'El nombre es obligatorio.');
-            ok = false;
-        }
-
-        var direccion = nsDireccion.value.trim();
-        if (!direccion) {
-            setError(nsDireccion, nsErrDir, 'La dirección es obligatoria.');
-            ok = false;
-        }
-
-        if (!ok) return;
-
-        var payload = {
-            empresaId: 1, // Por ahora fijo a 1
-            nombre: nombre,
-            direccion: direccion,
-            telefono: nsTelefono.value.trim()
-        };
-
-        setLoading(true);
-
-        SucursalService.crear(payload)
-            .then(function() {
-                cerrarModal();
-                mostrarToast('¡Sede "' + nombre + '" creada con éxito!');
+            ctx.setLoading(true);
+            try {
+                await SucursalService.crear({ empresaId: 1, nombre: nom, direccion: dir, telefono: tel });
+                ctx.showToast(`Sede "${nom}" creada con éxito.`);
+                ctx.close();
                 cargarSucursales();
-            })
-            .catch(function(err) {
-                setLoading(false);
-                nsErrGenMsg.textContent = err.message || 'Error al conectar con el servidor.';
-                nsErrGen.style.display = 'flex';
-            });
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message || 'Error al conectar con el servidor.');
+            }
+        }
+    });
+
+    const modalES = initModalShell({
+        id: 'modal-edit-sede',
+        title: 'Editar Sede',
+        subtitle: 'Modifica los datos de la sucursal seleccionada',
+        icon: 'bx bx-edit-alt',
+        confirmText: 'Guardar Cambios',
+        contentHtml: sucursalEditFormTemplate(),
+        onConfirm: async (ctx) => {
+            const nom = document.getElementById('es-nombre').value.trim();
+            const dir = document.getElementById('es-direccion').value.trim();
+            const tel = document.getElementById('es-telefono').value.trim();
+
+            if (!nom) return ctx.showFieldError('es-nombre', 'El nombre es obligatorio.');
+            if (!dir) return ctx.showFieldError('es-direccion', 'La dirección es obligatoria.');
+
+            ctx.setLoading(true);
+            try {
+                await SucursalService.actualizar(_editSedeId, { nombre: nom, direccion: dir, telefono: tel });
+                ctx.showToast('Sede actualizada con éxito.');
+                ctx.close();
+                cargarSucursales();
+            } catch (err) {
+                ctx.setLoading(false);
+                ctx.showError(err.message || 'Error al actualizar.');
+            }
+        }
+    });
+
+    function abrirModalEditar(id) {
+        _editSedeId = id;
+        modalES.open();
+        // Cargar datos
+        const inEmp = document.getElementById('es-empresa');
+        const inEst = document.getElementById('es-estado');
+        const inNom = document.getElementById('es-nombre');
+        const inDir = document.getElementById('es-direccion');
+        const inTel = document.getElementById('es-telefono');
+
+        inEmp.value = 'Cargando...';
+        inEst.value = 'Cargando...';
+
+        SucursalService.obtener(id).then(s => {
+            inEmp.value = 'El Pelotero';
+            inEst.value = s.activo ? 'Activa' : 'Inactiva';
+            inNom.value = s.nombre || '';
+            inDir.value = s.direccion || '';
+            inTel.value = s.telefono || '';
+        });
     }
 
-    /* ---- Eventos Nueva Sede ---- */
     initActionButton({
         containerId: 'sucursales-action-container',
         label: 'Añadir Nueva Sede',
         icon: 'bx bx-plus',
-        onClick: abrirModal
-    });
-    cardAdd.addEventListener('click', abrirModal);
-    btnNsClose.addEventListener('click', cerrarModal);
-    btnNsCancel.addEventListener('click', cerrarModal);
-    btnNsSubmit.addEventListener('click', guardarSede);
-
-    [nsNombre, nsDireccion, nsTelefono].forEach(function(input) {
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') guardarSede();
-        });
+        onClick: () => modalNS.open()
     });
 
-    modalNS.addEventListener('click', function(e) {
-        if (e.target === modalNS) cerrarModal();
-    });
+    cardAdd.onclick = () => modalNS.open();
+    btnRetry.onclick = () => cargarSucursales();
 
-    /* ========================================
-       LÓGICA MODAL EDITAR SEDE
-    ======================================== */
-
-    function abrirModalEditar(id) {
-        if (!id || id === 'undefined') {
-            console.error('ID de sede no válido:', id);
-            return;
-        }
-        _editSedeId = id;
-        esLimpiarErrores();
-        esSetLoading(false);
-        esNombre.value    = '';
-        esDireccion.value = '';
-        esTelefono.value  = '';
-        esEmpresa.value   = 'Cargando...';
-        esEstado.value    = 'Cargando...';
-        modalES.style.display = 'flex';
-
-        SucursalService.obtener(id)
-            .then(function(s) {
-                esEmpresa.value   = 'El Pelotero'; // Empresa fija por ahora
-                esEstado.value    = s.activo ? 'Activa' : 'Inactiva';
-                esNombre.value    = s.nombre    || '';
-                esDireccion.value = s.direccion || '';
-                esTelefono.value  = s.telefono  || '';
-                esNombre.focus();
-            })
-            .catch(function(err) {
-                esErrGenMsg.textContent = err.message || 'No se pudo cargar los datos de la sede.';
-                esErrGen.style.display = 'flex';
-            });
-    }
-
-    function cerrarModalEditar() {
-        modalES.style.display = 'none';
-    }
-
-    function esLimpiarErrores() {
-        [esErrNombre, esErrDir].forEach(function(el){ el.textContent = ''; });
-        [esNombre, esDireccion].forEach(function(el){ el.classList.remove('nc-input-error'); });
-        esErrGen.style.display = 'none';
-    }
-
-    function esSetError(inputEl, errEl, msg) {
-        inputEl.classList.add('nc-input-error');
-        errEl.textContent = msg;
-    }
-
-    function esSetLoading(on) {
-        btnEsSubmit.disabled = on;
-        esSubmitText.style.display = on ? 'none' : 'flex';
-        esSubmitLoad.style.display = on ? 'flex' : 'none';
-    }
-
-    function guardarSedeEditada() {
-        esLimpiarErrores();
-        var ok = true;
-
-        var nombre = esNombre.value.trim();
-        if (!nombre) {
-            esSetError(esNombre, esErrNombre, 'El nombre es obligatorio.');
-            ok = false;
-        }
-
-        var direccion = esDireccion.value.trim();
-        if (!direccion) {
-            esSetError(esDireccion, esErrDir, 'La dirección es obligatoria.');
-            ok = false;
-        }
-
-        if (!ok) return;
-
-        var payload = {
-            nombre:    nombre,
-            direccion: direccion,
-            telefono:  esTelefono.value.trim()
-        };
-
-        esSetLoading(true);
-
-        SucursalService.actualizar(_editSedeId, payload)
-            .then(function() {
-                cerrarModalEditar();
-                mostrarToast('\u00a1Sede "' + nombre + '" actualizada con éxito!');
-                cargarSucursales();
-            })
-            .catch(function(err) {
-                esSetLoading(false);
-                esErrGenMsg.textContent = err.message || 'Error al conectar con el servidor.';
-                esErrGen.style.display = 'flex';
-            });
-    }
-
-    /* ---- Eventos Editar Sede ---- */
-    btnEsClose.addEventListener('click', cerrarModalEditar);
-    btnEsCancel.addEventListener('click', cerrarModalEditar);
-    btnEsSubmit.addEventListener('click', guardarSedeEditada);
-
-    [esNombre, esDireccion, esTelefono].forEach(function(input) {
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') guardarSedeEditada();
-        });
-    });
-
-    modalES.addEventListener('click', function(e) {
-        if (e.target === modalES) cerrarModalEditar();
-    });
-
-    btnRetry.addEventListener('click', cargarSucursales);
     cargarSucursales();
 
 }

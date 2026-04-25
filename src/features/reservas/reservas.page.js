@@ -1,25 +1,18 @@
 // src/features/reservas/reservas.page.js
-// Orquestador del módulo de Reservas.
-// Responsabilidad: montar el HTML (template + modales), inicializar los tres
-// sub-módulos y conectarlos entre sí a través de inyección de dependencias.
-
-import { reservasTemplate }       from './reservas.template.js';
-import { reservasModalsTemplate } from './reservas.modals.template.js';
-import { initModals }             from './reservas.modals.js';
-import { initTabla }              from './reservas.tabla.js';
-import { initCalendario }         from './reservas.calendario.js';
-import { initActionButton }     from '../../shared/components/action-button.js';
-import { clientesModalsTemplate } from '../clientes/clientes.modals.template.js';
-import { initClienteModal }       from '../clientes/clientes.modals.js';
-import { api }   from '../../core/api.js';
-import { Auth }  from '../../core/auth.js';
+import { reservasTemplate } from './reservas.template.js';
+import { initModals } from './reservas.modals.js';
+import { initTabla } from './reservas.tabla.js';
+import { initCalendario } from './reservas.calendario.js';
+import { initActionButton } from '../../shared/components/action-button.js';
+import { initClienteModal } from '../clientes/clientes.modals.js';
+import { api } from '../../core/api.js';
+import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 
-var reservasMountCleanup = null;
+let reservasMountCleanup = null;
 
 export function template() {
-    // El HTML del calendario + tabla va primero, luego los modales.
-    return reservasTemplate() + reservasModalsTemplate();
+    return reservasTemplate();
 }
 
 export function mount(container) {
