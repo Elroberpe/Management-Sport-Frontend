@@ -3,6 +3,7 @@ import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
+import { initStats } from '../../shared/components/stats.js';
 
 export function template() {
     return canchasTemplate();
@@ -38,11 +39,21 @@ export function mount(container) {
         INACTIVA:      { cls: 'gray',   dotCls: 'gray',   label: 'Inactiva',      badgeCls: 'badge-gray' },
     };
 
+    const stats = initStats('canchas-stats-container', [
+        { id: 'total', label: 'Total Canchas', icon: 'bx bx-football', colorClass: 'gray' },
+        { id: 'disponibles', label: 'Disponibles', icon: 'bx bx-check-circle', colorClass: 'green' },
+        { id: 'mantenimiento', label: 'Mantenimiento', icon: 'bx bx-wrench', colorClass: 'yellow' },
+        { id: 'inactivas', label: 'Inactivas', icon: 'bx bx-block', colorClass: 'red' }
+    ]);
+
     function statsActualizar(canchas) {
-        document.getElementById('stat-total').textContent = canchas.length;
-        document.getElementById('stat-disponibles').textContent = canchas.filter(c => c.estadoCancha === 'DISPONIBLE').length;
-        document.getElementById('stat-mantenimiento').textContent = canchas.filter(c => c.estadoCancha === 'MANTENIMIENTO').length;
-        document.getElementById('stat-inactivas').textContent = canchas.filter(c => c.estadoCancha === 'INACTIVA').length;
+        if (!stats) return;
+        stats.updateAll({
+            total: canchas.length,
+            disponibles: canchas.filter(c => c.estadoCancha === 'DISPONIBLE').length,
+            mantenimiento: canchas.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
+            inactivas: canchas.filter(c => c.estadoCancha === 'INACTIVA').length
+        });
     }
 
     /* ---- Vista Grilla Renderer ---- */

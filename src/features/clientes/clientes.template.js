@@ -17,37 +17,8 @@ export const clientesTemplate = () => `
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-cards-row" style="margin-bottom:30px;">
-        <div class="stat-card minimal cli-stat-card bg-green-tint-light">
-            <div class="cli-stat-top">
-                <div class="icon-circle bg-green-tint text-green"><i class='bx bx-group'></i></div>
-            </div>
-            <h2 class="stat-value" id="cli-stat-total">—</h2>
-            <p class="stat-label">TOTAL CLIENTES</p>
-        </div>
-        <div class="stat-card minimal cli-stat-card bg-blue-tint-light">
-            <div class="cli-stat-top">
-                <div class="icon-circle bg-yellow-tint text-yellow-d"><i class='bx bx-id-card'></i></div>
-            </div>
-            <h2 class="stat-value" id="cli-stat-dni">—</h2>
-            <p class="stat-label">CON DNI</p>
-        </div>
-        <div class="stat-card minimal cli-stat-card bg-blue-tint-light">
-            <div class="cli-stat-top">
-                <div class="icon-circle bg-blue-tint text-blue"><i class='bx bx-envelope'></i></div>
-            </div>
-            <h2 class="stat-value" id="cli-stat-email">—</h2>
-            <p class="stat-label">CON EMAIL</p>
-        </div>
-        <div class="stat-card minimal cli-stat-card bg-blue-tint-light">
-            <div class="cli-stat-top">
-                <div class="icon-circle bg-red-tint text-red"><i class='bx bx-phone'></i></div>
-            </div>
-            <h2 class="stat-value" id="cli-stat-tel">—</h2>
-            <p class="stat-label">CON TELÉFONO</p>
-        </div>
-    </div>
+    <!-- Stats Section -->
+    <div id="clientes-stats-container"></div>
 
     <!-- Table Container -->
     <div class="panel table-container-full" style="padding:0; margin-bottom:40px; position:relative; border-radius:20px;">

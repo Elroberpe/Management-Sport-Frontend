@@ -9,29 +9,8 @@ export const mantenimientosTemplate = () => `
         </div>
     </div>
 
-    <!-- ===== STATS CARDS ===== -->
-    <div class="stats-cards-row" id="mant-stats-grid">
-        <div class="stat-card minimal">
-            <div class="icon-top"><i class='bx bx-list-ul' style="color:#0f172a;"></i></div>
-            <p class="stat-label" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.8px;">TOTAL</p>
-            <h2 class="stat-value" id="stat-total">—</h2>
-        </div>
-        <div class="stat-card minimal">
-            <div class="icon-top"><i class='bx bx-calendar-check' style="color:#1e40af;"></i></div>
-            <p class="stat-label" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.8px;">PROGRAMADOS</p>
-            <h2 class="stat-value text-blue" id="stat-programados">—</h2>
-        </div>
-        <div class="stat-card minimal border-bottom-green">
-            <div class="icon-top"><i class='bx bx-loader-alt' style="color:#92400e;"></i></div>
-            <p class="stat-label" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.8px;">EN PROCESO</p>
-            <h2 class="stat-value text-yellow-d" id="stat-enproceso">—</h2>
-        </div>
-        <div class="stat-card minimal active-stat">
-            <div class="icon-top"><i class='bx bx-check-circle text-green'></i></div>
-            <p class="stat-label" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.8px;">COMPLETADOS</p>
-            <h2 class="stat-value text-green" id="stat-completados">—</h2>
-        </div>
-    </div>
+    <!-- Stats Section -->
+    <div id="mantenimientos-stats-container"></div>
 
     <!-- ===== PANEL UNIFICADO (Filtros + Tabla) ===== -->
     <div class="panel table-container-full" style="padding:0; overflow:hidden; margin-bottom:40px;">

@@ -1,6 +1,7 @@
 import { mantenimientosTemplate } from './mantenimientos.template.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
+import { initStats } from '../../shared/components/stats.js';
 
 export function template() {
     return mantenimientosTemplate();
@@ -21,15 +22,25 @@ export function mount(container) {
         return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}h`;
     };
 
+    const stats = initStats('mantenimientos-stats-container', [
+        { id: 'total', label: 'Total Mantenimientos', icon: 'bx bx-list-ul', colorClass: 'gray' },
+        { id: 'programados', label: 'Programados', icon: 'bx bx-calendar-check', colorClass: 'blue' },
+        { id: 'proceso', label: 'En Proceso', icon: 'bx bx-loader-alt', colorClass: 'yellow' },
+        { id: 'completados', label: 'Completados', icon: 'bx bx-check-circle', colorClass: 'green' }
+    ]);
+
     function actualizarStats(data) {
+        if (!stats) return;
         const items = Array.isArray(data) ? data : (data.content || []);
         const tots = { PROGRAMADO: 0, EN_PROCESO: 0, COMPLETADO: 0, CANCELADO: 0 };
         items.forEach(m => { if (tots[m.estadoMantenimiento] !== undefined) tots[m.estadoMantenimiento]++; });
         
-        document.getElementById('stat-total').textContent      = data.totalElements || items.length;
-        document.getElementById('stat-programados').textContent = tots.PROGRAMADO;
-        document.getElementById('stat-enproceso').textContent   = tots.EN_PROCESO;
-        document.getElementById('stat-completados').textContent = tots.COMPLETADO;
+        stats.updateAll({
+            total: data.totalElements || items.length,
+            programados: tots.PROGRAMADO,
+            proceso: tots.EN_PROCESO,
+            completados: tots.COMPLETADO
+        });
     }
 
     const table = initTable({

@@ -1,6 +1,7 @@
 import { clientesTemplate } from './clientes.template.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
+import { initStats } from '../../shared/components/stats.js';
 
 export function template() {
     return clientesTemplate();
@@ -21,18 +22,21 @@ export function mount(container) {
         return AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
     }
 
+    const stats = initStats('clientes-stats-container', [
+        { id: 'total', label: 'Total Clientes', icon: 'bx bx-group', colorClass: 'green' },
+        { id: 'dni', label: 'Con DNI', icon: 'bx bx-id-card', colorClass: 'yellow' },
+        { id: 'email', label: 'Con Email', icon: 'bx bx-envelope', colorClass: 'blue' },
+        { id: 'tel', label: 'Con Teléfono', icon: 'bx bx-phone', colorClass: 'red' }
+    ]);
+
     function actualizarStats(clientes, total) {
-        const totalEl = document.getElementById('cli-stat-total');
-        if (totalEl) totalEl.textContent = total;
-        
-        const dniEl = document.getElementById('cli-stat-dni');
-        if (dniEl) dniEl.textContent = clientes.filter(c => c.tipoDocumento === 'DNI').length + (total > PAGE_SIZE ? '+' : '');
-        
-        const emailEl = document.getElementById('cli-stat-email');
-        if (emailEl) emailEl.textContent = clientes.filter(c => c.email).length + (total > PAGE_SIZE ? '+' : '');
-        
-        const telEl = document.getElementById('cli-stat-tel');
-        if (telEl) telEl.textContent = clientes.filter(c => c.telefono).length + (total > PAGE_SIZE ? '+' : '');
+        if (!stats) return;
+        stats.updateAll({
+            total: total,
+            dni: clientes.filter(c => c.tipoDocumento === 'DNI').length + (total > PAGE_SIZE ? '+' : ''),
+            email: clientes.filter(c => c.email).length + (total > PAGE_SIZE ? '+' : ''),
+            tel: clientes.filter(c => c.telefono).length + (total > PAGE_SIZE ? '+' : '')
+        });
     }
 
     const table = initTable({
