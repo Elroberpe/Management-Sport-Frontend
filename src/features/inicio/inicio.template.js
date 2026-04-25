@@ -5,9 +5,7 @@ export const inicioTemplate = () => `
         <h1 class="page-title" id="inicio-greeting">Bienvenido</h1>
         <p class="page-subtitle" id="inicio-subtitle">Resumen de operaciones del día.</p>
     </div>
-    <button class="btn btn-primary new-booking-btn">
-        <i class='bx bx-plus'></i> Nueva Reserva
-    </button>
+    <div id="inicio-action-container"></div>
 </div>
 
 <!-- Stats Cards -->

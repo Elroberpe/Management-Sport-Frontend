@@ -1,8 +1,8 @@
 /* src/shared/styles/buttons.css */
 :root {
-    --btn-primary-gradient: linear-gradient(135deg, #2563eb, #1d4ed8);
-    --btn-primary-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-    --btn-hover-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+    --btn-primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    --btn-primary-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+    --btn-hover-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
 }
 
 .btn-action-primary {

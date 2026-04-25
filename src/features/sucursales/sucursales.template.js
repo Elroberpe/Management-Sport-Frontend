@@ -4,9 +4,7 @@ export const sucursalesTemplate = () => `
         <h1 class="page-title">Sedes</h1>
         <p class="page-subtitle">Gestiona y monitorea tus instalaciones deportivas en múltiples zonas.</p>
     </div>
-    <button class="btn btn-primary new-booking-btn" id="btn-nueva-sede">
-        <i class='bx bx-plus'></i> Añadir Nueva Sede
-    </button>
+    <div id="sucursales-action-container"></div>
 </div>
 
 <!-- Stats -->

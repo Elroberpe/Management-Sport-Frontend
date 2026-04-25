@@ -110,10 +110,19 @@ export function mount(container) {
 
     // ─── 8. Abrir reserva automáticamente si hay un ID guardado ──────────────
     var autoOpenId = sessionStorage.getItem('pitchpro_open_reserva_id');
+    var autoOpenNew = sessionStorage.getItem('pitchpro_open_nueva_reserva');
+
     if (autoOpenId) {
         sessionStorage.removeItem('pitchpro_open_reserva_id');
         setTimeout(function() {
             modals.abrirDetalleReserva(parseInt(autoOpenId, 10));
-        }, 400); // Pequeño retraso para asegurar que la UI esté lista
+        }, 400); 
+    }
+
+    if (autoOpenNew) {
+        sessionStorage.removeItem('pitchpro_open_nueva_reserva');
+        setTimeout(function() {
+            modals.abrirModalNuevaReserva();
+        }, 400);
     }
 }

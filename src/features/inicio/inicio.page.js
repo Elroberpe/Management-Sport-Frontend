@@ -3,6 +3,7 @@ import { inicioTemplate } from './inicio.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
+import { initActionButton } from '../../shared/components/action-button.js';
 
 export function template() {
     return inicioTemplate();
@@ -33,6 +34,17 @@ export function mount(container) {
     var subtitleEl = document.getElementById('inicio-subtitle');
     if (greetingEl) greetingEl.textContent = saludo + ', ' + nombre;
     if (subtitleEl) subtitleEl.textContent = subtitulo;
+    
+    /* --- Botón Nueva Reserva --- */
+    initActionButton({
+        containerId: 'inicio-action-container',
+        label: 'Nueva Reserva',
+        icon: 'bx bx-plus',
+        onClick: () => {
+            sessionStorage.setItem('pitchpro_open_nueva_reserva', 'true');
+            window.location.hash = '#/dashboard/reservas';
+        }
+    });
 
     /* --- Determinar modo: global (superadmin sin sede) vs operativo --- */
     var isModoOperativo = (session && session.rol === 'superadmin')

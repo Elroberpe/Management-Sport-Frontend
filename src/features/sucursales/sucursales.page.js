@@ -2,6 +2,7 @@ import { sucursalesTemplate } from './sucursales.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
+import { initActionButton } from '../../shared/components/action-button.js';
 
 export function template() {
     return sucursalesTemplate();
@@ -97,7 +98,6 @@ export function mount(container) {
     var statTotal    = document.getElementById('stat-total');
     var statActivas  = document.getElementById('stat-activas');
     var statInact    = document.getElementById('stat-inactivas');
-    var btnNueva     = document.getElementById('btn-nueva-sede');
 
     /* ---- Refs Modal Nueva Sede ---- */
     var modalNS       = document.getElementById('modal-nueva-sede');
@@ -364,7 +364,12 @@ export function mount(container) {
     }
 
     /* ---- Eventos Nueva Sede ---- */
-    btnNueva.addEventListener('click', abrirModal);
+    initActionButton({
+        containerId: 'sucursales-action-container',
+        label: 'Añadir Nueva Sede',
+        icon: 'bx bx-plus',
+        onClick: abrirModal
+    });
     cardAdd.addEventListener('click', abrirModal);
     btnNsClose.addEventListener('click', cerrarModal);
     btnNsCancel.addEventListener('click', cerrarModal);
