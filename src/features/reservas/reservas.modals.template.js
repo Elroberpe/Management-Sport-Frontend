@@ -51,7 +51,7 @@ export const reservaNewFormTemplate = () => `
                 <input type="hidden" id="nr-cliente-id">
                 <ul class="autocomplete-list" id="nr-cliente-list" style="position:absolute; top:100%; left:0; right:0; z-index:1000; margin:0;"></ul>
             </div>
-            <button type="button" id="nr-btn-nuevo-cliente" class="modal-shell-btn-cancel" style="padding:0 12px; height:42px; font-size:12px;">
+            <button type="button" id="nr-btn-nuevo-cliente" class="modal-shell-btn modal-shell-btn-secondary" style="padding:0 12px; height:42px; font-size:12px;">
                 <i class='bx bx-user-plus'></i> Nuevo
             </button>
         </div>
