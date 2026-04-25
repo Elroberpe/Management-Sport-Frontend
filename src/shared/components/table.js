@@ -12,7 +12,7 @@ export function initTable(config) {
         fetchData, // function(page) => Promise<{ content, totalPages, number, totalElements }>
         actions = [], // Array<{ label, icon, onClick, class, show }>
         emptyMessage = 'No se encontraron resultados',
-        pageSize = 10,
+        pageSize = 20,
         showPagination = true
     } = config;
 
@@ -201,12 +201,16 @@ export function initTable(config) {
     }
 
     function updatePagination(number, totalPgs, totalEls) {
-        if (!showPagination || totalPgs <= 1) {
+        if (!showPagination) {
             pagination.style.display = 'none';
             return;
         }
 
         pagination.style.display = 'flex';
+        
+        // Hide controls if only 1 page, but keep the footer for info
+        const controls = pagination.querySelector('.pagination-controls');
+        if (controls) controls.style.visibility = totalPgs <= 1 ? 'hidden' : 'visible';
         pageInfo.textContent = `Mostrando ${allData.length} de ${totalEls} resultados`;
         pageCurrent.textContent = `Página ${number + 1} de ${totalPgs}`;
 
