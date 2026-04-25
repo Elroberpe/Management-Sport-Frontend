@@ -126,13 +126,39 @@ export function mount(container) {
             if (estado) params.estadoCancha = estado;
             
             const data = await CanchaService.listar(params);
-            const items = Array.isArray(data) ? data : (data.content || []);
-            todasCanchas = items;
+            
+            if (Array.isArray(data)) {
+                todasCanchas = data;
+                const filtered = data.filter(c => !query || c.nombre.toLowerCase().includes(query));
+                
+                // Stats
+                if (stats) {
+                    stats.updateAll({
+                        total: data.length,
+                        disponibles: data.filter(c => c.estadoCancha === 'DISPONIBLE').length,
+                        mantenimiento: data.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
+                        inactivas: data.filter(c => c.estadoCancha === 'INACTIVA').length
+                    });
+                }
 
-            // Stats
+                if (vistaActual === 'grilla') renderGrilla(filtered);
+                if (qs) qs.update();
+
+                return {
+                    content: filtered.slice(page * 20, (page + 1) * 20),
+                    totalPages: Math.ceil(filtered.length / 20),
+                    totalElements: filtered.length,
+                    number: page
+                };
+            }
+
+            // Si ya viene paginado
+            const items = data.content || [];
+            todasCanchas = items;
+            
             if (stats) {
                 stats.updateAll({
-                    total: items.length,
+                    total: data.totalElements || items.length,
                     disponibles: items.filter(c => c.estadoCancha === 'DISPONIBLE').length,
                     mantenimiento: items.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
                     inactivas: items.filter(c => c.estadoCancha === 'INACTIVA').length
