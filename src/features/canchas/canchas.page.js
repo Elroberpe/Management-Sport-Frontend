@@ -39,8 +39,7 @@ export function mount(container) {
     };
 
     function statsActualizar(canchas) {
-        const total = canchas.length;
-        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-total').textContent = canchas.length;
         document.getElementById('stat-disponibles').textContent = canchas.filter(c => c.estadoCancha === 'DISPONIBLE').length;
         document.getElementById('stat-mantenimiento').textContent = canchas.filter(c => c.estadoCancha === 'MANTENIMIENTO').length;
         document.getElementById('stat-inactivas').textContent = canchas.filter(c => c.estadoCancha === 'INACTIVA').length;
@@ -72,7 +71,7 @@ export function mount(container) {
                     </div>
                 </div>
             `;
-            card.querySelector('.btn-edit').onclick = () => alert('Editar cancha: ' + c.id);
+            card.querySelector('.btn-edit').onclick = () => abrirModalEditar(c.canchaId || c.id);
             grillaIn.appendChild(card);
         });
     }
@@ -111,23 +110,16 @@ export function mount(container) {
             const query = searchIn.value.toLowerCase();
             const estado = filterEs.value;
             
-            // Si no hay filtro por sucursal, la API devuelve todo. 
-            // Para canchas usualmente no hay miles, así que cargamos todo y paginamos localmente si es necesario, 
-            // pero para mantener el patrón usamos la API si soporta size/page.
             let url = `/canchas?page=${page}&size=20`;
             if (sucursalFiltro) url += `&sucursalId=${sucursalFiltro}`;
             if (estado) url += `&estadoCancha=${estado}`;
             
             const data = await api.get(url);
-            // La API de canchas actual parece devolver un Array plano. 
-            // Si es así, simulamos la respuesta paginada para el componente.
             if (Array.isArray(data)) {
                 todasCanchas = data;
                 const filtered = data.filter(c => !query || c.nombre.toLowerCase().includes(query));
                 statsActualizar(data);
-                
                 if (vistaActual === 'grilla') renderGrilla(filtered);
-                
                 return {
                     content: filtered.slice(page * 20, (page + 1) * 20),
                     totalPages: Math.ceil(filtered.length / 20),
@@ -135,20 +127,27 @@ export function mount(container) {
                     number: page
                 };
             }
-            
             statsActualizar(data.content || []);
             if (vistaActual === 'grilla') renderGrilla(data.content || []);
             return data;
         },
         actions: [
-            { label: 'Mantenimiento', icon: 'bx bx-wrench', onClick: (c) => alert('Programar mantenimiento: ' + c.nombre) },
-            { label: 'Editar', icon: 'bx bx-pencil', onClick: (c) => alert('Editar: ' + c.nombre) },
+            { label: 'Mantenimiento', icon: 'bx bx-wrench', onClick: (c) => abrirModalMant(c.canchaId || c.id, c.nombre) },
+            { label: 'Editar', icon: 'bx bx-pencil', onClick: (c) => abrirModalEditar(c.canchaId || c.id) },
             { 
-                label: 'Desactivar', 
-                icon: 'bx bx-power-off', 
+                label: 'Eliminar', 
+                icon: 'bx bx-trash', 
                 class: 'danger', 
-                show: (c) => c.estadoCancha === 'DISPONIBLE',
-                onClick: (c) => alert('Desactivar: ' + c.nombre) 
+                onClick: (c) => {
+                    if (confirm(`¿Estás seguro de eliminar la cancha "${c.nombre}"?`)) {
+                        api.delete(`/canchas/${c.canchaId || c.id}`)
+                            .then(() => {
+                                table.fetch(0);
+                                mostrarToast('Cancha eliminada correctamente');
+                            })
+                            .catch(err => alert('Error: ' + err.message));
+                    }
+                } 
             }
         ]
     });
@@ -175,8 +174,136 @@ export function mount(container) {
     searchIn.oninput = () => table.fetch(0);
     filterEs.onchange = () => table.fetch(0);
 
-    const btnRetry = document.getElementById('btn-canchas-retry');
-    if (btnRetry) btnRetry.onclick = () => table.fetch(0);
+    /* ========================================
+       MODALES Y FUNCIONALIDAD ADICIONAL
+    ======================================== */
+    
+    // Toast Helper
+    const ncToast = document.getElementById('nc-toast');
+    const ncToastMsg = document.getElementById('nc-toast-msg');
+    function mostrarToast(msg) {
+        ncToastMsg.textContent = msg;
+        ncToast.style.display = 'flex';
+        setTimeout(() => { ncToast.style.display = 'none'; }, 3500);
+    }
+
+    // --- MODAL NUEVA CANCHA ---
+    const modalNC = document.getElementById('modal-nueva-cancha');
+    const btnNuevaC = document.getElementById('btn-nueva-cancha');
+    const ncForm = {
+        sucursal: document.getElementById('nc-sucursal'),
+        nombre: document.getElementById('nc-nombre'),
+        precio: document.getElementById('nc-precio'),
+        submit: document.getElementById('btn-nc-submit'),
+        cancel: document.getElementById('btn-nc-cancel'),
+        close: document.getElementById('btn-nc-close')
+    };
+
+    function cargarSucursalesDropdown() {
+        ncForm.sucursal.innerHTML = '<option value="">Cargando sucursales...</option>';
+        api.get('/sucursales').then(sucursales => {
+            ncForm.sucursal.innerHTML = '<option value="">— Seleccionar Sucursal —</option>';
+            sucursales.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.sucursalId || s.id;
+                opt.textContent = s.nombre;
+                if (sucursalFiltro && opt.value == sucursalFiltro) opt.selected = true;
+                ncForm.sucursal.appendChild(opt);
+            });
+        });
+    }
+
+    btnNuevaC.onclick = () => {
+        modalNC.style.display = 'flex';
+        cargarSucursalesDropdown();
+    };
+
+    ncForm.close.onclick = ncForm.cancel.onclick = () => modalNC.style.display = 'none';
+
+    ncForm.submit.onclick = () => {
+        const payload = {
+            sucursalId: parseInt(ncForm.sucursal.value),
+            nombre: ncForm.nombre.value.trim(),
+            precioHora: parseFloat(ncForm.precio.value)
+        };
+        if (!payload.nombre || !payload.precioHora) return alert('Completa los campos');
+
+        api.post('/canchas', payload).then(() => {
+            modalNC.style.display = 'none';
+            table.fetch(0);
+            mostrarToast('Cancha creada con éxito');
+        }).catch(err => alert('Error: ' + err.message));
+    };
+
+    // --- MODAL EDITAR CANCHA ---
+    const modalEC = document.getElementById('modal-edit-cancha');
+    const ecForm = {
+        sucursal: document.getElementById('ec-sucursal'),
+        nombre: document.getElementById('ec-nombre'),
+        precio: document.getElementById('ec-precio'),
+        submit: document.getElementById('btn-ec-submit'),
+        cancel: document.getElementById('btn-ec-cancel'),
+        close: document.getElementById('btn-ec-close')
+    };
+
+    let editingId = null;
+    function abrirModalEditar(id) {
+        editingId = id;
+        api.get(`/canchas/${id}`).then(c => {
+            ecForm.sucursal.value = c.sucursalNombre || `Sede ${c.sucursalId}`;
+            ecForm.nombre.value = c.nombre;
+            ecForm.precio.value = c.precioHora;
+            modalEC.style.display = 'flex';
+        });
+    }
+
+    ecForm.close.onclick = ecForm.cancel.onclick = () => modalEC.style.display = 'none';
+    ecForm.submit.onclick = () => {
+        const payload = {
+            nombre: ecForm.nombre.value.trim(),
+            precioHora: parseFloat(ecForm.precio.value)
+        };
+        api.put(`/canchas/${editingId}`, payload).then(() => {
+            modalEC.style.display = 'none';
+            table.fetch(0);
+            mostrarToast('Cancha actualizada');
+        });
+    };
+
+    // --- MODAL MANTENIMIENTO ---
+    const modalMant = document.getElementById('modal-mant');
+    const pmForm = {
+        canchaLabel: document.getElementById('pm-cancha-label'),
+        inicio: document.getElementById('pm-inicio'),
+        fin: document.getElementById('pm-fin'),
+        tipo: document.getElementById('pm-tipo'),
+        motivo: document.getElementById('pm-motivo'),
+        submit: document.getElementById('btn-pm-submit'),
+        cancel: document.getElementById('btn-pm-cancel'),
+        close: document.getElementById('btn-pm-close')
+    };
+
+    let mantCanchaId = null;
+    function abrirModalMant(id, nombre) {
+        mantCanchaId = id;
+        pmForm.canchaLabel.textContent = nombre;
+        modalMant.style.display = 'flex';
+    }
+
+    pmForm.close.onclick = pmForm.cancel.onclick = () => modalMant.style.display = 'none';
+    pmForm.submit.onclick = () => {
+        const payload = {
+            canchaId: mantCanchaId,
+            horaInicio: pmForm.inicio.value + ':00',
+            horaFin: pmForm.fin.value + ':00',
+            tipoMantenimiento: pmForm.tipo.value,
+            motivo: pmForm.motivo.value
+        };
+        api.post('/mantenimientos', payload).then(() => {
+            modalMant.style.display = 'none';
+            mostrarToast('Mantenimiento programado');
+        }).catch(err => alert(err.message));
+    };
 
     // Initial load
     setVista('tabla');
