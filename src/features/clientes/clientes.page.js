@@ -100,28 +100,42 @@ export function mount(container) {
             const q = searchIn ? searchIn.value.trim() : '';
             const tipo = filterTipo ? filterTipo.value : '';
 
-            let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
-            
+            // Usamos URLSearchParams para una construcción de URL más robusta
+            const params = new URLSearchParams();
+            params.append('page', page);
+            params.append('size', PAGE_SIZE);
+            params.append('sort', 'nombre,asc');
+
             if (q) {
-                // Si es numérico, intentamos buscar por documento, si no por nombre
+                // Siempre enviamos el query en 'nombre' ya que es el parámetro más común
+                params.append('nombre', q);
+                
+                // Si parece un documento (solo números), enviamos también parámetros específicos
                 if (/^\d+$/.test(q)) {
-                    url += `&numDocumento=${encodeURIComponent(q)}`;
-                } else {
-                    url += `&nombre=${encodeURIComponent(q)}`;
+                    params.append('numDocumento', q);
+                    params.append('documento', q);
                 }
             }
             
             if (tipo) {
-                url += `&tipoDocumento=${encodeURIComponent(tipo)}`;
+                params.append('tipoDocumento', tipo);
             }
 
-            const data = await api.get(url);
-            const items = Array.isArray(data) ? data : (data.content || []);
-            const total = data.totalElements !== undefined ? data.totalElements : items.length;
-            
-            currentData = items;
-            actualizarStats(items, total);
-            return data;
+            try {
+                const url = `/clientes?${params.toString()}`;
+                const data = await api.get(url);
+                
+                const items = Array.isArray(data) ? data : (data.content || []);
+                const total = data.totalElements !== undefined ? data.totalElements : items.length;
+                
+                currentData = items;
+                actualizarStats(items, total);
+                return data;
+            } catch (err) {
+                console.error('Error fetching clientes:', err);
+                // Retornamos estructura vacía para que la tabla muestre el error/vacío
+                return { content: [], totalElements: 0, totalPages: 0 };
+            }
         },
         actions: [
             { 
