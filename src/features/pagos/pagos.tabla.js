@@ -29,8 +29,13 @@ export function initTabla({ api, Store, addCleanup, addGlobalListener, modals })
 
         document.getElementById('pagos-stat-ingresos').textContent = fmtMoney(totalIng);
         document.getElementById('pagos-stat-anulados').textContent = fmtMoney(totalAnu);
-        document.getElementById('pagos-stat-count').textContent = totalElements || pagos.length;
-        document.getElementById('pagos-badge-count').textContent = totalElements || pagos.length;
+        const totalCount = totalElements || pagos.length;
+        document.getElementById('pagos-stat-count').textContent = totalCount;
+        document.getElementById('pagos-badge-count').textContent = totalCount;
+        
+        const countLabel = document.getElementById('pagos-count-label');
+        if (countLabel) countLabel.textContent = `${totalCount} registros`;
+
         document.getElementById('pagos-badge-ingresos').textContent = ingresos.length + ' pagos';
         document.getElementById('pagos-badge-anulados').textContent = anulados.length + ' anulados';
         
