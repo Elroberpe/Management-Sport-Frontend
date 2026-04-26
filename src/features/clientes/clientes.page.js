@@ -5,15 +5,28 @@ import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initClienteModal, initEditClienteModal } from './clientes.modals.js';
 
+let mountCleanup = null;
+
 export function template() {
     return clientesTemplate();
 }
 
 export function mount(container) {
-    const PAGE_SIZE = 20;
-    let debounceTimer = null;
-    let currentData = [];
+    // 1. Limpieza de montaje previo
+    if (mountCleanup) {
+        mountCleanup();
+        mountCleanup = null;
+    }
 
+    const cleanups = [];
+    const addCleanup = (fn) => cleanups.push(fn);
+    const addGlobalListener = (target, eventName, handler) => {
+        if (!target) return;
+        target.addEventListener(eventName, handler);
+        addCleanup(() => target.removeEventListener(eventName, handler));
+    };
+
+    const PAGE_SIZE = 20;
     const AVATAR_COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
 
     function getInitials(nombre) {
@@ -24,6 +37,7 @@ export function mount(container) {
         return AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
     }
 
+    // 2. Inicializar Componentes Reutilizables
     const stats = initStats('clientes-stats-container', [
         { id: 'total', label: 'Total Clientes', icon: 'bx bx-group', colorClass: 'green' },
         { id: 'dni', label: 'Con DNI', icon: 'bx bx-id-card', colorClass: 'yellow' },
@@ -41,13 +55,11 @@ export function mount(container) {
         });
     }
 
-    // Modal para editar
     const modalEC = initEditClienteModal({
-        onClienteActualizado: () => {
-            table.fetch(table.currentPageRef ? table.currentPageRef.current : 0);
-        }
+        onClienteActualizado: () => table.fetch(0)
     });
 
+    // 3. Configuración de la Tabla
     const table = initTable({
         containerId: 'clientes-table-container',
         pageSize: PAGE_SIZE,
@@ -94,47 +106,33 @@ export function mount(container) {
             }
         ],
         fetchData: async (page) => {
-            const searchIn = document.getElementById('cli-search');
-            const filterTipo = document.getElementById('cli-filter-tipo');
+            const searchEl = document.getElementById('cli-search');
+            const tipoEl = document.getElementById('cli-filter-tipo');
             
-            const q = searchIn ? searchIn.value.trim() : '';
-            const tipo = filterTipo ? filterTipo.value : '';
+            const q = searchEl ? searchEl.value.trim() : '';
+            const tipo = tipoEl ? tipoEl.value : '';
 
-            // Usamos URLSearchParams para una construcción de URL más robusta
-            const params = new URLSearchParams();
-            params.append('page', page);
-            params.append('size', PAGE_SIZE);
-            params.append('sort', 'nombre,asc');
-
+            let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
+            
             if (q) {
-                // Siempre enviamos el query en 'nombre' ya que es el parámetro más común
-                params.append('nombre', q);
-                
-                // Si parece un documento (solo números), enviamos también parámetros específicos
-                if (/^\d+$/.test(q)) {
-                    params.append('numDocumento', q);
-                    params.append('documento', q);
-                }
+                // Usamos 'query' como parámetro global de búsqueda, igual que en Pagos
+                url += `&query=${encodeURIComponent(q)}`;
             }
             
             if (tipo) {
-                params.append('tipoDocumento', tipo);
+                url += `&tipoDocumento=${encodeURIComponent(tipo)}`;
             }
 
             try {
-                const url = `/clientes?${params.toString()}`;
                 const data = await api.get(url);
-                
                 const items = Array.isArray(data) ? data : (data.content || []);
                 const total = data.totalElements !== undefined ? data.totalElements : items.length;
                 
-                currentData = items;
                 actualizarStats(items, total);
                 return data;
             } catch (err) {
-                console.error('Error fetching clientes:', err);
-                // Retornamos estructura vacía para que la tabla muestre el error/vacío
-                return { content: [], totalElements: 0, totalPages: 0 };
+                console.error('Error al cargar clientes:', err);
+                return { content: [], totalElements: 0 };
             }
         },
         actions: [
@@ -167,43 +165,40 @@ export function mount(container) {
         ]
     });
 
-    // Listeners for filters
+    // 4. Listeners con Debounce y Cleanup
     const searchIn = document.getElementById('cli-search');
-    if (searchIn) {
-        searchIn.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => table.fetch(0), 400);
-        });
-    }
-
     const filterTipo = document.getElementById('cli-filter-tipo');
-    if (filterTipo) {
-        filterTipo.addEventListener('change', () => table.fetch(0));
-    }
+    let debounceTimer;
 
-    const btnRetry = document.getElementById('btn-cli-retry');
-    if (btnRetry) btnRetry.addEventListener('click', () => table.fetch(0));
+    addGlobalListener(searchIn, 'input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => table.fetch(0), 400);
+    });
 
+    addGlobalListener(filterTipo, 'change', () => table.fetch(0));
+
+    // 5. Inicializar Acciones Globales
     const modalNC = initClienteModal({
-        onClienteCreado: () => {
-            table.fetch(0);
-        }
+        onClienteCreado: () => table.fetch(0)
     });
 
     initActionButton({
         containerId: 'clientes-action-container',
         label: 'Añadir Cliente',
         icon: 'bx bx-user-plus',
-        onClick: () => {
-            if (modalNC) modalNC.open();
-        }
+        onClick: () => modalNC.open()
     });
 
-    // Initial load
+    // Carga inicial
     table.fetch(0);
+
+    // Guardar cleanup para unmount
+    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
 }
 
 export function unmount() {
-    // Cleanup handled by Router if it calls unmount, 
-    // but TableComponent also has a global listener we might want to clean.
+    if (mountCleanup) {
+        mountCleanup();
+        mountCleanup = null;
+    }
 }
