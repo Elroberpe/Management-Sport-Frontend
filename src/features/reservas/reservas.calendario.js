@@ -214,13 +214,33 @@ export function initCalendario(ctx) {
         const hFin = parseHora(m.horaFin);
         const alt  = altPct(hIni, hFin);
         
-        const esEnProceso = m.estadoMantenimiento === 'EN_PROCESO';
-        const bgColor     = esEnProceso ? '#fff1f2' : '#fff7ed';
-        const borderColor = esEnProceso ? '#e11d48' : '#ea580c';
-        const textColor   = esEnProceso ? '#9f1239' : '#c2410c';
-        const subColor    = esEnProceso ? '#be123c' : '#9a3412';
-        const badgeBg     = esEnProceso ? '#ffe4e6' : '#ffedd5';
-        const badgeLabel  = esEnProceso ? '⚙️ En Proceso' : '🔧 Programado';
+        const est = m.estadoMantenimiento;
+        const esEnProceso = est === 'EN_PROCESO';
+        const esCompletado = est === 'COMPLETADO';
+
+        // Estilos según estado
+        let bgColor     = '#fff7ed'; // Default Programado (Naranja)
+        let borderColor = '#ea580c';
+        let textColor   = '#c2410c';
+        let subColor    = '#9a3412';
+        let badgeBg     = '#ffedd5';
+        let badgeLabel  = '🔧 Programado';
+
+        if (esEnProceso) {
+            bgColor     = '#fff1f2'; // Rojo/Rosa
+            borderColor = '#e11d48';
+            textColor   = '#9f1239';
+            subColor    = '#be123c';
+            badgeBg     = '#ffe4e6';
+            badgeLabel  = '⚙️ En Proceso';
+        } else if (esCompletado) {
+            bgColor     = '#f0fdf4'; // Verde
+            borderColor = '#16a34a';
+            textColor   = '#166534';
+            subColor    = '#15803d';
+            badgeBg     = '#dcfce7';
+            badgeLabel  = '✅ Completado';
+        }
 
         const div = document.createElement('div');
         div.className        = 'cal-card';
@@ -229,6 +249,8 @@ export function initCalendario(ctx) {
         div.style.background = bgColor;
         div.style.color      = textColor;
         div.style.borderLeft = `4px solid ${borderColor}`;
+        
+        if (esCompletado) div.style.opacity = '0.7';
 
         div.setAttribute('title', `🔧 Mantenimiento\nEstado: ${m.estadoMantenimiento || '—'}\n${formatHora(hIni)} - ${formatHora(hFin)}\nMotivo: ${m.motivo || '—'}`);
         
@@ -293,7 +315,7 @@ export function initCalendario(ctx) {
             
             if (diff >= 0 && diff < 7) {
                 const est = m.estadoMantenimiento;
-                if (est === 'PROGRAMADO' || est === 'EN_PROCESO') {
+                if (est === 'PROGRAMADO' || est === 'EN_PROCESO' || est === 'COMPLETADO') {
                     const colM = document.getElementById(`cal-col-${diff}`);
                     if (colM) colM.appendChild(buildCardMant(m));
                 }
@@ -355,7 +377,7 @@ export function initCalendario(ctx) {
         let endpointRes  = `/reservas?fechaDesde=${fDesde}&fechaHasta=${fHasta}&size=500`;
         if (sucursalFiltro) endpointRes += `&sucursalId=${sucursalFiltro}`;
 
-        let endpointMant = `/mantenimientos?fechaDesde=${fDesde}&fechaHasta=${fHasta}&estadoMantenimiento=PROGRAMADO&estadoMantenimiento=EN_PROCESO&size=100`;
+        let endpointMant = `/mantenimientos?fechaDesde=${fDesde}&fechaHasta=${fHasta}&estadoMantenimiento=PROGRAMADO&estadoMantenimiento=EN_PROCESO&estadoMantenimiento=COMPLETADO&size=100`;
         if (sucursalFiltro) endpointMant += `&sucursalId=${sucursalFiltro}`;
 
         Promise.all([
@@ -366,7 +388,7 @@ export function initCalendario(ctx) {
             const allMant = Array.isArray(resultados[1]) ? resultados[1] : (resultados[1].content || []);
 
             reservasSemana       = allRes;
-            mantenimientosSemana = allMant.filter(m => m.estadoMantenimiento === 'PROGRAMADO' || m.estadoMantenimiento === 'EN_PROCESO');
+            mantenimientosSemana = allMant.filter(m => m.estadoMantenimiento === 'PROGRAMADO' || m.estadoMantenimiento === 'EN_PROCESO' || m.estadoMantenimiento === 'COMPLETADO');
 
             buildEjes();
             renderSemana(lunes, reservasSemana);
