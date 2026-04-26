@@ -68,7 +68,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 14px 24px;
     background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     gap: 16px;
@@ -78,28 +78,58 @@ body {
 .filter-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
 /* Standardizing Inputs within Filter Bar */
 .filter-bar input[type="text"],
+.filter-bar input[type="date"],
 .filter-bar select {
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 8px 14px;
     font-size: 13px;
     font-family: var(--font-body);
     color: var(--text-main);
     transition: all 0.2s;
     outline: none;
+    height: 40px; /* Uniform height for all filters */
+}
+
+/* Specific Select Styling */
+.filter-bar select {
+    padding-right: 36px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+    min-width: 140px;
 }
 
 .filter-bar input[type="text"]:focus,
+.filter-bar input[type="date"]:focus,
 .filter-bar select:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Date Input Fixes */
+.filter-bar input[type="date"] {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Button override for filter bar */
+.filter-bar .btn {
+    width: auto !important;
+    min-width: 120px;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 10px;
+    font-size: 13px;
 }
 
 .filter-bar .search-wrap {
@@ -114,11 +144,22 @@ body {
     transform: translateY(-50%);
     color: #94a3b8;
     font-size: 18px;
+    pointer-events: none;
+    z-index: 2;
 }
 
 .filter-bar .search-wrap input {
     padding-left: 40px;
     width: 100%;
+}
+
+/* Label standardization */
+.filter-group span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 /* Remove internal padding for tables in standard panels */

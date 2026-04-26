@@ -127,12 +127,12 @@ export const reservasTemplate = () => `
         
         <div class="filter-bar">
             <div class="filter-group">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">DESDE:</span>
+                <div>
+                    <span>Desde:</span>
                     <input type="date" id="rh-desde">
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">HASTA:</span>
+                <div>
+                    <span>Hasta:</span>
                     <input type="date" id="rh-hasta">
                 </div>
 
@@ -163,10 +163,10 @@ export const reservasTemplate = () => `
             </div>
 
             <div class="filter-group">
-                <button class="btn btn-primary" id="rh-btn-buscar" style="height:40px; padding:0 20px;">
+                <button class="btn btn-primary" id="rh-btn-buscar">
                     <i class='bx bx-search'></i> Buscar
                 </button>
-                <button class="btn-icon" id="rh-btn-limpiar" title="Limpiar filtros" style="width:40px; height:40px;">
+                <button class="btn-icon" id="rh-btn-limpiar" title="Limpiar filtros">
                     <i class='bx bx-reset'></i>
                 </button>
             </div>

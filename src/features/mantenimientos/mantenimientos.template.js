@@ -16,15 +16,15 @@ export const mantenimientosTemplate = () => `
                     <option value="COMPLETADO">Completado</option>
                     <option value="CANCELADO">Cancelado</option>
                 </select>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">DESDE:</span>
+                <div>
+                    <span>Desde:</span>
                     <input type="date" id="mf-desde">
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">HASTA:</span>
+                <div>
+                    <span>Hasta:</span>
                     <input type="date" id="mf-hasta">
                 </div>
-                <button class="btn btn-primary" id="mf-apply" style="padding: 8px 16px; font-size:13px;">
+                <button class="btn btn-primary" id="mf-apply">
                     <i class='bx bx-filter-alt'></i> Aplicar
                 </button>
             </div>
