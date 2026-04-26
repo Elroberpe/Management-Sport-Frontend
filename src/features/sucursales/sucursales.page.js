@@ -5,6 +5,7 @@ import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
+import { initStats } from '../../shared/components/stats.js';
 
 export function template() {
     return sucursalesTemplate();
@@ -18,14 +19,18 @@ export function mount(container) {
     const errorMsg = document.getElementById('sedes-error-msg');
     const btnRetry = document.getElementById('btn-retry');
     const cardAdd = document.getElementById('card-add-sede');
-    const statTotal = document.getElementById('stat-total');
-    const statAct = document.getElementById('stat-activas');
-    const statInact = document.getElementById('stat-inactivas');
 
     let _editSedeId = null;
     const session = Auth ? Auth.getSession() : null;
     const isSuperAdmin = session && session.rol === 'superadmin';
     const sucursalFiltro = (!isSuperAdmin && session) ? session.sucursalId : null;
+
+    /* ---- Inicialización de Componentes ---- */
+    const stats = initStats('sucursales-stats-container', [
+        { id: 'total', label: 'TOTAL SEDES', value: '—', icon: 'bx bx-building-house', colorClass: 'gray' },
+        { id: 'activas', label: 'ACTIVAS', value: '—', icon: 'bx bx-check-circle', colorClass: 'green' },
+        { id: 'inactivas', label: 'INACTIVAS', value: '—', icon: 'bx bx-block', colorClass: 'red' }
+    ]);
 
     /* ---- Event Handlers ---- */
     const handleToggleActivo = async (id, isChecked, event) => {
@@ -59,9 +64,11 @@ export function mount(container) {
     /* ---- UI Updates ---- */
     function updateStats(sucursales) {
         const activas = sucursales.filter(s => s.activo).length;
-        statTotal.textContent = sucursales.length;
-        statAct.textContent = activas;
-        statInact.textContent = sucursales.length - activas;
+        stats.updateAll({
+            total: sucursales.length,
+            activas: activas,
+            inactivas: sucursales.length - activas
+        });
     }
 
     async function cargarSucursales() {

@@ -9,30 +9,8 @@ export const sucursalesTemplate = () => `
     <div id="sucursales-action-container"></div>
 </div>
 
-<!-- Stats -->
-<div class="pay-stats-row" style="margin-bottom:30px;">
-    <div class="pay-stat-card">
-        <div class="pay-stat-header">
-            <div class="pay-icon-circle bg-gray-tint text-gray-d"><i class='bx bx-building-house'></i></div>
-        </div>
-        <p class="pay-stat-label">TOTAL SEDES</p>
-        <h2 class="pay-stat-value" id="stat-total">—</h2>
-    </div>
-    <div class="pay-stat-card">
-        <div class="pay-stat-header">
-            <div class="pay-icon-circle bg-green-tint text-green"><i class='bx bx-check-circle'></i></div>
-        </div>
-        <p class="pay-stat-label">ACTIVAS</p>
-        <h2 class="pay-stat-value" id="stat-activas">—</h2>
-    </div>
-    <div class="pay-stat-card">
-        <div class="pay-stat-header">
-            <div class="pay-icon-circle bg-red-tint text-red"><i class='bx bx-block'></i></div>
-        </div>
-        <p class="pay-stat-label">INACTIVAS</p>
-        <h2 class="pay-stat-value" id="stat-inactivas">—</h2>
-    </div>
-</div>
+<!-- Stats Container -->
+<div id="sucursales-stats-container" style="margin-bottom:30px;"></div>
 
 <!-- Estado: cargando / error -->
 <div id="sedes-loading" class="sedes-feedback-state">
