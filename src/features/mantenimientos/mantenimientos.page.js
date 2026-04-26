@@ -5,12 +5,30 @@ import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
+import { initPageHeader } from '../../shared/components/page-header.js';
+
+let mountCleanup = null;
 
 export function template() {
     return mantenimientosTemplate();
 }
 
 export function mount(container) {
+    if (mountCleanup) { mountCleanup(); mountCleanup = null; }
+    const cleanups = [];
+    const addCleanup = (fn) => cleanups.push(fn);
+    const addGlobalListener = (target, event, handler) => {
+        if (!target) return;
+        target.addEventListener(event, handler);
+        addCleanup(() => target.removeEventListener(event, handler));
+    };
+
+    const header = initPageHeader({
+        containerId: 'mantenimientos-header-container',
+        title: 'Gestión de Mantenimientos',
+        subtitle: 'Administra y supervisa todos los mantenimientos programados'
+    });
+
     const PAGE_SIZE = 20;
     
     // --- Utils ---
@@ -162,10 +180,11 @@ export function mount(container) {
     });
 
     // --- Events ---
-    document.getElementById('mf-apply').addEventListener('click', () => table.fetch(0));
-    document.getElementById('mf-clear').addEventListener('click', () => {
+    addGlobalListener(document.getElementById('mf-apply'), 'click', () => table.fetch(0));
+    addGlobalListener(document.getElementById('mf-clear'), 'click', () => {
         ['mf-cancha', 'mf-estado', 'mf-desde', 'mf-hasta'].forEach(id => {
-            document.getElementById(id).value = '';
+            const el = document.getElementById(id);
+            if (el) el.value = '';
         });
         table.fetch(0);
     });
@@ -174,6 +193,7 @@ export function mount(container) {
     api.get('/canchas?size=200').then(data => {
         const canchas = Array.isArray(data) ? data : (data.content || []);
         const sel = document.getElementById('mf-cancha');
+        if (!sel) return;
         canchas.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id; opt.textContent = c.nombre;
@@ -182,6 +202,13 @@ export function mount(container) {
     }).catch(() => {});
 
     table.fetch(0);
+
+    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
 }
 
-export function unmount() {}
+export function unmount() {
+    if (mountCleanup) {
+        mountCleanup();
+        mountCleanup = null;
+    }
+}

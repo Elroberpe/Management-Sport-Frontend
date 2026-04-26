@@ -1,50 +1,40 @@
 export const mantenimientosTemplate = () => `
 <div class="mant-module">
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
-        <div>
-            <h1 class="page-title" style="margin:0 0 4px;">Gestión de Mantenimientos</h1>
-            <p class="page-subtitle" style="margin:0;">Administra y supervisa todos los mantenimientos programados</p>
-        </div>
-    </div>
+    <div id="mantenimientos-header-container"></div>
     <div id="mantenimientos-stats-container"></div>
-    <div class="panel table-container-full" style="padding:0; overflow:hidden; margin-bottom:40px;">
-        <div class="table-toolbar" style="padding: 16px 24px; border-bottom: 1px solid #eef2f6; display:flex; gap:12px; justify-content:space-between; align-items:flex-end;">
-            <div class="toolbar-left" style="display:flex; gap:12px; align-items:center;">
-                <div class="select-wrap">
-                    <select id="mf-cancha" style="font-size:13px; padding: 8px 30px 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; background:#f8fafc; outline:none; color:#1e293b; appearance:none; min-width: 150px;">
-                        <option value="">Todas las canchas</option>
-                    </select>
-                    <i class='bx bx-chevron-down' style="position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"></i>
-                </div>
-                <div class="select-wrap">
-                    <select id="mf-estado" style="font-size:13px; padding: 8px 30px 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; background:#f8fafc; outline:none; color:#1e293b; appearance:none; min-width: 120px;">
-                        <option value="">Todos los estados</option>
-                        <option value="PROGRAMADO">Programado</option>
-                        <option value="EN_PROCESO">En Proceso</option>
-                        <option value="COMPLETADO">Completado</option>
-                        <option value="CANCELADO">Cancelado</option>
-                    </select>
-                    <i class='bx bx-chevron-down' style="position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"></i>
-                </div>
+    
+    <div class="standard-panel">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <select id="mf-cancha">
+                    <option value="">Todas las canchas</option>
+                </select>
+                <select id="mf-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="PROGRAMADO">Programado</option>
+                    <option value="EN_PROCESO">En Proceso</option>
+                    <option value="COMPLETADO">Completado</option>
+                    <option value="CANCELADO">Cancelado</option>
+                </select>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:12px; font-weight:600; color:#94a3b8;">DESDE:</span>
-                    <input type="date" id="mf-desde" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 7px 12px; font-size: 13px; background:#f8fafc; outline:none;">
+                    <input type="date" id="mf-desde">
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:12px; font-weight:600; color:#94a3b8;">HASTA:</span>
-                    <input type="date" id="mf-hasta" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 7px 12px; font-size: 13px; background:#f8fafc; outline:none;">
+                    <input type="date" id="mf-hasta">
                 </div>
-                <button class="btn btn-primary" id="mf-apply" style="padding: 8px 20px; font-size:13px;">
+                <button class="btn btn-primary" id="mf-apply" style="padding: 8px 16px; font-size:13px;">
                     <i class='bx bx-filter-alt'></i> Aplicar
                 </button>
             </div>
-            <div class="toolbar-right">
-                <button id="mf-clear" title="Limpiar filtros" style="width:36px; height:36px; border-radius:8px; border:1.5px solid #e2e8f0; background:#f8fafc; color:#64748b; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <div class="filter-group">
+                <button id="mf-clear" class="btn-icon" title="Limpiar filtros" style="width:36px; height:36px;">
                     <i class='bx bx-reset'></i>
                 </button>
             </div>
         </div>
-        <div id="mantenimientos-table-container" style="padding: 24px;"></div>
+        <div id="mantenimientos-table-container"></div>
     </div>
 </div>
 `;

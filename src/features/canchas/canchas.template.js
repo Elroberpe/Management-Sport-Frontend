@@ -10,25 +10,23 @@ export const canchasTemplate = () => `
     <div id="canchas-stats-container"></div>
 
     <!-- Table Section -->
-    <div class="panel table-container-full" style="padding:0; overflow:hidden; margin-bottom:40px;">
+    <div class="standard-panel">
 
         <!-- Toolbar -->
-        <div class="table-toolbar">
-            <div class="toolbar-left">
+        <div class="filter-bar">
+            <div class="filter-group">
                 <div class="search-wrap">
                     <i class='bx bx-search'></i>
                     <input type="text" id="canchas-search" placeholder="Buscar canchas...">
                 </div>
-                <div class="select-wrap">
-                    <select id="canchas-filter-estado">
-                        <option value="">Estado: Todos</option>
-                        <option value="DISPONIBLE">Disponible</option>
-                        <option value="MANTENIMIENTO">Mantenimiento</option>
-                        <option value="INACTIVA">Inactiva</option>
-                    </select>
-                </div>
+                <select id="canchas-filter-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="MANTENIMIENTO">Mantenimiento</option>
+                    <option value="INACTIVA">Inactiva</option>
+                </select>
             </div>
-            <div class="toolbar-right">
+            <div class="filter-group">
                 <div class="view-toggle">
                     <button class="active" id="btn-view-tabla">Tabla</button>
                     <button id="btn-view-grilla">Grilla</button>

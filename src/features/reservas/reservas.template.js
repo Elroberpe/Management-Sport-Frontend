@@ -123,62 +123,55 @@ export const reservasTemplate = () => `
     <!-- ===================================== -->
     <!--  HISTORICAL RESERVATIONS TABLE PANEL  -->
     <!-- ===================================== -->
-    <div class="panel table-container-full rh-panel" id="reservas-hist-panel">
+    <div class="standard-panel rh-panel" id="reservas-hist-panel" style="margin-top:40px;">
         
-        <!-- Filters Area -->
-        <div class="rh-filters">
-            <!-- Fechas -->
-            <div class="rh-filter-group">
-                <label>Desde</label>
-                <input type="date" class="rh-input" id="rh-desde">
-            </div>
-            <div class="rh-filter-group">
-                <label>Hasta</label>
-                <input type="date" class="rh-input" id="rh-hasta">
-            </div>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">DESDE:</span>
+                    <input type="date" id="rh-desde">
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:12px; font-weight:600; color:#94a3b8;">HASTA:</span>
+                    <input type="date" id="rh-hasta">
+                </div>
 
-            <!-- Estado Multi-select -->
-            <div class="rh-filter-group">
-                <label>Estado</label>
-                <div class="ms-wrap" id="rh-estado-wrap">
-                    <div class="ms-trigger" id="rh-estado-trigger">Todos los estados</div>
-                    <div class="ms-dropdown" id="rh-estado-dropdown">
-                        <label class="ms-option"><input type="checkbox" value="PENDIENTE"><span>Pendiente</span></label>
-                        <label class="ms-option"><input type="checkbox" value="PAGADA"><span>Pagada</span></label>
-                        <label class="ms-option"><input type="checkbox" value="COMPLETADO"><span>Completada</span></label>
-                        <label class="ms-option"><input type="checkbox" value="CANCELADO"><span>Cancelada</span></label>
-                        <label class="ms-option"><input type="checkbox" value="REEMBOLSADO"><span>Reembolsada</span></label>
+                <div class="filter-group-item">
+                    <div class="ms-wrap" id="rh-estado-wrap">
+                        <div class="ms-trigger" id="rh-estado-trigger">Todos los estados</div>
+                        <div class="ms-dropdown" id="rh-estado-dropdown">
+                            <label class="ms-option"><input type="checkbox" value="PENDIENTE"><span>Pendiente</span></label>
+                            <label class="ms-option"><input type="checkbox" value="PAGADA"><span>Pagada</span></label>
+                            <label class="ms-option"><input type="checkbox" value="COMPLETADO"><span>Completada</span></label>
+                            <label class="ms-option"><input type="checkbox" value="CANCELADO"><span>Cancelada</span></label>
+                            <label class="ms-option"><input type="checkbox" value="REEMBOLSADO"><span>Reembolsada</span></label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Client Autocomplete -->
-            <div class="rh-filter-group">
-                <label>Cliente</label>
-                <div class="autocomplete-wrap">
-                    <input type="text" class="rh-input" id="rh-cliente" placeholder="Buscar por nombre..." autocomplete="off">
-                    <input type="hidden" id="rh-cliente-id">
-                    <ul class="autocomplete-list" id="rh-cliente-list"></ul>
+                <div class="filter-group-item">
+                    <div class="autocomplete-wrap" style="position:relative;">
+                        <input type="text" id="rh-cliente" placeholder="Buscar cliente..." autocomplete="off">
+                        <input type="hidden" id="rh-cliente-id">
+                        <ul class="autocomplete-list" id="rh-cliente-list"></ul>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Cancha Select (Generic) -->
-            <div class="rh-filter-group">
-                <label>Cancha</label>
-                <select class="rh-input" id="rh-cancha" style="width: 180px; appearance:none; padding-right:24px; background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat:no-repeat; background-position:right 12px center;">
+                <select id="rh-cancha">
                     <option value="">Todas las canchas</option>
-                    <!-- Filled by JS -->
                 </select>
             </div>
 
-            <!-- Botones -->
-            <div class="rh-filter-group" style="flex-direction:row; align-items:flex-end; gap:8px; margin-left:auto;">
-                <button class="btn btn-primary" id="rh-btn-buscar" style="height:40px; padding:0 24px;"><i class='bx bx-search'></i> Buscar</button>
-                <button class="btn" id="rh-btn-limpiar" style="height:40px; padding:0 16px; background:#f1f5f9; color:#475569; border:none;"><i class='bx bx-reset'></i> Limpiar</button>
+            <div class="filter-group">
+                <button class="btn btn-primary" id="rh-btn-buscar" style="height:40px; padding:0 20px;">
+                    <i class='bx bx-search'></i> Buscar
+                </button>
+                <button class="btn-icon" id="rh-btn-limpiar" title="Limpiar filtros" style="width:40px; height:40px;">
+                    <i class='bx bx-reset'></i>
+                </button>
             </div>
         </div>
 
-        <!-- New Unified Table Component Container -->
         <div id="reservas-hist-table-container"></div>
     </div>
 </div>

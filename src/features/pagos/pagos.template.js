@@ -2,35 +2,7 @@ export const pagosTemplate = () => `
 <div class="pagos-module">
 
     <!-- Header -->
-    <div class="page-header" style="align-items:center; margin-bottom:28px;">
-        <div>
-            <h1 class="page-title" id="pagos-title">Pagos</h1>
-            <p class="page-subtitle" id="pagos-subtitle">Historial financiero de la sede</p>
-        </div>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <div class="select-wrap">
-                <select id="pagos-periodo" style="height:40px;padding:0 32px 0 14px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:600;color:#334155;cursor:pointer;outline:none;appearance:none;background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;">
-                    <option value="7">Últimos 7 días</option>
-                    <option value="30" selected>Últimos 30 días</option>
-                    <option value="90">Últimos 90 días</option>
-                    <option value="365">Este año</option>
-                </select>
-            </div>
-            <div class="select-wrap">
-                <select id="pagos-metodo" style="height:40px;padding:0 32px 0 14px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:600;color:#334155;cursor:pointer;outline:none;appearance:none;background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;">
-                    <option value="">Todos los métodos</option>
-                    <option value="EFECTIVO">💵 Efectivo</option>
-                    <option value="YAPE">📱 Yape</option>
-                    <option value="PLIN">📱 Plin</option>
-                    <option value="TRANSFERENCIA">🏦 Transferencia</option>
-                    <option value="TARJETA">💳 Tarjeta</option>
-                </select>
-            </div>
-            <button id="pagos-btn-csv" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 18px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;color:#475569;cursor:pointer;">
-                <i class='bx bx-download'></i> Exportar CSV
-            </button>
-        </div>
-    </div>
+    <div id="pagos-header-container"></div>
 
     <!-- Stats Cards -->
     <div class="pay-stats-row" style="margin-bottom:28px;">
@@ -74,21 +46,33 @@ export const pagosTemplate = () => `
     </div>
 
     <!-- Tabla -->
-    <div class="panel table-container-full pay-table-panel" style="padding:0;position:relative;border-radius:20px;margin-bottom:40px;">
-        <div class="table-toolbar pay-toolbar" style="border-radius:20px 20px 0 0;">
-            <div class="toolbar-left">
-                <h3 style="font-size:16px;font-weight:800;color:var(--text-main);">Transacciones</h3>
-                <span id="pagos-count-label" style="margin-left:10px;font-size:12px;font-weight:600;color:#94a3b8;background:#f1f5f9;padding:3px 10px;border-radius:20px;">0 registros</span>
-            </div>
-            <div class="toolbar-right">
-                <div style="position:relative;">
-                    <i class='bx bx-search' style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:16px;pointer-events:none;"></i>
-                    <input id="pagos-search" type="text" placeholder="Buscar referencia o ID..." style="height:38px;padding:0 14px 0 36px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;color:#334155;outline:none;width:220px;">
+    <div class="standard-panel">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <div class="search-wrap">
+                    <i class='bx bx-search'></i>
+                    <input id="pagos-search" type="text" placeholder="Buscar referencia o ID...">
                 </div>
+                <select id="pagos-periodo">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30" selected>Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                    <option value="365">Este año</option>
+                </select>
+                <select id="pagos-metodo">
+                    <option value="">Todos los métodos</option>
+                    <option value="EFECTIVO">💵 Efectivo</option>
+                    <option value="YAPE">📱 Yape</option>
+                    <option value="PLIN">📱 Plin</option>
+                    <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                    <option value="TARJETA">💳 Tarjeta</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span id="pagos-count-label" style="font-size:12px;font-weight:600;color:#94a3b8;background:#f1f5f9;padding:3px 10px;border-radius:20px;">0 registros</span>
             </div>
         </div>
 
-        <!-- New Unified Table Component Container -->
         <div id="pagos-table-container"></div>
     </div>
     </div>
