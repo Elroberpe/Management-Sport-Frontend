@@ -62,6 +62,10 @@ body {
     box-shadow: var(--shadow-dash-card);
     overflow: hidden;
     margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
 }
 
 .filter-bar {
