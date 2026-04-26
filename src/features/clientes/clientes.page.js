@@ -95,10 +95,25 @@ export function mount(container) {
         ],
         fetchData: async (page) => {
             const searchIn = document.getElementById('cli-search');
+            const filterTipo = document.getElementById('cli-filter-tipo');
+            
             const q = searchIn ? searchIn.value.trim() : '';
+            const tipo = filterTipo ? filterTipo.value : '';
 
             let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
-            if (q) url += `&nombre=${encodeURIComponent(q)}`;
+            
+            if (q) {
+                // Si es numérico, intentamos buscar por documento, si no por nombre
+                if (/^\d+$/.test(q)) {
+                    url += `&numDocumento=${encodeURIComponent(q)}`;
+                } else {
+                    url += `&nombre=${encodeURIComponent(q)}`;
+                }
+            }
+            
+            if (tipo) {
+                url += `&tipoDocumento=${encodeURIComponent(tipo)}`;
+            }
 
             const data = await api.get(url);
             const items = Array.isArray(data) ? data : (data.content || []);
