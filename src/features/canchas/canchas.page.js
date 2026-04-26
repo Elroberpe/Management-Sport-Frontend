@@ -5,6 +5,7 @@ import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
+import { renderStatusBadge } from '../../shared/components/status-badge.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
 
@@ -47,11 +48,6 @@ export function mount(container) {
 
     /* ---- State ---- */
     const COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
-    const ESTADO_META = {
-        DISPONIBLE:    { cls: 'green',  dotCls: 'green',  label: 'Disponible',    badgeCls: 'badge-green' },
-        MANTENIMIENTO: { cls: 'yellow', dotCls: 'yellow', label: 'Mantenimiento', badgeCls: 'badge-yellow' },
-        INACTIVA:      { cls: 'gray',   dotCls: 'gray',   label: 'Inactiva',      badgeCls: 'badge-gray' },
-    };
     let vistaActual = 'tabla';
     let todasCanchas = [];
 
@@ -80,7 +76,6 @@ export function mount(container) {
     function renderGrilla(canchas) {
         grillaIn.innerHTML = '';
         canchas.forEach(c => {
-            const meta = ESTADO_META[c.estadoCancha] || ESTADO_META['INACTIVA'];
             const color = COLORS[(c.canchaId || c.id) % COLORS.length];
             const initials = c.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 
@@ -96,7 +91,7 @@ export function mount(container) {
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="status-badge ${meta.badgeCls}"><span class="dot"></span> ${meta.label}</span>
+                    ${renderStatusBadge(c.estadoCancha)}
                     <div class="table-actions-inline">
                          <button class="table-action-icon" title="Editar"><i class='bx bx-pencil'></i></button>
                     </div>
@@ -132,10 +127,7 @@ export function mount(container) {
             { 
                 key: 'estadoCancha', 
                 label: 'Estado',
-                render: (v) => {
-                    const meta = ESTADO_META[v] || ESTADO_META['INACTIVA'];
-                    return `<span class="status-badge ${meta.badgeCls}"><span class="dot"></span> ${meta.label}</span>`;
-                }
+                render: (v) => renderStatusBadge(v)
             }
         ],
         fetchData: async (page) => {

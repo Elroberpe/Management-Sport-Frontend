@@ -1,4 +1,5 @@
 import { initTable } from '../../shared/components/table.js';
+import { renderStatusBadge } from '../../shared/components/status-badge.js';
 
 export function initTabla({ api, Store, addCleanup, addGlobalListener, modals }) {
     
@@ -55,11 +56,7 @@ export function initTabla({ api, Store, addCleanup, addGlobalListener, modals })
             {
                 key: 'tipoTransaccion',
                 label: 'Tipo',
-                render: (v) => {
-                    const MAP = { INGRESO: 'badge-green', SALIDA: 'badge-red' };
-                    const icon = v === 'INGRESO' ? 'bx-chevrons-up' : 'bx-chevrons-down';
-                    return `<span class="status-badge ${MAP[v] || 'badge-gray'}" style="font-size:10px;"><i class='bx ${icon}'></i> ${v}</span>`;
-                }
+                render: (v) => renderStatusBadge(v, { style: 'font-size:10px;' })
             },
             {
                 key: 'monto',
@@ -87,10 +84,7 @@ export function initTabla({ api, Store, addCleanup, addGlobalListener, modals })
             {
                 key: 'estado',
                 label: 'Estado',
-                render: (v) => {
-                    const MAP = { COMPLETADO: 'badge-green', ANULADO: 'badge-red' };
-                    return `<span class="status-badge ${MAP[v] || 'badge-gray'}">${v}</span>`;
-                }
+                render: (v) => renderStatusBadge(v)
             }
         ],
         fetchData: async (page) => {

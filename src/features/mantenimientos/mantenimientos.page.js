@@ -4,6 +4,7 @@ import { initMantenimientoModals } from './mantenimientos.modals.js';
 import { api } from '../../core/api.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
+import { renderStatusBadge } from '../../shared/components/status-badge.js';
 
 export function template() {
     return mantenimientosTemplate();
@@ -91,18 +92,12 @@ export function mount(container) {
             {
                 key: 'tipoMantenimiento',
                 label: 'Tipo',
-                render: (v) => {
-                    const MAP = { PREVENTIVO: 'badge-blue', CORRECTIVO: 'badge-yellow', URGENTE: 'badge-red' };
-                    return `<span class="status-badge ${MAP[v] || 'badge-gray'}" style="font-size:10px;">${v}</span>`;
-                }
+                render: (v) => renderStatusBadge(v, { style: 'font-size:10px;', showDot: false })
             },
             {
                 key: 'estadoMantenimiento',
                 label: 'Estado',
-                render: (v) => {
-                    const MAP = { PROGRAMADO: 'badge-blue', EN_PROCESO: 'badge-yellow', COMPLETADO: 'badge-green', CANCELADO: 'badge-gray' };
-                    return `<span class="status-badge ${MAP[v] || 'badge-gray'}"><span class="dot"></span> ${v}</span>`;
-                }
+                render: (v) => renderStatusBadge(v)
             }
         ],
         fetchData: async (page) => {

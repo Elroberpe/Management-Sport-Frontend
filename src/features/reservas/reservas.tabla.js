@@ -1,5 +1,5 @@
-// src/features/reservas/reservas.tabla.js
 import { initTable } from '../../shared/components/table.js';
+import { renderStatusBadge } from '../../shared/components/status-badge.js';
 
 /**
  * Inicializa la tabla histórica de reservas usando el componente reutilizable.
@@ -103,16 +103,7 @@ export function initTabla(ctx) {
             { 
                 key: 'estadoReserva', 
                 label: 'Estado',
-                render: (v) => {
-                    const STYLE_MAP = {
-                        PENDIENTE:   'badge-yellow',
-                        PAGADA:      'badge-blue',
-                        COMPLETADO:  'badge-green',
-                        CANCELADO:   'badge-red',
-                        REEMBOLSADO: 'badge-purple'
-                    };
-                    return `<span class="status-badge ${STYLE_MAP[v] || 'badge-gray'}"><span class="dot"></span> ${v}</span>`;
-                }
+                render: (v) => renderStatusBadge(v)
             },
             { key: 'montoTotal', label: 'Total', render: (v) => `<div style="text-align:right; font-weight:600;">S/ ${Number(v||0).toFixed(2)}</div>` },
             { 
