@@ -6,6 +6,7 @@ import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
+import { CanchaService } from './canchas.service.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
 
