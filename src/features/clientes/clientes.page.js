@@ -112,24 +112,40 @@ export function mount(container) {
             const q = searchEl ? searchEl.value.trim() : '';
             const tipo = tipoEl ? tipoEl.value : '';
 
+            // 1. Petición a la API usando parámetros soportados (nombre/documento)
             let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
             
             if (q) {
-                // Usamos 'query' como parámetro global de búsqueda, igual que en Pagos
-                url += `&query=${encodeURIComponent(q)}`;
-            }
-            
-            if (tipo) {
-                url += `&tipoDocumento=${encodeURIComponent(tipo)}`;
+                // Heurística: si es numérico buscamos por documento, si no por nombre
+                // Según cliente-api.yaml, los parámetros son 'nombre' y 'documento'
+                if (/^\d+$/.test(q)) {
+                    url += `&documento=${encodeURIComponent(q)}`;
+                } else {
+                    url += `&nombre=${encodeURIComponent(q)}`;
+                }
             }
 
             try {
                 const data = await api.get(url);
-                const items = Array.isArray(data) ? data : (data.content || []);
-                const total = data.totalElements !== undefined ? data.totalElements : items.length;
+                let items = Array.isArray(data) ? data : (data.content || []);
+                let total = data.totalElements !== undefined ? data.totalElements : items.length;
                 
+                // 2. Filtro LOCAL para Tipo de Documento (ya que la API no lo soporta)
+                if (tipo) {
+                    items = items.filter(c => c.tipoDocumento === tipo);
+                    // Actualizamos el total para la vista actual
+                    total = items.length;
+                }
+
                 actualizarStats(items, total);
-                return data;
+                
+                // Retornamos el objeto con los items ya filtrados localmente
+                return {
+                    ...data,
+                    content: items,
+                    totalElements: total,
+                    items: items // Por compatibilidad con initTable
+                };
             } catch (err) {
                 console.error('Error al cargar clientes:', err);
                 return { content: [], totalElements: 0 };
