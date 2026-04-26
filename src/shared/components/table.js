@@ -11,6 +11,7 @@ export function initTable(config) {
         columns = [],
         fetchData, // function(page) => Promise<{ content, totalPages, number, totalElements }>
         actions = [], // Array<{ label, icon, onClick, class, show }>
+        actionsStyle = 'menu', // 'menu' | 'inline'
         emptyMessage = 'No se encontraron resultados',
         pageSize = 20,
         showPagination = true
@@ -102,9 +103,9 @@ export function initTable(config) {
 
         try {
             const response = await fetchData(page);
-            const items = response.content || response.items || [];
+            const items = Array.isArray(response) ? response : (response.content || response.items || []);
             totalPages = response.totalPages || 1;
-            const totalElements = response.totalElements || items.length;
+            const totalElements = response.totalElements !== undefined ? response.totalElements : items.length;
             const pageNumber = response.number || 0;
             allData = items;
 
@@ -151,23 +152,37 @@ export function initTable(config) {
             if (actions.length > 0) {
                 const visibleActions = actions.filter(a => !a.show || a.show(item));
                 
-                rowHtml += `
-                    <td style="text-align: center;">
-                        <div class="table-actions" id="actions-${containerId}-${index}">
-                            <button class="table-actions-btn" data-toggle="menu">
-                                <i class='bx bx-dots-vertical-rounded'></i>
-                            </button>
-                            <div class="table-actions-menu">
+                if (actionsStyle === 'inline') {
+                    rowHtml += `
+                        <td style="text-align: center;">
+                            <div class="table-actions-inline">
                                 ${visibleActions.map((action, i) => `
-                                    <button class="table-actions-item ${action.class || ''}" data-index="${i}">
+                                    <button class="table-action-icon ${action.class || ''}" data-index="${i}" title="${action.label}">
                                         <i class='${action.icon || 'bx bx-chevron-right'}'></i>
-                                        ${action.label}
                                     </button>
                                 `).join('')}
                             </div>
-                        </div>
-                    </td>
-                `;
+                        </td>
+                    `;
+                } else {
+                    rowHtml += `
+                        <td style="text-align: center;">
+                            <div class="table-actions" id="actions-${containerId}-${index}">
+                                <button class="table-actions-btn" data-toggle="menu">
+                                    <i class='bx bx-dots-vertical-rounded'></i>
+                                </button>
+                                <div class="table-actions-menu">
+                                    ${visibleActions.map((action, i) => `
+                                        <button class="table-actions-item ${action.class || ''}" data-index="${i}">
+                                            <i class='${action.icon || 'bx bx-chevron-right'}'></i>
+                                            ${action.label}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                }
             }
 
             tr.innerHTML = rowHtml;
@@ -175,27 +190,38 @@ export function initTable(config) {
 
             // Add event listeners for actions
             if (actions.length > 0) {
-                const actionWrap = tr.querySelector('.table-actions');
-                const toggleBtn = actionWrap.querySelector('[data-toggle="menu"]');
-                
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    // Close other menus
-                    document.querySelectorAll('.table-actions.active').forEach(el => {
-                        if (el !== actionWrap) el.classList.remove('active');
+                if (actionsStyle === 'inline') {
+                    tr.querySelectorAll('.table-action-icon').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const actionIndex = btn.dataset.index;
+                            const visibleActions = actions.filter(a => !a.show || a.show(item));
+                            const action = visibleActions[actionIndex];
+                            if (action && action.onClick) action.onClick(item);
+                        });
                     });
-                    actionWrap.classList.toggle('active');
-                });
+                } else {
+                    const actionWrap = tr.querySelector('.table-actions');
+                    const toggleBtn = actionWrap.querySelector('[data-toggle="menu"]');
+                    
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Close other menus
+                        document.querySelectorAll('.table-actions.active').forEach(el => {
+                            if (el !== actionWrap) el.classList.remove('active');
+                        });
+                        actionWrap.classList.toggle('active');
+                    });
 
-                actionWrap.querySelectorAll('.table-actions-item').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const actionIndex = btn.dataset.index;
-                        const visibleActions = actions.filter(a => !a.show || a.show(item));
-                        const action = visibleActions[actionIndex];
-                        actionWrap.classList.remove('active');
-                        if (action && action.onClick) action.onClick(item);
+                    actionWrap.querySelectorAll('.table-actions-item').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const actionIndex = btn.dataset.index;
+                            const visibleActions = actions.filter(a => !a.show || a.show(item));
+                            const action = visibleActions[actionIndex];
+                            actionWrap.classList.remove('active');
+                            if (action && action.onClick) action.onClick(item);
+                        });
                     });
-                });
+                }
             }
         });
     }
