@@ -24,6 +24,8 @@ export const mantenimientosTemplate = () => `
                     <span>Hasta:</span>
                     <input type="date" id="mf-hasta">
                 </div>
+            </div>
+            <div class="filter-group">
                 <div class="filter-actions">
                     <button class="btn btn-primary" id="mf-apply">
                         <i class='bx bx-filter-alt'></i> Aplicar

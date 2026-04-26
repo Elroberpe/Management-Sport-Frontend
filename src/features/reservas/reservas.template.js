@@ -160,6 +160,8 @@ export const reservasTemplate = () => `
                     <option value="">Todas las canchas</option>
                 </select>
 
+            </div>
+            <div class="filter-group">
                 <div class="filter-actions">
                     <button class="btn btn-primary" id="rh-btn-buscar">
                         <i class='bx bx-search'></i> Buscar
