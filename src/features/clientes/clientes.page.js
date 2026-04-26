@@ -4,6 +4,7 @@ import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initClienteModal, initEditClienteModal } from './clientes.modals.js';
+import { initPageHeader } from '../../shared/components/page-header.js';
 
 let mountCleanup = null;
 
@@ -25,6 +26,21 @@ export function mount(container) {
         target.addEventListener(eventName, handler);
         addCleanup(() => target.removeEventListener(eventName, handler));
     };
+
+    const header = initPageHeader({
+        containerId: 'clientes-header-container',
+        title: 'Base de Clientes',
+        subtitle: 'Gestiona tu comunidad de jugadores y clientes registrados.',
+        extraActionsHtml: `
+            <button class="btn btn-export-csv" id="btn-export-csv">
+                <i class='bx bx-download'></i> Exportar CSV
+            </button>
+        `
+    });
+
+    addGlobalListener(document.getElementById('btn-export-csv'), 'click', () => {
+        alert('Funcionalidad de exportación próximamente.');
+    });
 
     const PAGE_SIZE = 20;
     const AVATAR_COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
@@ -199,7 +215,7 @@ export function mount(container) {
     });
 
     initActionButton({
-        containerId: 'clientes-action-container',
+        containerId: header ? header.primaryActionsId : 'clientes-action-container',
         label: 'Añadir Cliente',
         icon: 'bx bx-user-plus',
         onClick: () => modalNC.open()

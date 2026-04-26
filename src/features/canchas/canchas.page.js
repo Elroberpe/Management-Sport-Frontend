@@ -4,7 +4,7 @@ import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
-import { CanchaService } from './canchas.service.js';
+import { initPageHeader } from '../../shared/components/page-header.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
 
@@ -35,9 +35,14 @@ export function mount(container) {
         : (session ? { sucursalId: session.sucursalId, nombre: session.sucursalNombre } : null);
     const sucursalFiltro = sedeActiva ? sedeActiva.sucursalId : null;
 
-    const subtitleEl = document.getElementById('canchas-subtitle');
-    if (subtitleEl && sedeActiva && sedeActiva.nombre) {
-        subtitleEl.innerHTML = `Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">${sedeActiva.nombre}</span>.`;
+    const header = initPageHeader({
+        containerId: 'canchas-header-container',
+        title: 'Gestión de Canchas',
+        subtitle: 'Configura, monitorea y gestiona tus canchas.'
+    });
+
+    if (header && sedeActiva && sedeActiva.nombre) {
+        header.updateSubtitle(`Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">${sedeActiva.nombre}</span>.`);
     }
 
     /* ---- State ---- */
@@ -226,7 +231,7 @@ export function mount(container) {
     addGlobalListener(filterEstado, 'change', () => table.fetch(0));
 
     initActionButton({
-        containerId: 'canchas-action-container',
+        containerId: header ? header.primaryActionsId : 'canchas-action-container',
         label: 'Nueva Cancha',
         icon: 'bx bx-plus',
         onClick: () => modals.abrirNueva(sucursalFiltro)

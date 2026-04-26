@@ -6,6 +6,7 @@ import { Store } from '../../core/store.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
 import { initStats } from '../../shared/components/stats.js';
+import { initPageHeader } from '../../shared/components/page-header.js';
 
 export function template() {
     return sucursalesTemplate();
@@ -20,10 +21,20 @@ export function mount(container) {
     const btnRetry = document.getElementById('btn-retry');
     const cardAdd = document.getElementById('card-add-sede');
 
+    const header = initPageHeader({
+        containerId: 'sucursales-header-container',
+        title: 'Sedes',
+        subtitle: 'Gestiona y monitorea tus instalaciones deportivas en múltiples zonas.'
+    });
+
     let _editSedeId = null;
     const session = Auth ? Auth.getSession() : null;
     const isSuperAdmin = session && session.rol === 'superadmin';
     const sucursalFiltro = (!isSuperAdmin && session) ? session.sucursalId : null;
+
+    if (header && !isSuperAdmin && session && session.sucursalNombre) {
+        header.updateSubtitle(`Configura y monitorea las canchas de <span style="font-weight:700;color:var(--primary);">${session.sucursalNombre}</span>.`);
+    }
 
     /* ---- Inicialización de Componentes ---- */
     const stats = initStats('sucursales-stats-container', [
@@ -129,7 +140,7 @@ export function mount(container) {
 
             ctx.setLoading(true);
             try {
-                await SucursalService.crear({ empresaId: 1, nombre: nom, direccion: dir, telefono: tel });
+                await SucursalService.crear({ empresaId: 1, nombre: nom, direccion: dir, tel: tel });
                 ctx.showToast(`Sede "${nom}" creada con éxito.`);
                 ctx.close();
                 cargarSucursales();
@@ -157,7 +168,7 @@ export function mount(container) {
 
             ctx.setLoading(true);
             try {
-                await SucursalService.actualizar(_editSedeId, { nombre: nom, direccion: dir, telefono: tel });
+                await SucursalService.actualizar(_editSedeId, { nombre: nom, direccion: dir, tel: tel });
                 ctx.showToast('Sede actualizada con éxito.');
                 ctx.close();
                 cargarSucursales();
@@ -195,7 +206,7 @@ export function mount(container) {
 
     /* ---- Inicialización ---- */
     initActionButton({
-        containerId: 'sucursales-action-container',
+        containerId: header ? header.primaryActionsId : 'sucursales-action-container',
         label: 'Añadir Nueva Sede',
         icon: 'bx bx-plus',
         onClick: () => modalNS.open()

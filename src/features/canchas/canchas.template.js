@@ -4,13 +4,7 @@ export const canchasTemplate = () => `
 <div class="canchas-module">
 
     <!-- Header -->
-    <div class="page-header" style="align-items: center; margin-bottom: 30px;">
-        <div>
-            <h1 class="page-title">Gestión de Canchas</h1>
-            <p class="page-subtitle" id="canchas-subtitle">Configura, monitorea y gestiona tus canchas.</p>
-        </div>
-        <div id="canchas-action-container"></div>
-    </div>
+    <div id="canchas-header-container"></div>
 
     <!-- Stats Section -->
     <div id="canchas-stats-container"></div>

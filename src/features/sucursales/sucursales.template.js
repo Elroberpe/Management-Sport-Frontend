@@ -1,13 +1,7 @@
 // src/features/sucursales/sucursales.template.js
 
 export const sucursalesTemplate = () => `
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Sedes</h1>
-        <p class="page-subtitle">Gestiona y monitorea tus instalaciones deportivas en múltiples zonas.</p>
-    </div>
-    <div id="sucursales-action-container"></div>
-</div>
+<div id="sucursales-header-container"></div>
 
 <!-- Stats Container -->
 <div id="sucursales-stats-container" style="margin-bottom:30px;"></div>

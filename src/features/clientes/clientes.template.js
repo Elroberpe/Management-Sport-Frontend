@@ -2,18 +2,7 @@ export const clientesTemplate = () => `
 <div class="clientes-module">
 
     <!-- Header -->
-    <div class="page-header" style="align-items:center; margin-bottom:30px;">
-        <div>
-            <h1 class="page-title">Base de Clientes</h1>
-            <p class="page-subtitle">Gestiona tu comunidad de jugadores y clientes registrados.</p>
-        </div>
-        <div style="display:flex; gap:12px; align-items:center;">
-            <button class="btn btn-export-csv" id="btn-export-csv">
-                <i class='bx bx-download'></i> Exportar CSV
-            </button>
-            <div id="clientes-action-container"></div>
-        </div>
-    </div>
+    <div id="clientes-header-container"></div>
 
     <!-- Stats Section -->
     <div id="clientes-stats-container"></div>
