@@ -24,14 +24,14 @@ export const mantenimientosTemplate = () => `
                     <span>Hasta:</span>
                     <input type="date" id="mf-hasta">
                 </div>
-                <button class="btn btn-primary" id="mf-apply">
-                    <i class='bx bx-filter-alt'></i> Aplicar
-                </button>
-            </div>
-            <div class="filter-group">
-                <button id="mf-clear" class="btn-icon" title="Limpiar filtros" style="width:36px; height:36px;">
-                    <i class='bx bx-reset'></i>
-                </button>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="mf-apply">
+                        <i class='bx bx-filter-alt'></i> Aplicar
+                    </button>
+                    <button id="mf-clear" class="btn-icon clear-btn" title="Limpiar filtros">
+                        <i class='bx bx-reset'></i>
+                    </button>
+                </div>
             </div>
         </div>
         <div id="mantenimientos-table-container"></div>

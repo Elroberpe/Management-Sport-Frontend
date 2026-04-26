@@ -156,19 +156,18 @@ export const reservasTemplate = () => `
                         <ul class="autocomplete-list" id="rh-cliente-list"></ul>
                     </div>
                 </div>
-
                 <select id="rh-cancha">
                     <option value="">Todas las canchas</option>
                 </select>
-            </div>
 
-            <div class="filter-group">
-                <button class="btn btn-primary" id="rh-btn-buscar">
-                    <i class='bx bx-search'></i> Buscar
-                </button>
-                <button class="btn-icon" id="rh-btn-limpiar" title="Limpiar filtros">
-                    <i class='bx bx-reset'></i>
-                </button>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="rh-btn-buscar">
+                        <i class='bx bx-search'></i> Buscar
+                    </button>
+                    <button class="btn-icon clear-btn" id="rh-btn-limpiar" title="Limpiar filtros">
+                        <i class='bx bx-reset'></i>
+                    </button>
+                </div>
             </div>
         </div>
 
