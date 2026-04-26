@@ -8,11 +8,27 @@ import { CanchaService } from './canchas.service.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
 
+let mountCleanup = null;
+
 export function template() {
     return canchasTemplate();
 }
 
 export function mount(container) {
+    // 1. Limpieza de montaje previo
+    if (mountCleanup) {
+        mountCleanup();
+        mountCleanup = null;
+    }
+
+    const cleanups = [];
+    const addCleanup = (fn) => cleanups.push(fn);
+    const addGlobalListener = (target, eventName, handler) => {
+        if (!target) return;
+        target.addEventListener(eventName, handler);
+        addCleanup(() => target.removeEventListener(eventName, handler));
+    };
+
     const session = Auth ? Auth.getSession() : null;
     const sedeActiva = (session && session.rol === 'superadmin')
         ? Store.getSucursal()
@@ -77,7 +93,7 @@ export function mount(container) {
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="status-badge ${meta.badgeCls}"><span class="dot"></span> ${meta.label}</span>
                     <div class="table-actions-inline">
-                         <button class="table-action-icon" onclick="this.dispatchEvent(new CustomEvent('edit-cancha', {bubbles:true, detail:${c.canchaId || c.id}}))" title="Editar"><i class='bx bx-pencil'></i></button>
+                         <button class="table-action-icon" title="Editar"><i class='bx bx-pencil'></i></button>
                     </div>
                 </div>
             `;
@@ -121,58 +137,41 @@ export function mount(container) {
             const query = document.getElementById('canchas-search').value.toLowerCase();
             const estado = document.getElementById('canchas-filter-estado').value;
             
-            const params = { page, size: 20 };
+            const params = { page, size: 500 }; // Traemos más para filtrado local robusto si no es mucha data
             if (sucursalFiltro) params.sucursalId = sucursalFiltro;
-            if (estado) params.estadoCancha = estado;
             
+            // Eliminamos estadoCancha de la API por petición del usuario para manejarlo localmente
             const data = await CanchaService.listar(params);
             
-            if (Array.isArray(data)) {
-                todasCanchas = data;
-                const filtered = data.filter(c => !query || c.nombre.toLowerCase().includes(query));
-                
-                // Stats
-                if (stats) {
-                    stats.updateAll({
-                        total: data.length,
-                        disponibles: data.filter(c => c.estadoCancha === 'DISPONIBLE').length,
-                        mantenimiento: data.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
-                        inactivas: data.filter(c => c.estadoCancha === 'INACTIVA').length
-                    });
-                }
+            let rawItems = Array.isArray(data) ? data : (data.content || []);
+            todasCanchas = rawItems;
 
-                if (vistaActual === 'grilla') renderGrilla(filtered);
-                if (qs) qs.update();
-
-                return {
-                    content: filtered.slice(page * 20, (page + 1) * 20),
-                    totalPages: Math.ceil(filtered.length / 20),
-                    totalElements: filtered.length,
-                    number: page
-                };
-            }
-
-            // Si ya viene paginado
-            const items = data.content || [];
-            todasCanchas = items;
+            // Filtro LOCAL (Nombre y Estado)
+            const filtered = rawItems.filter(c => {
+                const matchQuery = !query || c.nombre.toLowerCase().includes(query);
+                const matchEstado = !estado || c.estadoCancha === estado;
+                return matchQuery && matchEstado;
+            });
             
+            // Stats (Sobre el total de la sede)
             if (stats) {
                 stats.updateAll({
-                    total: data.totalElements || items.length,
-                    disponibles: items.filter(c => c.estadoCancha === 'DISPONIBLE').length,
-                    mantenimiento: items.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
-                    inactivas: items.filter(c => c.estadoCancha === 'INACTIVA').length
+                    total: rawItems.length,
+                    disponibles: rawItems.filter(c => c.estadoCancha === 'DISPONIBLE').length,
+                    mantenimiento: rawItems.filter(c => c.estadoCancha === 'MANTENIMIENTO').length,
+                    inactivas: rawItems.filter(c => c.estadoCancha === 'INACTIVA').length
                 });
             }
 
-            if (vistaActual === 'grilla') {
-                const filtered = items.filter(c => !query || c.nombre.toLowerCase().includes(query));
-                renderGrilla(filtered);
-            }
-
+            if (vistaActual === 'grilla') renderGrilla(filtered);
             if (qs) qs.update();
 
-            return data;
+            return {
+                content: filtered.slice(page * 20, (page + 1) * 20),
+                totalPages: Math.ceil(filtered.length / 20),
+                totalElements: filtered.length,
+                number: page
+            };
         },
         actions: [
             { label: 'Mantenimiento', icon: 'bx bx-wrench', onClick: (c) => modals.abrirMantenimiento(c.canchaId || c.id) },
@@ -195,6 +194,8 @@ export function mount(container) {
     /* ---- Handlers ---- */
     const btnTabla = document.getElementById('btn-view-tabla');
     const btnGrilla = document.getElementById('btn-view-grilla');
+    const searchIn = document.getElementById('canchas-search');
+    const filterEstado = document.getElementById('canchas-filter-estado');
 
     function setVista(vista) {
         vistaActual = vista;
@@ -213,10 +214,16 @@ export function mount(container) {
         table.fetch(0);
     }
 
-    btnTabla.onclick = () => setVista('tabla');
-    btnGrilla.onclick = () => setVista('grilla');
-    document.getElementById('canchas-search').oninput = () => table.fetch(0);
-    document.getElementById('canchas-filter-estado').onchange = () => table.fetch(0);
+    addGlobalListener(btnTabla, 'click', () => setVista('tabla'));
+    addGlobalListener(btnGrilla, 'click', () => setVista('grilla'));
+    
+    let debounceTimer;
+    addGlobalListener(searchIn, 'input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => table.fetch(0), 300);
+    });
+
+    addGlobalListener(filterEstado, 'change', () => table.fetch(0));
 
     initActionButton({
         containerId: 'canchas-action-container',
@@ -225,8 +232,16 @@ export function mount(container) {
         onClick: () => modals.abrirNueva(sucursalFiltro)
     });
 
-    // Initial load
+    // Carga inicial
     setVista('tabla');
+
+    // Guardar cleanup para unmount
+    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
 }
 
-export function unmount() {}
+export function unmount() {
+    if (mountCleanup) {
+        mountCleanup();
+        mountCleanup = null;
+    }
+}
