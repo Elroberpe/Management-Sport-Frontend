@@ -7,15 +7,15 @@ export const sucursalesTemplate = () => `
 <div id="sucursales-stats-container" style="margin-bottom:30px;"></div>
 
 <!-- Estado: cargando / error -->
-<div id="sedes-loading" class="sedes-feedback-state">
+<div id="sedes-loading" class="feedback-state-container">
     <div class="spinner-circle"></div>
     <p>Cargando sucursales...</p>
 </div>
 
-<div id="sedes-error" class="sedes-feedback-state" style="display:none;">
+<div id="sedes-error" class="feedback-state-container" style="display:none;">
     <i class='bx bx-error-circle' style="font-size:40px; color:#ef4444;"></i>
     <p id="sedes-error-msg">No se pudo conectar con el servidor.</p>
-    <button class="btn btn-primary" id="btn-retry" style="margin-top:12px; padding:10px 24px;">
+    <button class="btn btn-primary" id="btn-retry" style="margin-top:12px;">
         <i class='bx bx-refresh'></i> Reintentar
     </button>
 </div>

@@ -10,16 +10,16 @@ export function initStats(containerId, cardsConfig) {
     }
 
     container.innerHTML = `
-        <div class="stats-grid">
+        <div class="stats-grid-row">
             ${cardsConfig.map(card => `
-                <div class="stat-card" id="stat-card-${card.id}">
-                    <div class="stat-header">
-                        <div class="stat-icon ${card.colorClass || 'blue'}">
+                <div class="stat-card-standard" id="stat-card-${card.id}">
+                    <div class="stat-header-row">
+                        <div class="stat-icon-circle ${card.colorClass || 'blue'}">
                             <i class='${card.icon || 'bx bx-bar-chart-alt-2'}'></i>
                         </div>
                     </div>
-                    <p class="stat-label">${card.label}</p>
-                    <h2 class="stat-value" id="stat-val-${card.id}">${card.value || '0'}</h2>
+                    <p class="stat-label-tiny">${card.label}</p>
+                    <h2 class="stat-value-big" id="stat-val-${card.id}">${card.value || '0'}</h2>
                 </div>
             `).join('')}
         </div>

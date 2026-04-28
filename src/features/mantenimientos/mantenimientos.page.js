@@ -6,6 +6,7 @@ import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
+import { Store } from '../../core/store.js';
 
 let mountCleanup = null;
 
@@ -119,11 +120,14 @@ export function mount(container) {
             }
         ],
         fetchData: async (page) => {
+            const sucursal = Store.getSucursal();
             const filters = { 
                 page, 
                 size: PAGE_SIZE, 
                 sort: 'horaInicio,desc' 
             };
+
+            if (sucursal) filters.sucursalId = sucursal.sucursalId;
             
             const canchaId = document.getElementById('mf-cancha').value;
             const estado = document.getElementById('mf-estado').value;
@@ -190,10 +194,19 @@ export function mount(container) {
     });
 
     // Dropdown canchas
-    api.get('/canchas?size=200').then(data => {
+    const currentSucursal = Store.getSucursal();
+    const canchasUrl = currentSucursal 
+        ? `/canchas?sucursalId=${currentSucursal.sucursalId}&size=200` 
+        : '/canchas?size=200';
+
+    api.get(canchasUrl).then(data => {
         const canchas = Array.isArray(data) ? data : (data.content || []);
         const sel = document.getElementById('mf-cancha');
         if (!sel) return;
+        
+        // Limpiar opciones previas excepto la primera
+        while (sel.options.length > 1) sel.remove(1);
+
         canchas.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id; opt.textContent = c.nombre;

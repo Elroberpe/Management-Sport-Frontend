@@ -85,13 +85,13 @@ export function mount(container) {
                 key: 'nombre', 
                 label: 'Nombre del Cliente',
                 render: (v, c) => `
-                    <div class='cli-profile-cell' style="display:flex; align-items:center; gap:12px;">
-                        <div class='cli-avatar-gen' style='background:${getColor(c.clienteId || c.id)}; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:12px;'>
+                    <div class="profile-cell">
+                        <div class="avatar-circle" style="background:${getColor(c.clienteId || c.id)}; color:white;">
                             ${getInitials(v)}
                         </div>
-                        <div>
-                            <strong style="color:#1e293b; display:block;">${v}</strong>
-                            <span style='font-size:11px; color:#94a3b8;'>ID #${c.clienteId || c.id}</span>
+                        <div class="cell-info">
+                            <strong class="cell-title">${v}</strong>
+                            <span class="cell-subtitle">ID #${c.clienteId || c.id}</span>
                         </div>
                     </div>
                 `
@@ -100,9 +100,9 @@ export function mount(container) {
                 key: 'documento',
                 label: 'Documento',
                 render: (v, c) => `
-                    <div style='display:flex; flex-direction:column; gap:4px;'>
-                        <span class="status-badge badge-gray" style="font-size:10px; padding:2px 8px;">${c.tipoDocumento || '—'}</span>
-                        <span style='font-size:13px; font-weight:600; color:#334155;'>${v || c.numDocumento || '—'}</span>
+                    <div class="cell-info">
+                        <span class="status-badge badge-gray" style="font-size:10px; align-self:flex-start;">${c.tipoDocumento || '—'}</span>
+                        <span class="cell-title" style="margin-top:4px;">${v || c.numDocumento || '—'}</span>
                     </div>
                 `
             },
@@ -110,11 +110,11 @@ export function mount(container) {
                 key: 'contacto',
                 label: 'Contacto',
                 render: (_, c) => `
-                    <div style='display:flex; flex-direction:column; gap:4px;'>
-                        <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:${c.email ? '#475569' : '#cbd5e1'};">
+                    <div class="contact-cell">
+                        <div class="contact-link" style="opacity:${c.email ? '1' : '0.4'}">
                             <i class='bx bx-envelope'></i> <span>${c.email || 'Sin email'}</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:${c.telefono ? '#1e293b' : '#cbd5e1'};">
+                        <div class="contact-link" style="font-weight:600; opacity:${c.telefono ? '1' : '0.4'}">
                             <i class='bx bx-phone'></i> <span>${c.telefono || 'Sin teléfono'}</span>
                         </div>
                     </div>
