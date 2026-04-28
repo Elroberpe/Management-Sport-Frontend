@@ -309,6 +309,13 @@ export function initModals(ctx) {
         elSaldo.textContent = `S/ ${Math.abs(saldo).toFixed(2)}`;
         elSaldo.style.color = saldo > 0 ? '#dc2626' : (saldo < 0 ? '#d97706' : '#059669');
 
+        // Ocultar botón "Añadir Pago" si el saldo ya está en 0 (pago completo).
+        // El ID del botón confirm lo genera modal-shell como `${id}-btn-confirm`.
+        const btnAnadirPago = document.getElementById('modal-detalle-reserva-btn-confirm');
+        if (btnAnadirPago) {
+            btnAnadirPago.style.display = saldo > 0 ? '' : 'none';
+        }
+
         // Setup Tabs
         const btns = document.querySelectorAll('.dr-tab-btn');
         btns.forEach(b => b.onclick = () => {
