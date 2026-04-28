@@ -15,12 +15,20 @@ paths:
       summary: "Listar y filtrar reservas"
       description: "Obtiene una lista paginada de reservas, con filtros opcionales."
       parameters:
-        - name: fecha
+        - name: fechaDesde
           in: query
+          description: "Fecha de inicio del rango de búsqueda (inclusivo)."
           schema:
             type: string
             format: date
             example: "2024-10-28"
+        - name: fechaHasta
+          in: query
+          description: "Fecha de fin del rango de búsqueda (inclusivo)."
+          schema:
+            type: string
+            format: date
+            example: "2024-10-30"
         - name: canchaId
           in: query
           schema:
@@ -29,7 +37,12 @@ paths:
           in: query
           schema:
             type: integer
-        - name: estado
+        - name: sucursalId
+          in: query
+          description: "Filtra las reservas por la sucursal a la que pertenecen."
+          schema:
+            type: integer
+        - name: estadoReserva
           in: query
           schema:
             $ref: '#/components/schemas/EstadoReserva'
@@ -59,26 +72,26 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ReservaResponse'
-    post:
+
+  /reservas/stats/completadas-hoy:
+    get:
       tags:
-        - Reservas
-      summary: "Crear una nueva reserva"
-      description: "Crea una nueva reserva regular. El sistema valida la disponibilidad contra otras reservas, eventos y mantenimientos."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateReservaRequest'
+        - Reservas - Estadísticas
+      summary: "Obtener total de reservas completadas hoy"
+      description: "Devuelve el número total de reservas cuyo estado es 'COMPLETADO' y cuya fecha es la del día actual. Puede ser filtrado por sucursal."
+      parameters:
+        - name: sucursalId
+          in: query
+          description: "ID de la sucursal para filtrar el resultado. Si se omite, se calcula el total de todas las sucursales."
+          schema:
+            type: integer
       responses:
-        '201':
-          description: "Reserva creada con éxito."
+        '200':
+          description: "Total de reservas completadas hoy."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReservaResponse'
-        '400':
-          description: "Datos inválidos o conflicto de horario."
+                $ref: '#/components/schemas/KpiResponse'
 
   /reservas/{id}:
     parameters:
@@ -210,6 +223,32 @@ paths:
         '400':
           description: "El nuevo horario no está disponible."
 
+  /reservas/{id}/reembolsos:
+    post:
+      tags:
+        - Pagos
+      summary: "Registrar un reembolso manual"
+      description: "Registra una transacción de SALIDA para una reserva que tiene un crédito a favor (saldo negativo), ajustando los saldos a cero. Se usa después de una reprogramación a un costo menor."
+      parameters:
+        - $ref: '#/components/parameters/ReservaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReembolsoRequest'
+      responses:
+        '200':
+          description: "Reembolso registrado y saldos de la reserva actualizados."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: "La reserva no tiene un crédito a favor o el monto del reembolso es inválido."
+        '404':
+          description: "Reserva no encontrada."
+
 components:
   parameters:
     ReservaId:
@@ -230,6 +269,13 @@ components:
     TipoTransaccion:
       type: string
       enum: [INGRESO, SALIDA]
+
+    KpiResponse:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 25
 
     ReservaResponse:
       type: object
@@ -286,6 +332,23 @@ components:
         nuevaFecha: { type: string, format: date }
         nuevaHoraInicio: { type: string, format: time }
         nuevaHoraFin: { type: string, format: time }
+
+    CreateReembolsoRequest:
+      type: object
+      required: [monto, metodoPago]
+      properties:
+        monto:
+          type: number
+          format: double
+          description: "El monto exacto del crédito a reembolsar."
+          example: 20.00
+        metodoPago:
+          $ref: '#/components/schemas/MetodoPago'
+        nota:
+          type: string
+          nullable: true
+          description: "Nota opcional sobre el motivo del reembolso manual."
+          example: "Reembolso por cambio a horario más económico."
 
     PagoResponse:
       type: object

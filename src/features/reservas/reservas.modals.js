@@ -411,7 +411,7 @@ export function initModals(ctx) {
 
             mCtx.setLoading(true);
             try {
-                await api.post(`/reservas/${id}/cancelar`, body);
+                await api.patch(`/reservas/${id}/cancelar`, body);
                 mCtx.showToast('Reserva cancelada correctamente');
                 mCtx.close();
                 _cargarSemana();
@@ -482,7 +482,7 @@ export function initModals(ctx) {
 
             mCtx.setLoading(true);
             try {
-                await api.post(`/reservas/${id}/reembolso-manual`, body);
+                await api.post(`/reservas/${id}/reembolsos`, body);
                 mCtx.showToast('Reembolso registrado correctamente');
                 mCtx.close();
                 _fetchHistorical(0);
