@@ -245,19 +245,30 @@ export function initModals(ctx) {
         onConfirm: () => {} 
     });
 
-    function abrirDetalleReserva(id) {
+    async function abrirDetalleReserva(id) {
         _drId = id;
         modalDR.open();
         document.getElementById('dr-loading').style.display = 'block';
         document.getElementById('dr-content').style.display = 'none';
 
-        api.get(`/reservas/${id}`).then(r => {
-            _drData = r;
-            renderDR(r);
-        });
+        try {
+            // Bug fix: GET /reservas/{id} NO incluye pagos en su response.
+            // Hay que llamar a GET /reservas/{id}/pagos por separado.
+            const [reserva, pagos] = await Promise.all([
+                api.get(`/reservas/${id}`),
+                api.get(`/reservas/${id}/pagos`)
+            ]);
+            _drData = reserva;
+            renderDR(reserva, pagos);
+        } catch (err) {
+            document.getElementById('dr-loading').innerHTML =
+                `<p style="text-align:center; color:#ef4444; padding:20px;"><i class='bx bx-error-circle' style='font-size:2rem; display:block; margin-bottom:8px;'></i>Error al cargar: ${err.message}</p>`;
+        }
     }
 
-    function renderDR(r) {
+    // Bug fix: renderDR ahora recibe los pagos como segundo parámetro
+    // porque GET /reservas/{id} no los incluye en su response.
+    function renderDR(r, pagos = []) {
         document.getElementById('dr-loading').style.display = 'none';
         document.getElementById('dr-content').style.display = 'block';
         
@@ -281,13 +292,17 @@ export function initModals(ctx) {
             document.getElementById(b.dataset.tab).style.display = 'block';
         });
 
-        // Setup Pagos
+        // Renderizar Pagos
+        // Bug fix: el campo de fecha correcto es p.fecha (no p.fechaProcesamiento).
+        // Excluimos pagos con estado ANULADO para no confundir al usuario.
         const tbody = document.getElementById('dr-tbody-pagos');
-        if (r.pagos?.length > 0) {
-            tbody.innerHTML = r.pagos.map(p => `
+        const pagosActivos = pagos.filter(p => p.estado !== 'ANULADO');
+
+        if (pagosActivos.length > 0) {
+            tbody.innerHTML = pagosActivos.map(p => `
                 <tr>
-                    <td>${p.fechaProcesamiento?.substring(0,10)}</td>
-                    <td>${p.metodoPago}</td>
+                    <td>${p.fecha || '—'}</td>
+                    <td>${p.metodoPago || '—'}</td>
                     <td style="text-align:right; font-weight:600; color:#059669;">+ S/ ${Number(p.monto).toFixed(2)}</td>
                 </tr>
             `).join('');

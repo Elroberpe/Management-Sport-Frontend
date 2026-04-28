@@ -132,7 +132,13 @@ export const reservaDetailTemplate = () => `
         </div>
 
         <div class="dr-tab-content" id="tab-logs" style="display:none;">
-            <ul id="dr-logs-list" style="list-style:none; padding:0; font-size:12px; color:#64748b;"></ul>
+            <!-- Placeholder: no existe endpoint de historial de cambios aún.
+                 Reemplazar este bloque cuando el backend lo implemente. -->
+            <div style="text-align:center; padding:32px 20px; color:#94a3b8;">
+                <i class='bx bx-history' style="font-size:2.5rem; opacity:0.25; display:block; margin-bottom:10px;"></i>
+                <p style="font-size:13px; margin:0; font-weight:600;">Historial de cambios</p>
+                <p style="font-size:12px; margin:6px 0 0; opacity:0.7;">Próximamente disponible.</p>
+            </div>
         </div>
     </div>
 `;
