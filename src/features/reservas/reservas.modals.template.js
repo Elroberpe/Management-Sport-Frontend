@@ -148,6 +148,11 @@ export const reservaPagoFormTemplate = () => `
         <label class="modal-shell-label"><i class='bx bx-money'></i> Monto <span style="color:#ef4444;">*</span></label>
         <input type="number" id="ap-monto" class="modal-shell-input" placeholder="0.00" min="0.01" step="0.01">
         <span class="modal-shell-error-text" id="ap-monto-err"></span>
+        <!-- Indicador de saldo pendiente — se muestra/oculta desde abrirModalPago() -->
+        <div id="ap-saldo-info" style="display:none; margin-top:6px; padding:6px 10px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; color:#059669; align-items:center; gap:6px;">
+            <i class='bx bx-info-circle'></i>
+            Saldo pendiente de la reserva: <strong id="ap-saldo-val">S/ 0.00</strong>
+        </div>
     </div>
     <div class="modal-shell-field">
         <label class="modal-shell-label"><i class='bx bx-wallet'></i> Método de Pago <span style="color:#ef4444;">*</span></label>

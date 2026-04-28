@@ -239,10 +239,9 @@ export function initModals(ctx) {
         id: 'modal-detalle-reserva',
         title: 'Detalle de Reserva',
         icon: 'bx bx-calendar-check',
-        confirmText: 'Añadir Pago', // Variable contextualmente
-        showConfirm: false, // Lo manejaremos con botones personalizados en el body o footer
+        confirmText: 'Añadir Pago',
         contentHtml: reservaDetailTemplate(),
-        onConfirm: () => {} 
+        onConfirm: () => {}
     });
 
     async function abrirDetalleReserva(id) {
@@ -346,7 +345,44 @@ export function initModals(ctx) {
     return {
         abrirModalNuevaReserva,
         abrirDetalleReserva,
-        abrirModalPago: () => modalPago.open(),
+
+        /**
+         * Abre el modal de pago para una reserva específica.
+         * Bug fix: antes la función ignoraba reservaId y saldoPendiente,
+         * dejando _drId como null → POST /reservas/null/pagos → error 404.
+         *
+         * @param {number} reservaId      - ID de la reserva a pagar
+         * @param {number} saldoPendiente - Saldo pendiente para pre-llenar el monto
+         */
+        abrirModalPago: (reservaId, saldoPendiente = 0) => {
+            // Actualizar _drId con el ID recibido (puede venir de tabla, calendario o modal detalle)
+            _drId = reservaId;
+
+            // Pre-llenar el campo monto con el saldo pendiente para agilizar el flujo
+            const montoInput = document.getElementById('ap-monto');
+            if (montoInput) {
+                montoInput.value = saldoPendiente > 0 ? Number(saldoPendiente).toFixed(2) : '';
+            }
+
+            // Resetear el método de pago para forzar selección consciente
+            const metodoInput = document.getElementById('ap-metodo');
+            if (metodoInput) metodoInput.value = '';
+
+            // Mostrar u ocultar la info del saldo pendiente
+            const saldoInfo = document.getElementById('ap-saldo-info');
+            const saldoVal  = document.getElementById('ap-saldo-val');
+            if (saldoInfo && saldoVal) {
+                if (saldoPendiente > 0) {
+                    saldoVal.textContent = `S/ ${Number(saldoPendiente).toFixed(2)}`;
+                    saldoInfo.style.display = 'flex';
+                } else {
+                    saldoInfo.style.display = 'none';
+                }
+            }
+
+            modalPago.open();
+        },
+
         abrirModalReprogramar: (r) => console.log('Reprog', r),
         abrirModalCancelar: (r) => console.log('Cancel', r),
         abrirModalReembolso: (r) => console.log('Reembolso', r),
@@ -354,6 +390,6 @@ export function initModals(ctx) {
         mostrarResToast: (msg) => modalNR.showToast(msg),
         setCargarSemana: (fn) => _cargarSemana = fn,
         setFetchHistorical: (fn) => _fetchHistorical = fn,
-        setRhCurrentPage: (ref) => {} 
+        setRhCurrentPage: (ref) => {}
     };
 }
