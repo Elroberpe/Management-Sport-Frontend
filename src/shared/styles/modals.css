@@ -206,6 +206,28 @@
     cursor: not-allowed;
 }
 
+.modal-shell-btn-danger {
+    background: #dc2626;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.modal-shell-btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
+}
+
+.modal-shell-btn-danger:active {
+    transform: translateY(0);
+}
+
+.modal-shell-btn-danger:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* Animations */
 @keyframes modalFadeIn {
     from { opacity: 0; }

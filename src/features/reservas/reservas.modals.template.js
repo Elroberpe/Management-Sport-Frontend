@@ -167,3 +167,145 @@ export const reservaPagoFormTemplate = () => `
         <span class="modal-shell-error-text" id="ap-metodo-err"></span>
     </div>
 `;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TEMPLATE: CANCELAR RESERVA
+   Recibe { reserva, necesitaReembolso, montoAReembolsar }
+───────────────────────────────────────────────────────────────────────── */
+export const reservaCancelarTemplate = ({ reserva, necesitaReembolso, montoAReembolsar }) => `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <!-- Alerta de advertencia -->
+        <div style="display:flex; align-items:flex-start; gap:12px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:12px; padding:14px 16px;">
+            <i class='bx bx-error' style="font-size:1.6rem; color:#ea580c; flex-shrink:0; margin-top:1px;"></i>
+            <div>
+                <p style="margin:0 0 4px; font-weight:700; color:#9a3412; font-size:14px;">Esta acción no se puede deshacer</p>
+                <p style="margin:0; font-size:13px; color:#c2410c;">
+                    ${necesitaReembolso
+                        ? `Se generará un reembolso de <strong>S/ ${Number(montoAReembolsar).toFixed(2)}</strong> al cliente.`
+                        : 'La reserva quedará marcada como <strong>CANCELADA</strong>.'}
+                </p>
+            </div>
+        </div>
+
+        <!-- Resumen de la reserva -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px;">
+            <p style="margin:0 0 10px; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em;">Reserva a cancelar</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Cliente</span>
+                    <strong style="color:#1e293b;">${reserva.nombreCliente || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Cancha</span>
+                    <strong style="color:#1e293b;">${reserva.nombreCancha || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Fecha</span>
+                    <strong style="color:#1e293b;">${reserva.fecha || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Horario</span>
+                    <strong style="color:#1e293b;">${(reserva.horaInicio||'').substring(0,5)} – ${(reserva.horaFin||'').substring(0,5)}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motivo (obligatorio) -->
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <label class="modal-shell-label">
+                <i class='bx bx-message-square-detail'></i> Motivo de cancelación <span style="color:#ef4444;">*</span>
+            </label>
+            <textarea id="cx-motivo" class="modal-shell-input" rows="3"
+                placeholder="Por favor, describe el motivo de la cancelación..."
+                style="resize:vertical; min-height:72px; font-family:inherit;"></textarea>
+            <span class="modal-shell-error-text" id="cx-motivo-err"></span>
+        </div>
+
+        <!-- Método de reembolso (solo si hay reembolso) -->
+        ${necesitaReembolso ? `
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <div style="display:flex; align-items:center; gap:8px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px; padding:10px 14px; margin-bottom:10px;">
+                <i class='bx bx-money-withdraw' style="color:#059669; font-size:1.2rem;"></i>
+                <span style="font-size:13px; color:#166534;">
+                    Reembolso a devolver: <strong>S/ ${Number(montoAReembolsar).toFixed(2)}</strong>
+                </span>
+            </div>
+            <label class="modal-shell-label">
+                <i class='bx bx-wallet'></i> Método de devolución <span style="color:#ef4444;">*</span>
+            </label>
+            <select id="cx-metodo-reembolso" class="modal-shell-input">
+                <option value="">— Seleccionar método —</option>
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="YAPE">📱 Yape</option>
+                <option value="PLIN">📱 Plin</option>
+                <option value="TRANSFERENCIA">🏦 Transferencia Bancaria</option>
+                <option value="TARJETA">💳 Tarjeta</option>
+            </select>
+            <span class="modal-shell-error-text" id="cx-metodo-err"></span>
+        </div>
+        ` : ''}
+    </div>
+`;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TEMPLATE: REEMBOLSO MANUAL
+   Recibe { credito } — crédito disponible (Math.abs(saldoPendiente))
+───────────────────────────────────────────────────────────────────────── */
+export const reservaReembolsoTemplate = ({ credito }) => `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <!-- Info de crédito disponible -->
+        <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:14px 16px;">
+            <i class='bx bx-badge-check' style="font-size:1.8rem; color:#059669; flex-shrink:0;"></i>
+            <div>
+                <p style="margin:0 0 2px; font-weight:700; color:#166534; font-size:14px;">Crédito disponible</p>
+                <p style="margin:0; font-size:13px; color:#15803d;">
+                    Esta reserva tiene un saldo a favor del cliente de <strong>S/ ${Number(credito).toFixed(2)}</strong>.
+                </p>
+            </div>
+        </div>
+
+        <!-- Monto a reembolsar -->
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <label class="modal-shell-label">
+                <i class='bx bx-money'></i> Monto a devolver <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="number" id="rm-monto" class="modal-shell-input"
+                value="${Number(credito).toFixed(2)}"
+                min="0.01" max="${Number(credito).toFixed(2)}" step="0.01"
+                placeholder="0.00">
+            <span class="modal-shell-error-text" id="rm-monto-err"></span>
+            <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+                Máximo: S/ ${Number(credito).toFixed(2)}
+            </div>
+        </div>
+
+        <!-- Método de pago -->
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <label class="modal-shell-label">
+                <i class='bx bx-wallet'></i> Método de devolución <span style="color:#ef4444;">*</span>
+            </label>
+            <select id="rm-metodo" class="modal-shell-input">
+                <option value="">— Seleccionar método —</option>
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="YAPE">📱 Yape</option>
+                <option value="PLIN">📱 Plin</option>
+                <option value="TRANSFERENCIA">🏦 Transferencia Bancaria</option>
+                <option value="TARJETA">💳 Tarjeta</option>
+            </select>
+            <span class="modal-shell-error-text" id="rm-metodo-err"></span>
+        </div>
+
+        <!-- Nota opcional -->
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <label class="modal-shell-label">
+                <i class='bx bx-note'></i> Nota adicional
+                <span style="color:#94a3b8; font-size:11px; font-weight:400;">(opcional)</span>
+            </label>
+            <textarea id="rm-nota" class="modal-shell-input" rows="2"
+                placeholder="Ej: Reembolso autorizado por gerencia..."
+                style="resize:vertical; min-height:56px; font-family:inherit;"></textarea>
+        </div>
+    </div>
+`;

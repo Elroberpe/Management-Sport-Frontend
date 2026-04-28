@@ -3,7 +3,9 @@ import { initModalShell } from '../../shared/components/modal-shell.js';
 import { 
     reservaNewFormTemplate, 
     reservaDetailTemplate, 
-    reservaPagoFormTemplate 
+    reservaPagoFormTemplate,
+    reservaCancelarTemplate,
+    reservaReembolsoTemplate
 } from './reservas.modals.template.js';
 
 export function initModals(ctx) {
@@ -347,6 +349,168 @@ export function initModals(ctx) {
     }
 
     /* ─────────────────────────────────────────────────────────────────────
+       MODAL CANCELAR RESERVA
+    ───────────────────────────────────────────────────────────────────── */
+
+    // Constantes de penalidad (deben coincidir con el backend)
+    const HORAS_LIMITE_PENALIDAD = 3;
+    const PORCENTAJE_PENALIDAD   = 0.30;
+
+    /**
+     * Calcula el monto a reembolsar según las reglas de negocio.
+     * Si faltan >= HORAS_LIMITE horas: reembolso total del montoPagado.
+     * Si faltan < HORAS_LIMITE horas: reembolso = montoPagado - (montoTotal * 30%),  mínimo 0.
+     */
+    function calcularReembolso(reserva) {
+        const montoPagado = Number(reserva.montoPagado || 0);
+        if (montoPagado <= 0) return 0;
+
+        const ahora         = new Date();
+        const inicioReserva = new Date(`${reserva.fecha}T${reserva.horaInicio}`);
+        const horasRestantes = (inicioReserva - ahora) / (1000 * 60 * 60);
+
+        if (horasRestantes >= HORAS_LIMITE_PENALIDAD) {
+            return montoPagado; // reembolso completo
+        } else {
+            const penalidad = Number(reserva.montoTotal || 0) * PORCENTAJE_PENALIDAD;
+            return Math.max(0, montoPagado - penalidad);
+        }
+    }
+
+    let _cxData           = null;
+    let _cxNecesitaReemb  = false;
+    let _cxMontoReemb     = 0;
+
+    const modalCX = initModalShell({
+        id:          'modal-cancelar-reserva',
+        title:       'Confirmar Cancelación de Reserva',
+        icon:        'bx bx-x-circle',
+        confirmText: 'Confirmar Cancelación',
+        confirmStyle:'danger',
+        contentHtml: '<div></div>', // Se rellena dinámicamente en abrirModalCancelar
+        onConfirm: async (mCtx) => {
+            const motivo = (document.getElementById('cx-motivo')?.value || '').trim();
+            if (!motivo) {
+                mCtx.showFieldError('cx-motivo', 'El motivo es obligatorio.');
+                return;
+            }
+
+            if (_cxNecesitaReemb) {
+                const metodo = document.getElementById('cx-metodo-reembolso')?.value;
+                if (!metodo) {
+                    mCtx.showFieldError('cx-metodo-reembolso', 'Selecciona el método de devolución.');
+                    return;
+                }
+            }
+
+            const id    = _cxData.id || _cxData.reservaId;
+            const body  = { motivo };
+            if (_cxNecesitaReemb) {
+                body.metodoPagoReembolso = document.getElementById('cx-metodo-reembolso').value;
+            }
+
+            mCtx.setLoading(true);
+            try {
+                await api.post(`/reservas/${id}/cancelar`, body);
+                mCtx.showToast('Reserva cancelada correctamente');
+                mCtx.close();
+                _cargarSemana();
+                _fetchHistorical(0);
+            } catch (err) {
+                mCtx.setLoading(false);
+                mCtx.showError(err.message || 'Error al cancelar la reserva');
+            }
+        }
+    });
+
+    function abrirModalCancelar(reserva) {
+        _cxData          = reserva;
+        _cxMontoReemb    = calcularReembolso(reserva);
+        _cxNecesitaReemb = _cxMontoReemb > 0;
+
+        // Inyectar contenido dinámico en el body del modal
+        const bodyEl = document.querySelector('#modal-cancelar-reserva .modal-shell-body');
+        if (bodyEl) {
+            bodyEl.innerHTML =
+                `<div class="modal-shell-alert-error" id="modal-cancelar-reserva-err-gen" style="display:none;">
+                    <i class='bx bx-error-circle'></i>
+                    <span id="modal-cancelar-reserva-err-gen-msg"></span>
+                </div>` +
+                reservaCancelarTemplate({
+                    reserva,
+                    necesitaReembolso: _cxNecesitaReemb,
+                    montoAReembolsar:  _cxMontoReemb
+                });
+        }
+        modalCX.open();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       MODAL REEMBOLSO MANUAL
+    ───────────────────────────────────────────────────────────────────── */
+
+    let _rmData   = null;
+    let _rmCredito = 0;
+
+    const modalRM = initModalShell({
+        id:          'modal-reembolso-manual',
+        title:       'Registrar Reembolso Manual',
+        subtitle:    'Devuelve el crédito disponible al cliente',
+        icon:        'bx bx-money-withdraw',
+        confirmText: 'Confirmar Reembolso',
+        contentHtml: '<div></div>', // Se rellena dinámicamente en abrirModalReembolso
+        onConfirm: async (mCtx) => {
+            const montoStr = document.getElementById('rm-monto')?.value;
+            const monto    = parseFloat(montoStr);
+            const metodo   = document.getElementById('rm-metodo')?.value;
+            const nota     = (document.getElementById('rm-nota')?.value || '').trim();
+
+            let hasError = false;
+            if (!montoStr || isNaN(monto) || monto <= 0) {
+                mCtx.showFieldError('rm-monto', 'Ingresa un monto válido.'); hasError = true;
+            } else if (monto > _rmCredito) {
+                mCtx.showFieldError('rm-monto', `El monto no puede superar S/ ${_rmCredito.toFixed(2)}.`); hasError = true;
+            }
+            if (!metodo) {
+                mCtx.showFieldError('rm-metodo', 'Selecciona el método de devolución.'); hasError = true;
+            }
+            if (hasError) return;
+
+            const id   = _rmData.id || _rmData.reservaId;
+            const body = { monto, metodoPago: metodo };
+            if (nota) body.nota = nota;
+
+            mCtx.setLoading(true);
+            try {
+                await api.post(`/reservas/${id}/reembolso-manual`, body);
+                mCtx.showToast('Reembolso registrado correctamente');
+                mCtx.close();
+                _fetchHistorical(0);
+            } catch (err) {
+                mCtx.setLoading(false);
+                mCtx.showError(err.message || 'Error al registrar el reembolso');
+            }
+        }
+    });
+
+    function abrirModalReembolso(reserva) {
+        _rmData    = reserva;
+        _rmCredito = Math.abs(Number(reserva.saldoPendiente || 0));
+
+        // Inyectar contenido dinámico en el body del modal
+        const bodyEl = document.querySelector('#modal-reembolso-manual .modal-shell-body');
+        if (bodyEl) {
+            bodyEl.innerHTML =
+                `<div class="modal-shell-alert-error" id="modal-reembolso-manual-err-gen" style="display:none;">
+                    <i class='bx bx-error-circle'></i>
+                    <span id="modal-reembolso-manual-err-gen-msg"></span>
+                </div>` +
+                reservaReembolsoTemplate({ credito: _rmCredito });
+        }
+        modalRM.open();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
        MODAL PAGO
     ───────────────────────────────────────────────────────────────────── */
     const modalPago = initModalShell({
@@ -418,8 +582,8 @@ export function initModals(ctx) {
         },
 
         abrirModalReprogramar: (r) => console.log('Reprog', r),
-        abrirModalCancelar: (r) => console.log('Cancel', r),
-        abrirModalReembolso: (r) => console.log('Reembolso', r),
+        abrirModalCancelar,
+        abrirModalReembolso,
         imprimirReciboReserva: (r) => console.log('Print', r),
         mostrarResToast: (msg) => modalNR.showToast(msg),
         setCargarSemana: (fn) => _cargarSemana = fn,

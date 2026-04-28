@@ -9,8 +9,9 @@
  * @param {string} options.subtitle - Subtítulo descriptivo
  * @param {string} options.icon - Clase de icono (Boxicons)
  * @param {string} options.contentHtml - HTML del cuerpo del modal
- * @param {string} options.confirmText - Texto del botón primario
- * @param {string} options.cancelText - Texto del botón secundario
+ * @param {string} options.confirmText  - Texto del botón primario
+ * @param {string} options.confirmStyle - Estilo del botón primario: 'primary' (default) | 'danger'
+ * @param {string} options.cancelText   - Texto del botón secundario
  * @param {Function} options.onConfirm - Callback al presionar el botón primario (async)
  * @param {Function} options.onClose - Callback opcional al cerrar
  */
@@ -22,6 +23,7 @@ export function initModalShell(options) {
         icon = 'bx bx-layer',
         contentHtml = '',
         confirmText = 'Guardar Cambios',
+        confirmStyle = 'primary',
         cancelText = 'Cancelar',
         onConfirm = null,
         onClose = null
@@ -57,7 +59,7 @@ export function initModalShell(options) {
                 <!-- Footer -->
                 <div class="modal-shell-footer">
                     <button class="modal-shell-btn modal-shell-btn-secondary" id="${id}-btn-cancel">${cancelText}</button>
-                    <button class="modal-shell-btn modal-shell-btn-primary" id="${id}-btn-confirm">
+                    <button class="modal-shell-btn ${confirmStyle === 'danger' ? 'modal-shell-btn-danger' : 'modal-shell-btn-primary'}" id="${id}-btn-confirm">
                         <span class="btn-text">${confirmText}</span>
                         <span class="btn-loader" style="display:none;"><div class="modal-shell-spinner"></div> Cargando...</span>
                     </button>
