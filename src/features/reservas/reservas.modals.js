@@ -241,7 +241,34 @@ export function initModals(ctx) {
         icon: 'bx bx-calendar-check',
         confirmText: 'Añadir Pago',
         contentHtml: reservaDetailTemplate(),
-        onConfirm: () => {}
+        // Bug fix: onConfirm estaba vacío — el botón "Añadir Pago" no hacía nada.
+        // Ahora cierra el modal de detalle y abre el modal de pago con los datos
+        // de la reserva activa (_drId y _drData ya están cargados en el closure).
+        onConfirm: (ctx) => {
+            ctx.close();
+            const saldo = _drData ? Number(_drData.saldoPendiente) : 0;
+
+            // Pre-llenar campos del modal de pago
+            const montoInput  = document.getElementById('ap-monto');
+            const metodoInput = document.getElementById('ap-metodo');
+            const saldoInfo   = document.getElementById('ap-saldo-info');
+            const saldoVal    = document.getElementById('ap-saldo-val');
+
+            if (montoInput)  montoInput.value  = saldo > 0 ? saldo.toFixed(2) : '';
+            if (metodoInput) metodoInput.value = '';
+
+            if (saldoInfo && saldoVal) {
+                if (saldo > 0) {
+                    saldoVal.textContent  = `S/ ${saldo.toFixed(2)}`;
+                    saldoInfo.style.display = 'flex';
+                } else {
+                    saldoInfo.style.display = 'none';
+                }
+            }
+
+            // modalPago está en el mismo closure y ya existe en este punto
+            modalPago.open();
+        }
     });
 
     async function abrirDetalleReserva(id) {
