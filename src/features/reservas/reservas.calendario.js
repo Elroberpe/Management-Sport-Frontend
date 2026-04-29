@@ -8,57 +8,8 @@
 //   - Filtro de estado visual (sin petición extra)
 //   - Exportar CSV
 
-/* ──────────── CONSTANTES GLOBALES ──────────── */
-const HORA_INICIO = 7;
-const HORA_FIN    = 24;
-const TOTAL_HORAS = HORA_FIN - HORA_INICIO;  // 17
-
-const DIAS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const MESES_ES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-const ESTADO_STYLE = {
-    PAGADA:      { cls: 'c-blue',        label: 'Pagada',      dot: '#3b82f6' },
-    PENDIENTE:   { cls: 'c-yellow',      label: 'Pendiente',   dot: '#eab308' },
-    COMPLETADO:  { cls: 'c-green-light', label: 'Completada',  dot: '#10b981' },
-    CANCELADO:   { cls: 'c-gray',        label: 'Cancelada',   dot: '#ef4444' },
-    REEMBOLSADO: { cls: 'c-gray-purple', label: 'Reembolsada', dot: '#8b5cf6' }
-};
-
-/* ──────────── UTILS DE FECHA Y DOM ──────────── */
-function getLunes(offset) {
-    const hoy  = new Date();
-    const dia  = hoy.getDay();
-    const diff = (dia === 0) ? -6 : 1 - dia;
-    const l    = new Date(hoy);
-    l.setDate(hoy.getDate() + diff + (offset * 7));
-    l.setHours(0, 0, 0, 0);
-    return l;
-}
-
-function toISO(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-}
-
-function formatHora(timeStr) {
-    return timeStr ? timeStr.substring(0, 5) : '';
-}
-
-function posYPct(horaStr) {
-    const parts = horaStr.split(':');
-    const horas = parseInt(parts[0]) + parseInt(parts[1] || 0) / 60;
-    return ((horas - HORA_INICIO) / TOTAL_HORAS) * 100;
-}
-
-function altPct(ini, fin) {
-    return Math.max(posYPct(fin) - posYPct(ini), 5);
-}
-
-function escapeHtml(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+import { DIAS_ES, MESES_ES, ESTADO_STYLE, getLunes, toISO, formatHora, escapeHtml } from './reservas.calendario.utils.js';
+import { renderBottomStats } from './reservas.calendario.stats.js';
 
 /**
  * Inicializa el módulo de calendario semanal.
@@ -250,40 +201,7 @@ export function initCalendario(ctx) {
         semLabel.textContent = `${lunes.getDate()} ${MESES_ES[lunes.getMonth()].substring(0, 3)} - ${fin.getDate()} ${MESES_ES[fin.getMonth()].substring(0, 3)}, ${fin.getFullYear()}`;
     }
 
-    /* ──────────── Stats (todas las canchas) ──────────── */
-    function renderBottomStats() {
-        // Las stats cuentan TODAS las canchas de la semana, sin importar
-        // cuál esté seleccionada en el selector del calendario.
-        const reservas = reservasSemana.filter(r =>
-            r.estadoReserva !== 'CANCELADO' && r.estadoReserva !== 'REEMBOLSADO'
-        );
 
-        const completadas = reservas.filter(r => r.estadoReserva === 'COMPLETADO').length;
-
-        document.getElementById('cal-stat-total').textContent = completadas;
-        document.getElementById('cal-stat-bar').style.width = `${Math.min((completadas / Math.max(reservas.length, 1)) * 100, 100)}%`;
-
-        const subEl = document.getElementById('cal-stat-sub');
-        if (subEl) subEl.textContent = `de ${reservas.length} en total (${reservas.length ? Math.round((completadas/reservas.length)*100) : 0}%)`;
-
-        // Conteo por estado — todas las canchas
-        const counts = {};
-        reservasSemana.forEach(r => {
-            counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1;
-        });
-
-        const listEl = document.getElementById('cal-estado-list');
-        listEl.innerHTML = '';
-
-        Object.keys(ESTADO_STYLE).forEach(est => {
-            const meta  = ESTADO_STYLE[est];
-            const count = counts[est] || 0;
-            const item  = document.createElement('div');
-            item.className = 'cbc-item';
-            item.innerHTML = `<strong style='display:flex;align-items:center;gap:6px;'><span style='width:8px;height:8px;border-radius:50%;background:${meta.dot};display:inline-block;'></span>${meta.label}</strong><span class='cbc-badge' style='background:#f1f5f9;color:#334155;'>${count}</span>`;
-            listEl.appendChild(item);
-        });
-    }
 
     /* ──────────── Cargar semana completa ──────────── */
     function cargarSemana() {
@@ -326,7 +244,7 @@ export function initCalendario(ctx) {
             mantenimientosSemana = allMant.filter(m => m.estadoMantenimiento === 'PROGRAMADO' || m.estadoMantenimiento === 'EN_PROCESO' || m.estadoMantenimiento === 'COMPLETADO');
 
             actualizarEventosFC();
-            renderBottomStats();
+            renderBottomStats(reservasSemana);
 
             loading.style.display = 'none';
             panel.style.display   = '';
@@ -349,7 +267,7 @@ export function initCalendario(ctx) {
     filterEl.addEventListener('change', () => {
         filtroEstado = filterEl.value;
         actualizarEventosFC();
-        renderBottomStats();
+        renderBottomStats(reservasSemana);
     });
 
     /* ──────────── Exportar CSV ──────────── */
@@ -640,7 +558,7 @@ export function initCalendario(ctx) {
                         calCanchaSel.selectedIndex = 0;
                         canchaCalId = parseInt(calCanchaSel.value);
                         actualizarEventosFC();
-                        renderBottomStats();
+                        renderBottomStats(reservasSemana);
                     }
             }).catch(() => {
                 calCanchaSel.innerHTML = '<option value="">— Sin canchas —</option>';
@@ -650,7 +568,7 @@ export function initCalendario(ctx) {
     calCanchaSel.addEventListener('change', () => {
         canchaCalId = calCanchaSel.value ? parseInt(calCanchaSel.value) : null;
         actualizarEventosFC();
-        renderBottomStats();
+        renderBottomStats(reservasSemana);
     });
 
     /* ──────────── Inicio ──────────── */
