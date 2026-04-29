@@ -334,13 +334,20 @@ export function initModals(ctx) {
         const pagosActivos = pagos.filter(p => p.estado !== 'ANULADO');
 
         if (pagosActivos.length > 0) {
-            tbody.innerHTML = pagosActivos.map(p => `
+            tbody.innerHTML = pagosActivos.map(p => {
+                const esSalida  = p.tipoTransaccion === 'SALIDA';
+                const signo     = esSalida ? '−' : '+';
+                const color     = esSalida ? '#dc2626' : '#059669';
+                const tipoBadge = esSalida
+                    ? `<span style="font-size:10px; font-weight:700; background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; margin-left:6px;">REEMBOLSO</span>`
+                    : '';
+                return `
                 <tr>
                     <td>${p.fecha || '—'}</td>
-                    <td>${p.metodoPago || '—'}</td>
-                    <td style="text-align:right; font-weight:600; color:#059669;">+ S/ ${Number(p.monto).toFixed(2)}</td>
-                </tr>
-            `).join('');
+                    <td>${p.metodoPago || '—'}${tipoBadge}</td>
+                    <td style="text-align:right; font-weight:600; color:${color};">${signo} S/ ${Number(p.monto).toFixed(2)}</td>
+                </tr>`;
+            }).join('');
             document.getElementById('dr-empty-pagos').style.display = 'none';
         } else {
             tbody.innerHTML = '';
