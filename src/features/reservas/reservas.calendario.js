@@ -501,15 +501,15 @@ export function initCalendario(ctx) {
         pop.className = 'mant-popover';
         pop.style.width = '290px';
         pop.innerHTML = [
-            `<div class='mp-header' style='background:${hBg};'>`,
-                `<span class='mp-header-icon' style='background:rgba(255,255,255,0.15);font-size:16px;'>🔧</span>`,
+            `<div class='mp-header'>`,
+                `<span class='mp-header-icon' style='background:${eBg};color:${eColor};font-size:16px;'>🔧</span>`,
                 `<div style='flex:1;min-width:0;'>`,
-                    `<span class='mp-header-title' style='color:#fff;'>Mantenimiento #${m.id}</span>`,
-                    `<span style='display:block;font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px;'>${m.nombreCancha||'—'}</span>`,
+                    `<span class='mp-header-title'>Mantenimiento #${m.id}</span>`,
+                    `<span style='display:block;font-size:11px;color:#64748b;margin-top:2px;'>${m.nombreCancha||'—'}</span>`,
                 `</div>`,
                 `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'>`,
+                    `<button class='mp-header-close' id='pop-close-btn'>✕</button>`,
                     `<span style='background:${eBg};color:${eColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;'>${eLabel}</span>`,
-                    `<button class='mp-header-close' id='pop-close-btn' style='color:#fff;margin:0;'>✕</button>`,
                 `</div>`,
             `</div>`,
             `<div class='mp-body'>`,
@@ -588,7 +588,7 @@ export function initCalendario(ctx) {
         const pop = document.createElement('div');
         pop.className = 'mant-popover';
         pop.style.width = '300px';
-        pop.innerHTML = `<div class='mp-header' style='background:#1e3a5f;'><span class='mp-header-icon' style='background:rgba(255,255,255,0.15);'>📅</span><span class='mp-header-title' style='color:#fff;'>Cargando reserva...</span><button class='mp-header-close' id='rpop-close-btn' style='color:#fff;'>✕</button></div>`
+        pop.innerHTML = `<div class='mp-header'><span class='mp-header-icon' style='background:#f1f5f9;color:#64748b;'>📅</span><span class='mp-header-title'>Cargando reserva...</span><button class='mp-header-close' id='rpop-close-btn'>✕</button></div>`
             + `<div class='mp-body' style='text-align:center;padding:24px;'><i class='bx bx-loader-alt bx-spin' style='font-size:28px;color:#3b82f6;'></i></div>`;
 
         document.body.appendChild(pop);
@@ -633,10 +633,10 @@ export function initCalendario(ctx) {
                 if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns2.push(`<button class='mp-btn-cancel' id='rpop-cancelar-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;width:100%;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar Reserva</button>`);
 
                 pop.innerHTML = [
-                    `<div class='mp-header' style='background:${hBg};'>`,
-                        `<span class='mp-header-icon' style='background:rgba(255,255,255,0.15);'>📅</span>`,
-                        `<div style='flex:1;min-width:0;'><span class='mp-header-title' style='color:#fff;'>Reserva #${r.id}</span><span style='display:block;font-size:10px;color:rgba(255,255,255,0.75);margin-top:2px;'>${r.nombreCliente||'—'}</span></div>`,
-                        `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'><span style='background:${eBg};color:${eColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;'>${eLabel}</span><button class='mp-header-close' id='rpop-close-btn' style='color:#fff;margin:0;'>✕</button></div>`,
+                    `<div class='mp-header'>`,
+                        `<span class='mp-header-icon' style='background:${eBg};color:${eColor};'>📅</span>`,
+                        `<div style='flex:1;min-width:0;'><span class='mp-header-title'>Reserva #${r.id}</span><span style='display:block;font-size:11px;color:#64748b;margin-top:2px;'>${r.nombreCliente||'—'}</span></div>`,
+                        `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'><button class='mp-header-close' id='rpop-close-btn'>✕</button><span style='background:${eBg};color:${eColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;'>${eLabel}</span></div>`,
                     `</div>`,
                     `<div class='mp-body'>`,
                         `<div class='mp-row'><span>👤 Cliente</span><strong>${r.nombreCliente||'—'}</strong></div>`,
