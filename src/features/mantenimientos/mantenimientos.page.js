@@ -145,29 +145,6 @@ export function mount(container) {
         },
         actions: [
             { 
-                label: 'Iniciar', 
-                icon: 'bx bx-play-circle', 
-                show: (m) => m.estadoMantenimiento === 'PROGRAMADO',
-                onClick: async (m) => {
-                    try {
-                        await MantenimientoService.actualizarEstado(m.id, 'EN_PROCESO');
-                        table.fetch(0);
-                    } catch(e) { alert(e.message); }
-                }
-            },
-            { 
-                label: 'Completar', 
-                icon: 'bx bx-check-circle', 
-                class: 'success',
-                show: (m) => m.estadoMantenimiento === 'EN_PROCESO',
-                onClick: async (m) => {
-                    try {
-                        await MantenimientoService.actualizarEstado(m.id, 'COMPLETADO');
-                        table.fetch(0);
-                    } catch(e) { alert(e.message); }
-                }
-            },
-            { 
                 label: 'Editar', 
                 icon: 'bx bx-edit-alt', 
                 show: (m) => m.estadoMantenimiento === 'PROGRAMADO',
