@@ -309,3 +309,78 @@ export const reservaReembolsoTemplate = ({ credito }) => `
         </div>
     </div>
 `;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TEMPLATE: REPROGRAMAR RESERVA
+   Recibe la reserva original (r) — los slots de hora se populan vía JS
+───────────────────────────────────────────────────────────────────────── */
+export const reservaReprogramarTemplate = (r) => `
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <!-- Sección 1: Info original -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px;">
+            <p style="margin:0 0 10px; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em;">Estás modificando la reserva para:</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px;">
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Cancha</span>
+                    <strong style="color:#1e293b;">${r.nombreCancha || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Cliente</span>
+                    <strong style="color:#1e293b;">${r.nombreCliente || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Fecha actual</span>
+                    <strong style="color:#1e293b;">${r.fecha || '—'}</strong>
+                </div>
+                <div>
+                    <span style="display:block; color:#64748b; font-size:11px;">Horario actual</span>
+                    <strong style="color:#1e293b;">${(r.horaInicio||'').substring(0,5)} – ${(r.horaFin||'').substring(0,5)}</strong>
+                </div>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:#64748b;">Ya pagado por el cliente:</span>
+                <strong style="font-size:15px; color:#059669;">S/ ${Number(r.montoPagado || 0).toFixed(2)}</strong>
+            </div>
+        </div>
+
+        <!-- Sección 2: Nuevos datos -->
+        <div class="modal-shell-field" style="margin-bottom:0;">
+            <label class="modal-shell-label"><i class='bx bx-calendar'></i> Nueva Fecha <span style="color:#ef4444;">*</span></label>
+            <input type="date" id="rp-fecha" class="modal-shell-input">
+            <span class="modal-shell-error-text" id="rp-fecha-err"></span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="modal-shell-field" style="margin-bottom:0;">
+                <label class="modal-shell-label"><i class='bx bx-time'></i> Nueva Hora Inicio <span style="color:#ef4444;">*</span></label>
+                <select id="rp-hora-inicio" class="modal-shell-input">
+                    <option value="">— Seleccionar —</option>
+                </select>
+                <span class="modal-shell-error-text" id="rp-inicio-err"></span>
+            </div>
+            <div class="modal-shell-field" style="margin-bottom:0;">
+                <label class="modal-shell-label"><i class='bx bx-time-five'></i> Nueva Hora Fin <span style="color:#ef4444;">*</span></label>
+                <select id="rp-hora-fin" class="modal-shell-input" disabled>
+                    <option value="">— Selecciona inicio —</option>
+                </select>
+                <span class="modal-shell-error-text" id="rp-fin-err"></span>
+            </div>
+        </div>
+
+        <!-- Sección 3: Resumen dinámico (JS lo muestra/actualiza) -->
+        <div id="rp-resumen" style="display:none; background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:12px; padding:14px 16px;">
+            <p style="margin:0 0 10px; font-size:11px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.05em;">
+                <i class='bx bx-calculator'></i> Resumen del cambio
+            </p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px;">
+                <span style="color:#0c4a6e;">Nuevo costo total:</span>
+                <strong id="rp-nuevo-costo" style="color:#0c4a6e; font-size:15px;">S/ 0.00</strong>
+            </div>
+            <div style="border-top:1px dashed #bae6fd; padding-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+                <span id="rp-ajuste-texto" style="color:#0c4a6e; font-weight:600;">Ajuste de saldo:</span>
+                <strong id="rp-ajuste-val" style="font-size:15px;">S/ 0.00</strong>
+            </div>
+        </div>
+    </div>
+`;
