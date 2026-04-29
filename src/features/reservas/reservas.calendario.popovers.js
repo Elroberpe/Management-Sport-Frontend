@@ -57,11 +57,9 @@ export function createPopoversHandler(ctx) {
         const hBg = HEADER_BG[est] || '#1e293b';
 
         let actionBtns = '';
-        if (est === 'PROGRAMADO') {
-            actionBtns = `<button class='mp-btn-manage' id='pop-iniciar-btn' style='background:#059669;color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-play-circle'></i> Iniciar</button>`
-                       + `<button class='mp-btn-cancel' id='pop-cancel-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;flex:1;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar</button>`;
-        } else if (est === 'EN_PROCESO') {
-            actionBtns = `<button class='mp-btn-manage' id='pop-completar-btn' style='background:#2563eb;color:#fff;border:none;width:100%;justify-content:center;'><i class='bx bx-check-circle'></i> Marcar como Completado</button>`;
+        if (est === 'PROGRAMADO' || est === 'EN_PROCESO') {
+            actionBtns = `<button class='mp-btn-cancel' id='pop-cancel-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;flex:1;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar</button>`
+                       + `<button class='mp-btn-manage' id='pop-close-final-btn' style='flex:1;justify-content:center;'><i class='bx bx-x'></i> Cerrar</button>`;
         } else {
             actionBtns = `<button class='mp-btn-manage' id='pop-close-final-btn' style='width:100%;justify-content:center;'><i class='bx bx-x'></i> Cerrar</button>`;
         }
@@ -110,22 +108,6 @@ export function createPopoversHandler(ctx) {
         
         const closeFinalBtn = pop.querySelector('#pop-close-final-btn');
         if (closeFinalBtn) closeFinalBtn.addEventListener('click', cerrarPopover);
-
-        const iniciarBtn = pop.querySelector('#pop-iniciar-btn');
-        if (iniciarBtn) iniciarBtn.addEventListener('click', function() {
-            _setLoading(this, true);
-            api.patch(`/mantenimientos/${m.id}/estado`, { estado: 'EN_PROCESO' })
-                .then(() => { cerrarPopover(); modals.mostrarResToast('🟠 Mantenimiento iniciado — EN PROCESO'); cargarSemana(); })
-                .catch(e => { _showFeedback(`Error: ${e.message}`, true); _setLoading(iniciarBtn, false); });
-        });
-
-        const completarBtn = pop.querySelector('#pop-completar-btn');
-        if (completarBtn) completarBtn.addEventListener('click', function() {
-            _setLoading(this, true);
-            api.patch(`/mantenimientos/${m.id}/estado`, { estado: 'COMPLETADO' })
-                .then(() => { cerrarPopover(); modals.mostrarResToast('✅ Mantenimiento completado.'); cargarSemana(); })
-                .catch(e => { _showFeedback(`Error: ${e.message}`, true); _setLoading(completarBtn, false); });
-        });
 
         const cancelMantBtn = pop.querySelector('#pop-cancel-btn');
         if (cancelMantBtn) cancelMantBtn.addEventListener('click', function() {
