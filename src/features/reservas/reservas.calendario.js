@@ -489,10 +489,10 @@ export function initCalendario(ctx) {
 
         let actionBtns = '';
         if (est === 'PROGRAMADO') {
-            actionBtns = `<button class='mp-btn-manage' id='pop-iniciar-btn' style='background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-play-circle'></i> Iniciar</button>`
+            actionBtns = `<button class='mp-btn-manage' id='pop-iniciar-btn' style='background:#059669;color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-play-circle'></i> Iniciar</button>`
                        + `<button class='mp-btn-cancel' id='pop-cancel-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;flex:1;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar</button>`;
         } else if (est === 'EN_PROCESO') {
-            actionBtns = `<button class='mp-btn-manage' id='pop-completar-btn' style='background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;width:100%;justify-content:center;'><i class='bx bx-check-circle'></i> Marcar como Completado</button>`;
+            actionBtns = `<button class='mp-btn-manage' id='pop-completar-btn' style='background:#2563eb;color:#fff;border:none;width:100%;justify-content:center;'><i class='bx bx-check-circle'></i> Marcar como Completado</button>`;
         } else {
             actionBtns = `<button class='mp-btn-manage' id='pop-close-final-btn' style='width:100%;justify-content:center;'><i class='bx bx-x'></i> Cerrar</button>`;
         }
@@ -509,7 +509,7 @@ export function initCalendario(ctx) {
                 `</div>`,
                 `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'>`,
                     `<button class='mp-header-close' id='pop-close-btn'>✕</button>`,
-                    `<span style='background:${eBg};color:${eColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;'>${eLabel}</span>`,
+                    `<span class='legend-item badge-blue'>${eLabel}</span>`,
                 `</div>`,
             `</div>`,
             `<div class='mp-body'>`,
@@ -627,8 +627,8 @@ export function initCalendario(ctx) {
                 const rowBtns1 = [];
                 const rowBtns2 = [];
                 
-                if (est === 'PENDIENTE' && saldo > 0) rowBtns1.push(`<button class='mp-btn-manage' id='rpop-pago-btn' style='background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;flex:2;justify-content:center;'><i class='bx bx-credit-card'></i> Añadir Pago</button>`);
-                if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns1.push(`<button class='mp-btn-manage' id='rpop-reprog-btn' style='background:linear-gradient(135deg,#1e3a5f,#0284c7);color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-calendar-edit'></i> Reprogramar</button>`);
+                if (est === 'PENDIENTE' && saldo > 0) rowBtns1.push(`<button class='mp-btn-manage' id='rpop-pago-btn' style='background:#059669;color:#fff;border:none;flex:2;justify-content:center;'><i class='bx bx-credit-card'></i> Añadir Pago</button>`);
+                if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns1.push(`<button class='mp-btn-manage' id='rpop-reprog-btn' style='background:#0284c7;color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-calendar-edit'></i> Reprogramar</button>`);
                 if (est === 'PAGADA'    || est === 'COMPLETADO') rowBtns1.push(`<button class='mp-btn-manage' id='rpop-imprimir-btn' style='background:#f8fafc;color:#475569;border:1px solid #e2e8f0;flex:1;justify-content:center;font-size:11px;'><i class='bx bx-printer'></i> Imprimir</button>`);
                 if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns2.push(`<button class='mp-btn-cancel' id='rpop-cancelar-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;width:100%;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar Reserva</button>`);
 
@@ -636,7 +636,7 @@ export function initCalendario(ctx) {
                     `<div class='mp-header'>`,
                         `<span class='mp-header-icon' style='background:${eBg};color:${eColor};'>📅</span>`,
                         `<div style='flex:1;min-width:0;'><span class='mp-header-title'>Reserva #${r.id}</span><span style='display:block;font-size:11px;color:#64748b;margin-top:2px;'>${r.nombreCliente||'—'}</span></div>`,
-                        `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'><button class='mp-header-close' id='rpop-close-btn'>✕</button><span style='background:${eBg};color:${eColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap;'>${eLabel}</span></div>`,
+                        `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'><button class='mp-header-close' id='rpop-close-btn'>✕</button><span class='legend-item badge-blue'>${eLabel}</span></div>`,
                     `</div>`,
                     `<div class='mp-body'>`,
                         `<div class='mp-row'><span>👤 Cliente</span><strong>${r.nombreCliente||'—'}</strong></div>`,
