@@ -325,29 +325,29 @@ export function initCalendario(ctx) {
 
     /* ──────────── Stats (todas las canchas) ──────────── */
     function renderBottomStats() {
-        const reservas = reservasSemana.filter(r => {
-            if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return false;
-            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return false;
-            return true;
-        });
-        
+        // Las stats cuentan TODAS las canchas de la semana, sin importar
+        // cuál esté seleccionada en el selector del calendario.
+        const reservas = reservasSemana.filter(r =>
+            r.estadoReserva !== 'CANCELADO' && r.estadoReserva !== 'REEMBOLSADO'
+        );
+
         const completadas = reservas.filter(r => r.estadoReserva === 'COMPLETADO').length;
-        
+
         document.getElementById('cal-stat-total').textContent = completadas;
         document.getElementById('cal-stat-bar').style.width = `${Math.min((completadas / Math.max(reservas.length, 1)) * 100, 100)}%`;
 
         const subEl = document.getElementById('cal-stat-sub');
         if (subEl) subEl.textContent = `de ${reservas.length} en total (${reservas.length ? Math.round((completadas/reservas.length)*100) : 0}%)`;
 
+        // Conteo por estado — todas las canchas
         const counts = {};
-        reservasSemana.forEach(r => { 
-            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
-            counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1; 
+        reservasSemana.forEach(r => {
+            counts[r.estadoReserva] = (counts[r.estadoReserva] || 0) + 1;
         });
 
         const listEl = document.getElementById('cal-estado-list');
         listEl.innerHTML = '';
-        
+
         Object.keys(ESTADO_STYLE).forEach(est => {
             const meta  = ESTADO_STYLE[est];
             const count = counts[est] || 0;
