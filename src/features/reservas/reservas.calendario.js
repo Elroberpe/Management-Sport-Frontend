@@ -113,6 +113,24 @@ export function initCalendario(ctx) {
             headerToolbar: false,
             height: 'auto',
             slotEventOverlap: false,
+            nowIndicator: true,
+            dayHeaderContent: function(arg) {
+                const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                const dayName = DIAS[arg.date.getDay()].toUpperCase();
+                const dayNum = arg.date.getDate();
+                const isToday = arg.isToday;
+                const textColor = isToday ? '#16a34a' : 'var(--text-main)';
+                const subColor = isToday ? '#16a34a' : '#94a3b8';
+                return { html: `<div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                    <span style="font-size:10px; font-weight:700; color:${subColor}; letter-spacing:1px;">${dayName}</span>
+                    <strong style="font-size:18px; color:${textColor};">${dayNum}</strong>
+                </div>` };
+            },
+            slotLabelFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short'
+            },
             eventContent: function(arg) {
                 if (arg.event.extendedProps.type === 'RESERVA') {
                     const r = arg.event.extendedProps.raw;

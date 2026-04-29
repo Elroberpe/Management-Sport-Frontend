@@ -182,131 +182,63 @@
     flex-direction: column;
 }
 
-/* Headers Row */
-.cg-headers-row {
-    display: grid;
-    grid-template-columns: 80px repeat(7, 1fr);
-    border-bottom: 1px solid #eef2f6;
+/* ========================================= */
+/*       FULLCALENDAR CUSTOM THEME           */
+/* ========================================= */
+
+#fullcalendar-container {
+    --fc-border-color: #eef2f6;
+    --fc-daygrid-event-dot-width: 8px;
+    --fc-today-bg-color: #f8fcf9;
+    --fc-now-indicator-color: #16a34a;
+    font-family: inherit;
+}
+
+/* Header Columns */
+.fc-col-header-cell {
+    padding: 12px 0 !important;
     background: #fcfcfc;
+    border-bottom: 1px solid #eef2f6 !important;
 }
 
-.cg-corner {
-    border-right: 1px solid #eef2f6;
+.fc-col-header-cell-cushion {
+    display: inline-flex !important;
+    text-decoration: none !important;
+    color: var(--text-main) !important;
 }
 
-.cg-day-header {
-    padding: 16px 0;
-    text-align: center;
+.fc-scrollgrid-sync-inner {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    border-right: 1px solid #eef2f6;
+    justify-content: center;
 }
 
-.cg-day-header:last-child {
-    border-right: none;
-}
-
-.cg-day-header span {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 1px;
+/* Time axis (left) */
+.fc-timegrid-axis-cushion, 
+.fc-timegrid-slot-label-cushion {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #94a3b8 !important;
     text-transform: uppercase;
 }
 
-.cg-day-header strong {
-    font-size: 18px;
-    color: var(--text-main);
+/* Event overrides */
+.fc-v-event {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-.today-active {
-    background: #eefdf4;
+.fc-timegrid-event-harness {
+    margin: 0 4px !important; /* Spacing between columns and events */
 }
 
-.today-active span {
-    color: #16a34a;
+.fc-event:hover {
+    z-index: 10 !important;
 }
 
-.today-active strong {
-    color: #16a34a;
-}
-
-/* Body Wrapper */
-.cg-body-wrapper {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    position: relative;
-    height: 1200px;
-    /* 17 horas × 70px aprox */
-    padding: 15px 0;
-    /* Espacio para que la primera hora (0%) y última (100%) no se recorten */
-}
-
-/* Time axis */
-.cg-time-axis {
-    position: relative;
-    border-right: 1px solid #eef2f6;
-    height: 100%;
-}
-
-.time-slot {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    transform: translateY(-50%);
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-}
-
-/* Grid System */
-.cg-grid-system {
-    position: relative;
-    height: 100%;
-    display: flex;
-}
-
-/* Lines Background */
-.cg-lines-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.line-h {
-    position: absolute;
-    width: 100%;
-    height: 1px;
-    background: #f1f5f9;
-}
-
-/* Column Dividers */
-.cg-col-divider {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: #f1f5f9;
-    z-index: 1;
-}
-
-/* Columns */
-.cg-col {
-    position: relative;
-    flex: 1;
-    height: 100%;
-    z-index: 2;
-    padding: 0 8px;
-    /* Margin for cards */
-}
-
-.col-today-bg {
-    background: #f8fcf9;
+/* Lines */
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: #eef2f6 !important;
 }
 
 /* Cards — Google Calendar style */
