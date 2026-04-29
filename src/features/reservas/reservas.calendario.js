@@ -97,230 +97,139 @@ export function initCalendario(ctx) {
     const calCanchaSel = document.getElementById('cal-cancha-sel');
 
     /* ──────────── Ejes de tiempo ──────────── */
-    function buildEjes() {
-        const axis  = document.getElementById('cal-time-axis');
-        const lines = document.getElementById('cal-lines');
-        axis.innerHTML = lines.innerHTML = '';
+    /* ──────────── Inicialización de FullCalendar ──────────── */
+    let calendar = null;
+    function initFC() {
+        const calendarEl = document.getElementById('fullcalendar-container');
+        if (!calendarEl) return;
         
-        for (let h = HORA_INICIO; h <= HORA_FIN; h++) {
-            const pct   = ((h - HORA_INICIO) / TOTAL_HORAS) * 100;
-            const label = h < 12 ? `${h}:00 AM` : (h === 12 ? '12:00 PM' : (h === 24 ? '12:00 AM' : `${h - 12}:00 PM`));
-            
-            const slot = document.createElement('div');
-            slot.className = 'time-slot';
-            slot.style.top = `${pct}%`;
-            slot.textContent = label;
-            
-            const line = document.createElement('div');
-            line.className = 'line-h';
-            line.style.top = `${pct}%`;
-            
-            axis.appendChild(slot);
-            lines.appendChild(line);
-        }
-    }
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'es',
+            firstDay: 1, // Lunes
+            slotMinTime: '07:00:00',
+            slotMaxTime: '24:00:00',
+            allDaySlot: false,
+            headerToolbar: false,
+            height: 'auto',
+            slotEventOverlap: false,
+            eventContent: function(arg) {
+                if (arg.event.extendedProps.type === 'RESERVA') {
+                    const r = arg.event.extendedProps.raw;
+                    const meta = ESTADO_STYLE[r.estadoReserva] || ESTADO_STYLE['PENDIENTE'];
+                    let subText = '';
+                    
+                    const s = arg.event.start;
+                    const e = arg.event.end;
+                    const mins = e && s ? (e - s) / 60000 : 60;
+                    
+                    if (r.saldoPendiente > 0 && r.estadoReserva !== 'COMPLETADO' && mins >= 60) {
+                        subText = `<span class='cc-sub' style='color:#b45309;font-weight:700;'>Debe: S/ ${Number(r.saldoPendiente).toFixed(2)}</span>`;
+                    }
+                    
+                    const opacityStr = r.estadoReserva === 'COMPLETADO' ? 'opacity:0.6;' : '';
+                    
+                    const inner = `<div class="cal-card ${meta.cls}" style="position:relative; left:0; right:0; height:100%; border-left: 4px solid ${meta.dot}; border-radius:10px; padding:7px 10px; display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; ${opacityStr}">` +
+                                  `<span class='cc-title' style='font-size:12px;'>${escapeHtml(r.nombreCliente || 'Sin cliente')}</span>${subText}</div>`;
+                    return { html: inner };
+                } else {
+                    const m = arg.event.extendedProps.raw;
+                    const est = m.estadoMantenimiento;
+                    const esEnProceso = est === 'EN_PROCESO';
+                    const esCompletado = est === 'COMPLETADO';
 
-    /* ──────────── Headers de días ──────────── */
-    function buildHeaders(lunes) {
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        const row    = document.querySelector('.cg-headers-row');
-        const corner = row.querySelector('.cg-corner');
-        row.innerHTML = '';
-        
-        if (corner) {
-            row.appendChild(corner);
-        } else {
-            const _co = document.createElement('div');
-            _co.className = 'cg-corner';
-            row.appendChild(_co);
-        }
+                    let bgColor     = '#fff7ed'; 
+                    let borderColor = '#ea580c';
+                    let textColor   = '#c2410c';
+                    let subColor    = '#9a3412';
+                    let badgeBg     = '#ffedd5';
+                    let badgeLabel  = '🔧 Programado';
 
-        for (let i = 0; i < 7; i++) {
-            const dia = new Date(lunes);
-            dia.setDate(lunes.getDate() + i);
-            
-            const h = document.createElement('div');
-            h.className = 'cg-day-header' + (dia.getTime() === hoy.getTime() ? ' today-active' : '');
-            h.id        = `cal-h-${i}`;
-            h.innerHTML = `<span>${DIAS_ES[dia.getDay()].toUpperCase()}</span><strong>${dia.getDate()}</strong>`;
-            row.appendChild(h);
-        }
-        
-        const fin = new Date(lunes);
-        fin.setDate(lunes.getDate() + 6);
-        semLabel.textContent = `${lunes.getDate()} ${MESES_ES[lunes.getMonth()].substring(0, 3)} - ${fin.getDate()} ${MESES_ES[fin.getMonth()].substring(0, 3)}, ${fin.getFullYear()}`;
-    }
-
-    /* ──────────── Columnas dinámicas ──────────── */
-    function rebuildGridColumns(count, canchaIds) {
-        const grid = document.getElementById('cal-grid');
-        Array.from(grid.children).forEach(child => {
-            if (child.id !== 'cal-lines') grid.removeChild(child);
-        });
-        
-        for (let i = 0; i < count; i++) {
-            const col = document.createElement('div');
-            col.className   = 'cg-col';
-            col.id          = `cal-col-${i}`;
-            col.dataset.day = i;
-            if (canchaIds && canchaIds[i] !== undefined) col.dataset.canchaId = canchaIds[i];
-            grid.appendChild(col);
-        }
-        
-        for (let j = 1; j < count; j++) {
-            const divEl = document.createElement('div');
-            divEl.className  = 'cg-col-divider';
-            divEl.style.left = `${(j / count * 100).toFixed(4)}%`;
-            grid.appendChild(divEl);
-        }
-    }
-
-    /* ──────────── Card reserva ──────────── */
-    function buildCard(r) {
-        const meta = ESTADO_STYLE[r.estadoReserva] || ESTADO_STYLE['PENDIENTE'];
-        const div  = document.createElement('div');
-        
-        div.className    = `cal-card ${meta.cls}`;
-        div.style.top    = `${posYPct(r.horaInicio)}%`;
-        div.style.height = `${altPct(r.horaInicio, r.horaFin)}%`;
-        
-        if (r.estadoReserva === 'COMPLETADO') div.style.opacity = '0.6';
-        div.setAttribute('title', `${r.nombreCliente || 'Sin Cliente'}\n${formatHora(r.horaInicio)} - ${formatHora(r.horaFin)}`);
-
-        const alt = altPct(r.horaInicio, r.horaFin);
-        let subText = '';
-        
-        if (r.saldoPendiente > 0 && r.estadoReserva !== 'COMPLETADO') {
-            subText = `<span class='cc-sub' style='color:#b45309;font-weight:700;'>Debe: S/ ${Number(r.saldoPendiente).toFixed(2)}</span>`;
-        }
-        
-        div.innerHTML = `<span class='cc-title' style='font-size:12px;'>${escapeHtml(r.nombreCliente || 'Sin cliente')}</span>${alt >= 10 ? subText : ''}`;
-
-        div.addEventListener('click', (e) => { e.stopPropagation(); abrirPopoverReserva(r, div); });
-        return div;
-    }
-
-    /* ──────────── Card mantenimiento ──────────── */
-    function buildCardMant(m) {
-        const parseHora = (isoStr) => {
-            if (!isoStr) return '00:00';
-            const t = isoStr.split('T')[1] || isoStr;
-            return t.substring(0, 5);
-        };
-        
-        const hIni = parseHora(m.horaInicio);
-        const hFin = parseHora(m.horaFin);
-        const alt  = altPct(hIni, hFin);
-        
-        const est = m.estadoMantenimiento;
-        const esEnProceso = est === 'EN_PROCESO';
-        const esCompletado = est === 'COMPLETADO';
-
-        // Estilos según estado
-        let bgColor     = '#fff7ed'; // Default Programado (Naranja)
-        let borderColor = '#ea580c';
-        let textColor   = '#c2410c';
-        let subColor    = '#9a3412';
-        let badgeBg     = '#ffedd5';
-        let badgeLabel  = '🔧 Programado';
-
-        if (esEnProceso) {
-            bgColor     = '#fff1f2'; // Rojo/Rosa
-            borderColor = '#e11d48';
-            textColor   = '#9f1239';
-            subColor    = '#be123c';
-            badgeBg     = '#ffe4e6';
-            badgeLabel  = '⚙️ En Proceso';
-        } else if (esCompletado) {
-            bgColor     = '#f0fdf4'; // Verde
-            borderColor = '#16a34a';
-            textColor   = '#166534';
-            subColor    = '#15803d';
-            badgeBg     = '#dcfce7';
-            badgeLabel  = '✅ Completado';
-        }
-
-        const div = document.createElement('div');
-        div.className        = 'cal-card';
-        div.style.top        = `${posYPct(hIni)}%`;
-        div.style.height     = `${Math.max(alt, 5)}%`;
-        div.style.background = bgColor;
-        div.style.color      = textColor;
-        div.style.borderLeft = `4px solid ${borderColor}`;
-        
-        if (esCompletado) div.style.opacity = '0.7';
-
-        div.setAttribute('title', `🔧 Mantenimiento\nEstado: ${m.estadoMantenimiento || '—'}\n${formatHora(hIni)} - ${formatHora(hFin)}\nMotivo: ${m.motivo || '—'}`);
-        
-        div.innerHTML = [
-            `<span class='cc-title' style='font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;'><span>🔧</span><span>Mantenimiento</span></span>`,
-            alt >= 6  ? `<span style='font-size:9px;font-weight:700;background:${badgeBg};color:${subColor};padding:1px 6px;border-radius:6px;display:inline-block;margin-top:2px;'>${badgeLabel}</span>` : '',
-            alt >= 10 && m.motivo ? `<span class='cc-sub' style='font-size:10px;color:${subColor};'>${escapeHtml(m.motivo)}</span>` : '',
-            alt >= 10 ? `<span class='cc-sub' style='font-size:10px;color:${textColor};font-weight:600;display:block;margin-top:2px;'>${formatHora(hIni)} – ${formatHora(hFin)}</span>` : ''
-        ].join('');
-        
-        div.addEventListener('click', (e) => { e.stopPropagation(); abrirPopoverMant(m, div); });
-        return div;
-    }
-
-    /* ──────────── Render semana ──────────── */
-    function renderSemana(lunes, reservas) {
-        for (let i = 0; i < 7; i++) {
-            const col = document.getElementById(`cal-col-${i}`);
-            if (!col) continue;
-            col.classList.remove('col-today-bg');
-            Array.from(col.children).forEach(c => c.remove());
-        }
-        
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        for (let j = 0; j < 7; j++) {
-            const dj  = new Date(lunes);
-            dj.setDate(lunes.getDate() + j);
-            const colJ = document.getElementById(`cal-col-${j}`);
-            if (colJ && dj.getTime() === hoy.getTime()) colJ.classList.add('col-today-bg');
-        }
-
-        const porDia = {};
-        reservas.forEach(r => {
-            if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return;
-            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
-            
-            const diff = Math.round((new Date(`${r.fecha}T00:00:00`) - lunes) / 86400000);
-            if (diff >= 0 && diff < 7) {
-                if (!porDia[diff]) porDia[diff] = [];
-                porDia[diff].push(r);
+                    if (esEnProceso) {
+                        bgColor     = '#fff1f2'; 
+                        borderColor = '#e11d48';
+                        textColor   = '#9f1239';
+                        subColor    = '#be123c';
+                        badgeBg     = '#ffe4e6';
+                        badgeLabel  = '⚙️ En Proceso';
+                    } else if (esCompletado) {
+                        bgColor     = '#f0fdf4'; 
+                        borderColor = '#16a34a';
+                        textColor   = '#166534';
+                        subColor    = '#15803d';
+                        badgeBg     = '#dcfce7';
+                        badgeLabel  = '✅ Completado';
+                    }
+                    
+                    const s = arg.event.start;
+                    const e = arg.event.end;
+                    const mins = e && s ? (e - s) / 60000 : 60;
+                    
+                    // Fondo animado de franjas si es naranja (ya está en cal-card-mant class)
+                    const extraClass = (!esEnProceso && !esCompletado) ? 'cal-card-mant' : '';
+                    
+                    const inner = [
+                        `<div class="cal-card ${extraClass}" style="position:relative; left:0; right:0; height:100%; border-radius:10px; padding:7px 10px; display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; background:${bgColor}; color:${textColor}; border-left: 4px solid ${borderColor}; ${esCompletado ? 'opacity:0.7;' : ''}">`,
+                        `<span class='cc-title' style='font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;'><span>🔧</span><span>Mantenimiento</span></span>`,
+                        mins >= 40  ? `<span style='font-size:9px;font-weight:700;background:${badgeBg};color:${subColor};padding:1px 6px;border-radius:6px;display:inline-block;margin-top:2px;'>${badgeLabel}</span>` : '',
+                        mins >= 60 && m.motivo ? `<span class='cc-sub' style='font-size:10px;color:${subColor};'>${escapeHtml(m.motivo)}</span>` : '',
+                        mins >= 60 ? `<span class='cc-sub' style='font-size:10px;color:${textColor};font-weight:600;display:block;margin-top:2px;'>${formatHora(m.horaInicio?.split('T')[1] || m.horaInicio)} – ${formatHora(m.horaFin?.split('T')[1] || m.horaFin)}</span>` : '',
+                        `</div>`
+                    ].join('');
+                    return { html: inner };
+                }
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                info.jsEvent.stopPropagation();
+                if (info.event.extendedProps.type === 'RESERVA') {
+                    abrirPopoverReserva(info.event.extendedProps.raw, info.el);
+                } else {
+                    abrirPopoverMant(info.event.extendedProps.raw, info.el);
+                }
             }
         });
+        calendar.render();
+    }
+    
+    function actualizarEventosFC() {
+        if (!calendar) return;
+        
+        const events = [];
+        reservasSemana.forEach(r => {
+            if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return;
+            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
+            if (filtroEstado && r.estadoReserva !== filtroEstado) return;
 
-        Object.keys(porDia).forEach(diaIdx => {
-            const colEl = document.getElementById(`cal-col-${diaIdx}`);
-            if (!colEl) return;
-            
-            let resEnDia = porDia[diaIdx];
-            if (filtroEstado) resEnDia = resEnDia.filter(r => r.estadoReserva === filtroEstado);
-            
-            resEnDia.forEach(r => colEl.appendChild(buildCard(r)));
+            events.push({
+                id: 'R_' + r.id,
+                start: `${r.fecha}T${r.horaInicio}`,
+                end: `${r.fecha}T${r.horaFin}`,
+                extendedProps: { type: 'RESERVA', raw: r }
+            });
         });
 
         mantenimientosSemana.forEach(m => {
             if (canchaCalId && String(m.canchaId) !== String(canchaCalId)) return;
-            
-            const fecha = new Date(m.horaInicio);
-            fecha.setHours(0, 0, 0, 0);
-            const diff  = Math.round((fecha - lunes) / 86400000);
-            
-            if (diff >= 0 && diff < 7) {
-                const est = m.estadoMantenimiento;
-                if (est === 'PROGRAMADO' || est === 'EN_PROCESO' || est === 'COMPLETADO') {
-                    const colM = document.getElementById(`cal-col-${diff}`);
-                    if (colM) colM.appendChild(buildCardMant(m));
-                }
+            const est = m.estadoMantenimiento;
+            if (est === 'PROGRAMADO' || est === 'EN_PROCESO' || est === 'COMPLETADO') {
+                events.push({
+                    id: 'M_' + m.id,
+                    start: m.horaInicio,
+                    end: m.horaFin,
+                    extendedProps: { type: 'MANTENIMIENTO', raw: m }
+                });
             }
         });
+        
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
+    }
+    
+    function updateHeaderLabel(lunes) {
+        const fin = new Date(lunes);
+        fin.setDate(lunes.getDate() + 6);
+        semLabel.textContent = `${lunes.getDate()} ${MESES_ES[lunes.getMonth()].substring(0, 3)} - ${fin.getDate()} ${MESES_ES[fin.getMonth()].substring(0, 3)}, ${fin.getFullYear()}`;
     }
 
     /* ──────────── Stats (todas las canchas) ──────────── */
@@ -361,7 +270,15 @@ export function initCalendario(ctx) {
     /* ──────────── Cargar semana completa ──────────── */
     function cargarSemana() {
         const lunes = getLunes(semanaOffset);
-        buildHeaders(lunes);
+        updateHeaderLabel(lunes);
+        
+        if (!calendar) {
+            initFC();
+        }
+        
+        if (calendar) {
+            calendar.gotoDate(lunes);
+        }
 
         loading.style.display = 'flex';
         errBox.style.display  = 'none';
@@ -390,13 +307,13 @@ export function initCalendario(ctx) {
             reservasSemana       = allRes;
             mantenimientosSemana = allMant.filter(m => m.estadoMantenimiento === 'PROGRAMADO' || m.estadoMantenimiento === 'EN_PROCESO' || m.estadoMantenimiento === 'COMPLETADO');
 
-            buildEjes();
-            renderSemana(lunes, reservasSemana);
+            actualizarEventosFC();
             renderBottomStats();
 
             loading.style.display = 'none';
             panel.style.display   = '';
             bottom.style.display  = '';
+            if (calendar) calendar.render(); // Ensure it resizes correctly when displayed
         }).catch(err => {
             loading.style.display = 'none';
             errMsg.textContent    = `Error al cargar calendario: ${err.message}`;
@@ -413,7 +330,7 @@ export function initCalendario(ctx) {
 
     filterEl.addEventListener('change', () => {
         filtroEstado = filterEl.value;
-        renderSemana(getLunes(semanaOffset), reservasSemana);
+        actualizarEventosFC();
         renderBottomStats();
     });
 
@@ -701,12 +618,12 @@ export function initCalendario(ctx) {
                     calCanchaSel.appendChild(opt);
                 });
                 
-                if (calCanchaSel.options.length > 0) {
-                    calCanchaSel.selectedIndex = 0;
-                    canchaCalId = parseInt(calCanchaSel.value);
-                    renderSemana(getLunes(semanaOffset), reservasSemana);
-                    renderBottomStats();
-                }
+                    if (calCanchaSel.options.length > 0) {
+                        calCanchaSel.selectedIndex = 0;
+                        canchaCalId = parseInt(calCanchaSel.value);
+                        actualizarEventosFC();
+                        renderBottomStats();
+                    }
             }).catch(() => {
                 calCanchaSel.innerHTML = '<option value="">— Sin canchas —</option>';
             });
@@ -714,7 +631,7 @@ export function initCalendario(ctx) {
 
     calCanchaSel.addEventListener('change', () => {
         canchaCalId = calCanchaSel.value ? parseInt(calCanchaSel.value) : null;
-        renderSemana(getLunes(semanaOffset), reservasSemana);
+        actualizarEventosFC();
         renderBottomStats();
     });
 

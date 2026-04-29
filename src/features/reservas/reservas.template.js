@@ -55,44 +55,8 @@ export const reservasTemplate = () => `
     <!-- Calendar Grid Panel -->
     <div class="calendar-panel" id="cal-panel" style="display:none;">
 
-        <!-- Day Headers -->
-        <div class="cg-headers-row">
-            <div class="cg-corner"></div>
-            <div class="cg-day-header" id="cal-h-0"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-1"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-2"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-3"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-4"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-5"><span></span><strong></strong></div>
-            <div class="cg-day-header" id="cal-h-6"><span></span><strong></strong></div>
-        </div>
-
-        <div class="cg-body-wrapper">
-            <!-- Time Axis (08:00 - 22:00 = 14 horas) -->
-            <div class="cg-time-axis" id="cal-time-axis"></div>
-
-            <div class="cg-grid-system" id="cal-grid">
-                <!-- Líneas horizontales -->
-                <div class="cg-lines-bg" id="cal-lines"></div>
-
-                <!-- Columnas días -->
-                <div class="cg-col" id="cal-col-0" data-day="0"></div>
-                <div class="cg-col" id="cal-col-1" data-day="1"></div>
-                <div class="cg-col" id="cal-col-2" data-day="2"></div>
-                <div class="cg-col" id="cal-col-3" data-day="3"></div>
-                <div class="cg-col" id="cal-col-4" data-day="4"></div>
-                <div class="cg-col" id="cal-col-5" data-day="5"></div>
-                <div class="cg-col" id="cal-col-6" data-day="6"></div>
-
-                <!-- Divisores verticales -->
-                <div class="cg-col-divider" style="left:14.28%"></div>
-                <div class="cg-col-divider" style="left:28.56%"></div>
-                <div class="cg-col-divider" style="left:42.84%"></div>
-                <div class="cg-col-divider" style="left:57.12%"></div>
-                <div class="cg-col-divider" style="left:71.40%"></div>
-                <div class="cg-col-divider" style="left:85.68%"></div>
-            </div>
-        </div>
+        <!-- FullCalendar Container -->
+        <div id="fullcalendar-container" style="padding: 16px; background: #fff; border-radius: 16px;"></div>
     </div>
 
     <!-- Bottom Stats Cards -->
