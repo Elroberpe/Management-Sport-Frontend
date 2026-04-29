@@ -339,8 +339,8 @@ export function initModals(ctx) {
                 const signo     = esSalida ? '−' : '+';
                 const color     = esSalida ? '#dc2626' : '#059669';
                 const tipoBadge = esSalida
-                    ? `<span style="font-size:10px; font-weight:700; background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; margin-left:6px;">REEMBOLSO</span>`
-                    : '';
+                    ? `<span style="font-size:10px; font-weight:700; background:#f3e8ff; color:#7e22ce; padding:2px 6px; border-radius:4px; margin-left:6px;">REEMBOLSO</span>`
+                    : `<span style="font-size:10px; font-weight:700; background:#dbeafe; color:#1d4ed8; padding:2px 6px; border-radius:4px; margin-left:6px;">PAGO</span>`;
                 return `
                 <tr>
                     <td>${p.fecha || '—'}</td>
