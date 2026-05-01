@@ -62,8 +62,13 @@ function _extractRole(payload) {
     const raw = payload.roles;
 
     if (Array.isArray(raw) && raw.length > 0) {
-        // Normalizamos: "ROLE_SUPERADMIN" → "superadmin"
-        return raw[0].replace(/^ROLE_/i, '').toLowerCase();
+        // Spring Security devuelve GrantedAuthority como objetos: [{ authority: "ROLE_X" }]
+        // pero también puede ser un array de strings: ["ROLE_X"]
+        const first = raw[0];
+        const roleStr = (typeof first === 'object' && first !== null)
+            ? (first.authority || first.role || Object.values(first)[0] || '')
+            : String(first);
+        return roleStr.replace(/^ROLE_/i, '').toLowerCase();
     }
 
     if (typeof raw === 'string') {
