@@ -1,0 +1,58 @@
+openapi: 3.0.1
+info:
+  title: Management-Sport API
+  description: API para la gestión de complejos deportivos.
+  version: v1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Servidor de Desarrollo
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Autenticar usuario
+      description: Permite a un usuario autenticarse y obtener un token JWT para acceder a los endpoints protegidos.
+      operationId: login
+      requestBody:
+        description: Credenciales del usuario para la autenticación.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Autenticación exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: No autorizado. Credenciales incorrectas.
+        '400':
+          description: Solicitud incorrecta.
+
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Nombre de usuario para el login.
+          example: "superadmin"
+        password:
+          type: string
+          description: Contraseña del usuario.
+          example: "admin123"
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JSON Web Token para ser usado en las cabeceras de autorización.
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2MjM5MDIyLCJleHAiOjE2MTYyNDI2MjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"

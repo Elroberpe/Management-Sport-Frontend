@@ -23,10 +23,10 @@ export const loginTemplate = () => `
 
         <form id="login-form" autocomplete="off">
             <div class="input-group">
-                <label for="email">Correo Electrónico</label>
+                <label for="username">Usuario</label>
                 <div class="input-wrapper">
-                    <i class='bx bx-envelope'></i>
-                    <input type="email" id="email" name="email" placeholder="usuario@pitchpro.com" required>
+                    <i class='bx bx-user'></i>
+                    <input type="text" id="username" name="username" placeholder="superadmin" required autocomplete="username">
                 </div>
             </div>
 
@@ -58,20 +58,10 @@ export const loginTemplate = () => `
         <div class="demo-credentials">
             <p class="demo-title"><i class='bx bx-info-circle'></i> Credenciales de Demo</p>
             <div class="demo-cards">
-                <div class="demo-card" data-email="superadmin@pitchpro.com" data-pass="super123">
+                <div class="demo-card" data-username="superadmin" data-pass="admin123">
                     <span class="demo-role-badge badge-super">SUPER ADMIN</span>
-                    <strong>superadmin@pitchpro.com</strong>
-                    <span>super123</span>
-                </div>
-                <div class="demo-card" data-email="admin@sede1.com" data-pass="admin123">
-                    <span class="demo-role-badge badge-admin">ADMIN SEDE</span>
-                    <strong>admin@sede1.com</strong>
+                    <strong>superadmin</strong>
                     <span>admin123</span>
-                </div>
-                <div class="demo-card" data-email="recep@sede1.com" data-pass="recep123">
-                    <span class="demo-role-badge badge-recep">RECEPCIONISTA</span>
-                    <strong>recep@sede1.com</strong>
-                    <span>recep123</span>
                 </div>
             </div>
         </div>

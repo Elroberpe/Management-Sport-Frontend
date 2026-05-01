@@ -24,22 +24,21 @@ export function mount() {
     document.getElementById('header-user-role').textContent   = session.rolLabel;
     document.getElementById('sidebar-role-label').textContent = session.rolLabel;
     
-    const avatarImg = document.getElementById('header-avatar-img');
-    if (session.avatar && avatarImg) avatarImg.src = session.avatar;
+    // El avatar puede venir embebido en el JWT en el futuro; por ahora se usa el predeterminado del CSS.
 
     // Cerrar sesión
     const logoutBtn = document.getElementById('sidebar-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function (e) {
+        logoutBtn.addEventListener('click', async function (e) {
             e.preventDefault();
-            Auth.logout();
+            await Auth.logout();
         });
     }
 
     const avatarBtn = document.getElementById('header-avatar-btn');
     if (avatarBtn) {
-        avatarBtn.addEventListener('click', function () {
-            if (confirm('¿Cerrar sesión?')) Auth.logout();
+        avatarBtn.addEventListener('click', async function () {
+            if (confirm('¿Cerrar sesión?')) await Auth.logout();
         });
     }
 

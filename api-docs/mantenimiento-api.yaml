@@ -13,8 +13,13 @@ paths:
       tags:
         - Mantenimientos
       summary: "Listar todos los mantenimientos"
-      description: "Obtiene una lista paginada de todos los mantenimientos programados o en curso."
+      description: "Obtiene una lista paginada de todos los mantenimientos, con filtro opcional por sucursal."
       parameters:
+        - name: sucursalId
+          in: query
+          description: "Filtra los mantenimientos por la sucursal a la que pertenecen."
+          schema:
+            type: integer
         - name: page
           in: query
           schema:
@@ -42,28 +47,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/MantenimientoResponse'
-                  # ... (otras propiedades de paginación)
-    post:
-      tags:
-        - Mantenimientos
-      summary: "Programar un nuevo mantenimiento"
-      description: "Crea un nuevo registro de mantenimiento para una cancha, bloqueando el calendario. El sistema valida que no haya conflictos con reservas o eventos existentes."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateMantenimientoRequest'
-      responses:
-        '201':
-          description: "Mantenimiento programado con éxito."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MantenimientoResponse'
-        '400':
-          description: "Datos inválidos o conflicto de horario con una reserva/evento."
-
   /mantenimientos/{id}:
     parameters:
       - $ref: '#/components/parameters/MantenimientoId'

@@ -12,44 +12,34 @@ paths:
     get:
       tags:
         - Usuarios
-      summary: "Listar todos los usuarios"
-      description: "Obtiene una lista paginada de todos los usuarios del sistema."
+      summary: "Listar usuarios con filtrado por rol"
+      description: |
+        Obtiene una lista paginada de usuarios. El resultado varía según el rol del usuario autenticado:
+        - **SUPERADMIN**: Ve todos los usuarios del sistema.
+        - **ADMIN**: Ve únicamente los usuarios de su propia sucursal.
+        - **RECEPCIONISTA**: No tiene acceso a este endpoint.
+      security:
+        - bearerAuth: []
       parameters:
-        - name: page
-          in: query
-          description: "Número de la página a obtener."
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          description: "Número de usuarios por página."
-          schema:
-            type: integer
-            default: 20
-        - name: sort
-          in: query
-          description: "Criterio de ordenación (ej. 'nombre,asc')."
-          schema:
-            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
       responses:
         '200':
           description: "Lista de usuarios obtenida con éxito."
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  content:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UsuarioResponse'
-                  # ... (otras propiedades de paginación)
+                $ref: '#/components/schemas/PageableUsuarioResponse'
+        '403':
+          description: "Acceso denegado."
     post:
       tags:
         - Usuarios
       summary: "Crear un nuevo usuario"
-      description: "Registra un nuevo usuario en el sistema (operador, administrador, etc.)."
+      description: "Registra un nuevo usuario. Un SUPERADMIN puede crear ADMINS y RECEPCIONISTAS. Un ADMIN solo puede crear RECEPCIONISTAS."
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -64,21 +54,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsuarioResponse'
         '400':
-          description: "Datos de entrada inválidos (ej. username/email duplicado, rol requiere sucursal)."
+          description: "Datos de entrada inválidos."
+        '403':
+          description: "Acceso denegado."
 
   /usuarios/{id}:
     parameters:
-      - name: id
-        in: path
-        required: true
-        description: "ID del usuario a operar."
-        schema:
-          type: integer
+      - $ref: '#/components/parameters/UserId'
     get:
       tags:
         - Usuarios
       summary: "Obtener un usuario por su ID"
-      description: "Recupera los detalles de un usuario específico."
+      description: "Recupera los detalles de un usuario. Un usuario puede ver su propio perfil. ADMIN/SUPERADMIN pueden ver cualquier perfil."
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: "Detalles del usuario."
@@ -86,13 +75,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsuarioResponse'
+        '403':
+          description: "Acceso denegado."
         '404':
           description: "Usuario no encontrado."
     put:
       tags:
         - Usuarios
       summary: "Actualizar datos de un usuario"
-      description: "Actualiza los datos de un usuario (nombre, email, etc.). No permite cambiar contraseña ni rol."
+      description: "Actualiza datos de un usuario. Un usuario puede actualizar su propio perfil. ADMIN/SUPERADMIN pueden actualizar a otros."
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -106,16 +99,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsuarioResponse'
+        '403':
+          description: "Acceso denegado."
         '404':
           description: "Usuario no encontrado."
     delete:
       tags:
         - Usuarios
       summary: "Eliminar un usuario"
-      description: "Elimina un usuario por su ID."
+      description: "Elimina un usuario por su ID. Solo ADMIN/SUPERADMIN pueden realizar esta acción."
+      security:
+        - bearerAuth: []
       responses:
         '204':
           description: "Usuario eliminado con éxito."
+        '403':
+          description: "Acceso denegado."
         '404':
           description: "Usuario no encontrado."
 
@@ -124,13 +123,11 @@ paths:
       tags:
         - Usuarios
       summary: "Cambiar la contraseña de un usuario"
-      description: "Permite a un usuario cambiar su propia contraseña, verificando la contraseña actual."
+      description: "Permite a un usuario cambiar su propia contraseña. ADMIN/SUPERADMIN también pueden cambiar la de otros."
+      security:
+        - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/UserId'
       requestBody:
         required: true
         content:
@@ -142,102 +139,94 @@ paths:
           description: "Contraseña cambiada con éxito."
         '400':
           description: "La contraseña actual es incorrecta."
+        '403':
+          description: "Acceso denegado."
         '404':
           description: "Usuario no encontrado."
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: "ID del usuario a operar."
+      schema:
+        type: integer
+    Page:
+      name: page
+      in: query
+      description: "Número de la página a obtener."
+      schema:
+        type: integer
+        default: 0
+    Size:
+      name: size
+      in: query
+      description: "Número de usuarios por página."
+      schema:
+        type: integer
+        default: 10
+    Sort:
+      name: sort
+      in: query
+      description: "Criterio de ordenación (ej. 'nombre,asc')."
+      schema:
+        type: string
   schemas:
     UsuarioResponse:
       type: object
       properties:
-        usuarioId:
-          type: integer
-          example: 1
-        empresaId:
-          type: integer
-          example: 1
-        sucursalId:
-          type: integer
-          example: 1
-        username:
-          type: string
-          example: "jdoe"
-        nombre:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          example: "john.doe@example.com"
-        rol:
-          type: string
-          enum: [SUPERADMIN, ADMIN, RECEPCIONISTA]
-          example: "ADMIN"
-        ultimoLogin:
-          type: string
-          format: date-time
-          example: "2024-04-19T20:00:00Z"
-
+        usuarioId: { type: integer, example: 1 }
+        empresaId: { type: integer, example: 1 }
+        sucursalId: { type: integer, example: 1 }
+        username: { type: string, example: "jdoe" }
+        nombre: { type: string, example: "John Doe" }
+        email: { type: string, example: "john.doe@example.com" }
+        rol: { type: string, enum: [SUPERADMIN, ADMIN, RECEPCIONISTA], example: "ADMIN" }
+        ultimoLogin: { type: string, format: date-time, example: "2024-04-19T20:00:00Z" }
     CreateUsuarioRequest:
       type: object
-      required:
-        - empresaId
-        - username
-        - nombre
-        - email
-        - password
-        - rol
+      required: [ "username", "nombre", "email", "password", "rol" ]
       properties:
-        empresaId:
-          type: integer
-          example: 1
-        sucursalId:
-          type: integer
-          description: "Requerido si el rol es ADMIN o RECEPCIONISTA."
-          example: 1
-        username:
-          type: string
-          example: "jdoe"
-        nombre:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john.doe@example.com"
-        password:
-          type: string
-          format: password
-          example: "MyS3cur3P@ssw0rd"
-        rol:
-          type: string
-          enum: [SUPERADMIN, ADMIN, RECEPCIONISTA]
-          example: "ADMIN"
-
+        sucursalId: { type: integer, description: "Requerido si el rol es ADMIN o RECEPCIONISTA.", example: 1 }
+        username: { type: string, example: "jdoe" }
+        nombre: { type: string, example: "John Doe" }
+        email: { type: string, format: email, example: "john.doe@example.com" }
+        password: { type: string, format: password, example: "MyS3cur3P@ssw0rd" }
+        rol: { type: string, enum: [ADMIN, RECEPCIONISTA], example: "ADMIN" }
     UpdateUsuarioRequest:
       type: object
       properties:
-        username:
-          type: string
-          example: "john.doe"
-        nombre:
-          type: string
-          example: "Johnathan Doe"
-        email:
-          type: string
-          format: email
-          example: "johnathan.d@example.com"
-
+        username: { type: string, example: "john.doe" }
+        nombre: { type: string, example: "Johnathan Doe" }
+        email: { type: string, format: email, example: "johnathan.d@example.com" }
     ChangePasswordRequest:
       type: object
-      required:
-        - passwordActual
-        - passwordNueva
+      required: [ "passwordActual", "passwordNueva" ]
       properties:
-        passwordActual:
-          type: string
-          format: password
-          example: "MyS3cur3P@ssw0rd"
-        passwordNueva:
-          type: string
-          format: password
-          example: "MyN3wS3cur3P@ssw0rd"
+        passwordActual: { type: string, format: password, example: "MyS3cur3P@ssw0rd" }
+        passwordNueva: { type: string, format: password, example: "MyN3wS3cur3P@ssw0rd" }
+    PageableUsuarioResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsuarioResponse'
+        pageable:
+          type: object
+          properties:
+            pageNumber: { type: integer }
+            pageSize: { type: integer }
+        totalPages: { type: integer }
+        totalElements: { type: integer }
+        last: { type: boolean }
+        first: { type: boolean }
+        numberOfElements: { type: integer }
+        empty: { type: boolean }

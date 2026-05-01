@@ -1,0 +1,153 @@
+openapi: 3.0.1
+info:
+  title: "Management-Sport - API de Autenticación"
+  description: |
+    Documentación específica para las operaciones de autenticación, login, renovación de tokens y logout.
+    
+    **Flujo de Autenticación:**
+    1. El cliente envía credenciales a `/api/auth/login`.
+    2. El servidor responde con un `access_token` (corta duración) y un `refresh_token` (larga duración).
+    3. El cliente usa el `access_token` para acceder a los endpoints protegidos.
+    4. Cuando el `access_token` expira (error 401), el cliente usa el `refresh_token` para llamar a `/api/auth/refresh-token`.
+    5. El servidor devuelve un nuevo `access_token`.
+    6. Para cerrar sesión, el cliente llama a `/api/auth/logout`, lo que invalida el `refresh_token` en el servidor.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor de desarrollo local
+
+tags:
+  - name: "Authentication"
+    description: "Operaciones de autenticación, login y renovación de tokens."
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Autentica un usuario y devuelve un Access Token y un Refresh Token."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: "Autenticación exitosa."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: "Credenciales inválidas."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDTO'
+
+  /api/auth/refresh-token:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Genera un nuevo Access Token usando un Refresh Token válido."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: "Token de acceso renovado exitosamente."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: "El Refresh Token es inválido o ha expirado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDTO'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Invalida el Refresh Token del usuario autenticado."
+      description: "El usuario debe estar autenticado con un Access Token válido para llamar a este endpoint. Esto efectivamente cierra la sesión, ya que no se podrán generar nuevos Access Tokens."
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Logout exitoso. El Refresh Token ha sido invalidado."
+        '401':
+          description: "No autenticado (token inválido o ausente)."
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "superadmin"
+        password:
+          type: string
+          example: "admin123"
+      required:
+        - username
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTY2Njc1NjZ9.signature"
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTcyNzE0NjZ9.long_signature"
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTcyNzE0NjZ9.long_signature"
+      required:
+        - refreshToken
+
+    ErrorResponseDTO:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        traceId:
+          type: string
+        validationErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

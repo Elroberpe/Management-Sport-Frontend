@@ -7,8 +7,8 @@ export function template() {
 }
 
 export function mount(container) {
-    const form = document.getElementById('login-form');
-    const btn = document.getElementById('login-submit-btn');
+    const form   = document.getElementById('login-form');
+    const btn    = document.getElementById('login-submit-btn');
     const errBox = document.getElementById('login-error');
     const errMsg = document.getElementById('login-error-msg');
 
@@ -16,7 +16,7 @@ export function mount(container) {
         errMsg.textContent = msg;
         errBox.style.display = 'flex';
         errBox.style.animation = 'none';
-        errBox.offsetHeight; // reflow
+        errBox.offsetHeight; // reflow para reiniciar animación
         errBox.style.animation = '';
     }
 
@@ -24,38 +24,37 @@ export function mount(container) {
         errBox.style.display = 'none';
     }
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
         hideError();
 
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
+        const username = document.getElementById('username').value.trim();
+        const pass     = document.getElementById('password').value;
 
         btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Verificando...";
-        btn.disabled = true;
+        btn.disabled  = true;
+
+        const result = await Auth.login(username, pass);
+
+        if (!result.ok) {
+            showError(result.error || 'Usuario o contraseña incorrectos.');
+            btn.innerHTML = "Ingresar al Panel <i class='bx bx-right-arrow-alt'></i>";
+            btn.disabled  = false;
+            return;
+        }
+
+        btn.innerHTML = "<i class='bx bx-check'></i> Acceso concedido";
+        btn.style.background = '#16a34a';
 
         setTimeout(function () {
-            const result = Auth.login(email, pass);
-
-            if (!result.ok) {
-                showError(result.error);
-                btn.innerHTML = "Ingresar al Panel <i class='bx bx-right-arrow-alt'></i>";
-                btn.disabled = false;
-                return;
-            }
-
-            btn.innerHTML = "<i class='bx bx-check'></i> Acceso concedido";
-            btn.style.background = '#16a34a';
-
-            setTimeout(function () {
-                window.location.hash = '#/dashboard/inicio';
-            }, 500);
-        }, 600);
+            window.location.hash = '#/dashboard/inicio';
+        }, 500);
     });
 
+    // Demo cards: llenar el form al hacer click
     document.querySelectorAll('.demo-card').forEach(function (card) {
         card.addEventListener('click', function () {
-            document.getElementById('email').value = card.dataset.email;
+            document.getElementById('username').value = card.dataset.username;
             document.getElementById('password').value = card.dataset.pass;
             hideError();
         });
@@ -63,6 +62,5 @@ export function mount(container) {
 }
 
 export function unmount() {
-    // Si tuviéramos event listeners en `window` o `document`, los quitaríamos aquí.
-    // Los eventos en `form` se mueren cuando DOM pisa el innerHTML.
+    // Los event listeners en el form mueren cuando el innerHTML se reemplaza.
 }

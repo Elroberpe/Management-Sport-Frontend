@@ -1,0 +1,232 @@
+openapi: 3.0.1
+info:
+  title: "Management-Sport API"
+  description: "API para la gestión de complejos deportivos, incluyendo autenticación, usuarios y canchas."
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor de desarrollo local
+
+tags:
+  - name: "Authentication"
+    description: "Operaciones de autenticación, login y renovación de tokens."
+  - name: "User Management"
+    description: "Operaciones para la gestión de usuarios del sistema."
+  - name: "Field Management"
+    description: "Operaciones para la gestión de canchas."
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Autentica un usuario y devuelve un Access Token y un Refresh Token."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: "Autenticación exitosa."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: "Credenciales inválidas."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDTO'
+
+  /api/auth/refresh-token:
+    post:
+      tags:
+        - "Authentication"
+      summary: "Genera un nuevo Access Token usando un Refresh Token válido."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: "Token de acceso renovado exitosamente."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: "El Refresh Token es inválido o ha expirado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDTO'
+
+  /api/v1/users:
+    post:
+      tags:
+        - "User Management"
+      summary: "Crea un nuevo usuario en el sistema."
+      description: |
+        Permite a un SUPERADMIN o ADMIN crear un nuevo usuario.
+        Reglas de negocio:
+        - Un SUPERADMIN puede crear usuarios ADMIN o RECEPCIONISTA.
+        - Un ADMIN solo puede crear usuarios RECEPCIONISTA.
+        - Es obligatorio asignar una sucursal al crear un ADMIN.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: "Usuario creado exitosamente."
+        '400':
+          description: "Error de validación o regla de negocio violada."
+        '401':
+          description: "No autenticado (token inválido o ausente)."
+        '403':
+          description: "Acceso denegado (rol insuficiente)."
+        '404':
+          description: "La sucursal especificada no fue encontrada."
+        '409':
+          description: "El nombre de usuario o email ya existen."
+
+  /api/v1/canchas:
+    post:
+      tags:
+        - "Field Management"
+      summary: "Crea una nueva cancha."
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: "Datos para la nueva cancha."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCanchaRequest' # Asumiendo que existe este DTO
+      responses:
+        '201':
+          description: "Cancha creada."
+        '403':
+          description: "Acceso denegado. Requiere rol SUPERADMIN o ADMIN."
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "superadmin"
+        password:
+          type: string
+          example: "admin123"
+      required:
+        - username
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTY2Njc1NjZ9.signature"
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTcyNzE0NjZ9.long_signature"
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjE2NjY2NjY2LCJleHAiOjE2MTcyNzE0NjZ9.long_signature"
+      required:
+        - refreshToken
+
+    CreateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "nuevo_recepcionista"
+        nombre:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan.perez@example.com"
+        password:
+          type: string
+          format: password
+          example: "passwordSegura123"
+        rol:
+          type: string
+          enum: [ADMIN, RECEPCIONISTA]
+          example: "RECEPCIONISTA"
+        sucursalId:
+          type: integer
+          description: "ID de la sucursal a la que se asigna el usuario. Obligatorio si el rol es ADMIN."
+          example: 1
+      required:
+        - username
+        - nombre
+        - email
+        - password
+        - rol
+    
+    CreateCanchaRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Cancha de Pádel 1"
+        sucursalId:
+          type: integer
+          example: 1
+      required:
+        - nombre
+        - sucursalId
+
+    ErrorResponseDTO:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        traceId:
+          type: string
+        validationErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

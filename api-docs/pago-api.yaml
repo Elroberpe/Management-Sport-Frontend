@@ -34,6 +34,11 @@ paths:
           description: "Filtrar por método de pago."
           schema:
             $ref: '#/components/schemas/MetodoPago'
+        - name: sucursalId
+          in: query
+          description: "Filtra los pagos por la sucursal a la que pertenecen (a través de la reserva o evento)."
+          schema:
+            type: integer
         - name: page
           in: query
           schema:
@@ -61,7 +66,26 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PagoResponse'
-                  # ... (otras propiedades de paginación)
+
+  /pagos/stats/ingresos-anuales:
+    get:
+      tags:
+        - Pagos - Estadísticas
+      summary: "Obtener total de ingresos en el año actual"
+      description: "Devuelve la suma total de todas las transacciones de tipo 'INGRESO' para el año en curso. Puede ser filtrado por sucursal."
+      parameters:
+        - name: sucursalId
+          in: query
+          description: "ID de la sucursal para filtrar el resultado. Si se omite, se calcula el total de todas las sucursales."
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Total de ingresos del año."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KpiResponse'
 
   /pagos/{id}:
     parameters:
@@ -123,6 +147,13 @@ components:
     EstadoPago:
       type: string
       enum: [COMPLETADO, ANULADO]
+
+    KpiResponse:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 52340.50
 
     PagoResponse:
       type: object
