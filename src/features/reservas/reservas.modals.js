@@ -312,11 +312,12 @@ export function initModals(ctx) {
         elSaldo.textContent = `S/ ${Math.abs(saldo).toFixed(2)}`;
         elSaldo.style.color = saldo > 0 ? '#dc2626' : (saldo < 0 ? '#d97706' : '#059669');
 
-        // Ocultar botón "Añadir Pago" si el saldo ya está en 0 (pago completo).
-        // El ID del botón confirm lo genera modal-shell como `${id}-btn-confirm`.
+        // Ocultar botón "Añadir Pago" si el saldo ya está en 0 (pago completo), 
+        // o si la reserva está Cancelada/Reembolsada, o si pertenece a un Evento Global.
         const btnAnadirPago = document.getElementById('modal-detalle-reserva-btn-confirm');
         if (btnAnadirPago) {
-            btnAnadirPago.style.display = saldo > 0 ? '' : 'none';
+            const noAceptaPagos = (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO' || r.eventoId);
+            btnAnadirPago.style.display = (saldo > 0 && !noAceptaPagos) ? '' : 'none';
         }
 
         // Setup Tabs
