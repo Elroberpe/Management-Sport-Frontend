@@ -4,6 +4,7 @@
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
+import { initClienteModal } from '../clientes/clientes.modals.js';
 import {
     eventoNewFormPaso1Template,
     eventoNewFormPaso2Template,
@@ -182,7 +183,7 @@ export function initCrearEventoModal({ onCreado }) {
             const nombre      = document.getElementById('ne-nombre').value.trim();
             const descripcion = document.getElementById('ne-descripcion')?.value.trim();
             const tipo        = document.getElementById('ne-tipo').value;
-            const clienteId   = parseInt(document.getElementById('ne-cliente').value);
+            const clienteId   = parseInt(document.getElementById('ne-cliente-id').value);
             const sucursalId  = parseInt(document.getElementById('ne-sucursal').value);
             const fechaInicio = document.getElementById('ne-fecha-inicio').value;
             const fechaFin    = document.getElementById('ne-fecha-fin').value;
@@ -191,7 +192,7 @@ export function initCrearEventoModal({ onCreado }) {
             // Validaciones
             let hasError = false;
             if (!nombre) { ctx.showFieldError('ne-nombre', 'El nombre es obligatorio.'); hasError = true; }
-            if (!clienteId) { ctx.showFieldError('ne-cliente', 'Selecciona un cliente.'); hasError = true; }
+            if (!clienteId || isNaN(clienteId)) { ctx.showFieldError('ne-cliente-input', 'Busca un cliente.'); hasError = true; }
             if (!sucursalId) { ctx.showFieldError('ne-sucursal', 'Selecciona una sede.'); hasError = true; }
             if (!fechaInicio) { ctx.showFieldError('ne-fecha-inicio', 'La fecha de inicio es obligatoria.'); hasError = true; }
             if (!monto || monto <= 0) { ctx.showFieldError('ne-monto', 'El monto debe ser mayor a 0.'); hasError = true; }
@@ -229,18 +230,68 @@ export function initCrearEventoModal({ onCreado }) {
             document.getElementById('ne-fecha-inicio').value = '';
             document.getElementById('ne-fecha-fin').value = '';
             document.getElementById('ne-monto').value = '';
+            document.getElementById('ne-cliente-input').value = '';
+            document.getElementById('ne-cliente-id').value = '';
 
-            // Cargar clientes y sucursales en paralelo
-            await Promise.all([
-                _cargarClientes(document.getElementById('ne-cliente')),
-                _cargarSucursales(document.getElementById('ne-sucursal')),
-            ]);
+            // Cargar sucursales
+            await _cargarSucursales(document.getElementById('ne-sucursal'));
+
+            const sel = document.getElementById('ne-sucursal');
+            const sucursalFiltro = document.getElementById('evt-filter-sucursal')?.value || null;
 
             // Si admin/recep → pre-seleccionar su sede y deshabilitar el select
             if (session && session.rol !== 'superadmin' && session.sucursalId) {
-                const sel = document.getElementById('ne-sucursal');
                 sel.value = session.sucursalId;
                 sel.disabled = true;
+            } else if (session?.rol === 'superadmin' && sucursalFiltro) {
+                // Si es superadmin pero tiene el filtro de sede activo
+                sel.value = sucursalFiltro;
+                sel.disabled = true;
+            }
+
+            // Configurar autocomplete de cliente
+            const clInput = document.getElementById('ne-cliente-input');
+            const clList = document.getElementById('ne-cliente-list');
+            const clId = document.getElementById('ne-cliente-id');
+            const btnNuevo = document.getElementById('ne-btn-nuevo-cliente');
+
+            let debounce;
+            clInput.oninput = () => {
+                clearTimeout(debounce);
+                const q = clInput.value.trim();
+                if (q.length < 2) { clList.style.display = 'none'; return; }
+                debounce = setTimeout(() => {
+                    api.get(`/clientes?nombre=${encodeURIComponent(q)}&size=6`).then(data => {
+                        const arr = data.content || data || [];
+                        const escapeHtml = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                        clList.innerHTML = arr.map(c => `
+                            <li data-id="${c.id || c.clienteId}" data-nombre="${escapeHtml(c.nombre)}">
+                                <strong>${escapeHtml(c.nombre)}</strong>
+                                ${c.numDocumento ? `<span style="font-size:11px;color:#94a3b8;">(${c.numDocumento})</span>` : ''}
+                            </li>
+                        `).join('');
+                        clList.style.display = 'block';
+                    });
+                }, 300);
+            };
+
+            clList.onclick = (e) => {
+                const li = e.target.closest('li');
+                if (li) {
+                    clInput.value = li.dataset.nombre;
+                    clId.value = li.dataset.id;
+                    clList.style.display = 'none';
+                }
+            };
+
+            if (btnNuevo) {
+                const modalCli = initClienteModal({
+                    onClienteCreado: (c) => {
+                        clInput.value = c.nombre;
+                        clId.value = c.id || c.clienteId;
+                    }
+                });
+                btnNuevo.onclick = () => modalCli.open();
             }
         }
     };
