@@ -16,9 +16,10 @@ export class Router {
             '#/dashboard/canchas': () => import('../features/canchas/canchas.page.js'),
             '#/dashboard/mantenimientos': () => import('../features/mantenimientos/mantenimientos.page.js'),
             '#/dashboard/reservas': () => import('../features/reservas/reservas.page.js'),
-            '#/dashboard/clientes': () => import('../features/clientes/clientes.page.js'),
-            '#/dashboard/pagos': () => import('../features/pagos/pagos.page.js'),
-            '#/dashboard/sucursales': () => import('../features/sucursales/sucursales.page.js')
+            '#/dashboard/clientes':   () => import('../features/clientes/clientes.page.js'),
+            '#/dashboard/pagos':       () => import('../features/pagos/pagos.page.js'),
+            '#/dashboard/sucursales':  () => import('../features/sucursales/sucursales.page.js'),
+            '#/dashboard/usuarios':    () => import('../features/usuarios/usuarios.page.js')
         };
         
         window.addEventListener('hashchange', () => this.handleRoute());

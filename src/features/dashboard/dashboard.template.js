@@ -31,6 +31,9 @@ export const dashboardTemplate = () => `
             <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
                 <i class='bx bx-wallet'></i> Pagos
             </a>
+            <a href="#/dashboard/usuarios" class="nav-item" data-module="usuarios" data-roles="superadmin,admin">
+                <i class='bx bx-shield-alt-2'></i> Usuarios
+            </a>
         </div>
 
         <!-- BLOQUE OPERATIVO (Superadmin dentro de Sede / Admin / Recepcionista) -->
@@ -55,6 +58,9 @@ export const dashboardTemplate = () => `
             </a>
             <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
                 <i class='bx bx-wallet'></i> Pagos
+            </a>
+            <a href="#/dashboard/usuarios" class="nav-item" data-module="usuarios" data-roles="superadmin,admin">
+                <i class='bx bx-shield-alt-2'></i> Usuarios
             </a>
         </div>
     </nav>
