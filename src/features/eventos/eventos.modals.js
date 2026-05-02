@@ -3,6 +3,7 @@
 
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
+import { Store } from '../../core/store.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
 import { initClienteModal } from '../clientes/clientes.modals.js';
 import {
@@ -238,15 +239,26 @@ export function initCrearEventoModal({ onCreado }) {
 
             const sel = document.getElementById('ne-sucursal');
             const sucursalFiltro = document.getElementById('evt-filter-sucursal')?.value || null;
+            const contextoSede = Store.getSucursal(); // Si entró a modo operativo
 
-            // Si admin/recep → pre-seleccionar su sede y deshabilitar el select
+            // Lógica para fijar la sucursal
             if (session && session.rol !== 'superadmin' && session.sucursalId) {
+                // Admin local / Recepcionista
                 sel.value = session.sucursalId;
                 sel.disabled = true;
-            } else if (session?.rol === 'superadmin' && sucursalFiltro) {
-                // Si es superadmin pero tiene el filtro de sede activo
-                sel.value = sucursalFiltro;
-                sel.disabled = true;
+            } else if (session?.rol === 'superadmin') {
+                if (contextoSede && contextoSede.sucursalId) {
+                    // Superadmin dentro de una sede específica en el sidebar
+                    sel.value = contextoSede.sucursalId;
+                    sel.disabled = true;
+                } else if (sucursalFiltro) {
+                    // Superadmin con el filtro global de la tabla activo
+                    sel.value = sucursalFiltro;
+                    sel.disabled = true;
+                } else {
+                    // Superadmin viendo "Todas las sedes" sin filtro
+                    sel.disabled = false;
+                }
             }
 
             // Configurar autocomplete de cliente

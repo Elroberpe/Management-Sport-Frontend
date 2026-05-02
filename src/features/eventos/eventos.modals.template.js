@@ -84,33 +84,33 @@ export function eventoNewFormPaso1Template(rol = 'superadmin') {
         <textarea id="ne-descripcion" class="modal-shell-input" rows="2" placeholder="Ej: Torneo de 8 equipos..." style="resize:vertical; min-height:60px; font-family:inherit;"></textarea>
     </div>
 
-    <!-- Fila: Cliente + Sucursal (Oculta si no es superadmin) -->
-    <div style="display:grid; grid-template-columns:1fr ${rol === 'superadmin' ? '1fr' : '0'}; gap:12px;">
-        <div class="modal-shell-field">
-            <label class="modal-shell-label" for="ne-cliente-input">
-                <i class='bx bx-user'></i> Cliente (Organizador) <span style="color:#ef4444;">*</span>
-            </label>
-            <div style="display:flex; gap:8px;">
-                <div style="flex:1; position:relative;">
-                    <input type="text" id="ne-cliente-input" class="modal-shell-input" placeholder="Buscar por nombre o DNI..." autocomplete="off">
-                    <input type="hidden" id="ne-cliente-id">
-                    <ul class="autocomplete-list" id="ne-cliente-list" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; margin:0;"></ul>
-                </div>
-                <button type="button" id="ne-btn-nuevo-cliente" class="modal-shell-btn modal-shell-btn-secondary" style="padding:0 12px; height:42px; font-size:12px;">
-                    <i class='bx bx-user-plus'></i> Nuevo
-                </button>
+    <!-- Fila: Cliente -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ne-cliente-input">
+            <i class='bx bx-user'></i> Cliente (Organizador) <span style="color:#ef4444;">*</span>
+        </label>
+        <div style="display:flex; gap:8px;">
+            <div style="flex:1; position:relative;">
+                <input type="text" id="ne-cliente-input" class="modal-shell-input" placeholder="Buscar por nombre o DNI..." autocomplete="off">
+                <input type="hidden" id="ne-cliente-id">
+                <ul class="autocomplete-list" id="ne-cliente-list" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; margin:0;"></ul>
             </div>
-            <span class="modal-shell-error-text" id="ne-cliente-err"></span>
+            <button type="button" id="ne-btn-nuevo-cliente" class="modal-shell-btn modal-shell-btn-secondary" style="padding:0 12px; height:42px; font-size:12px;">
+                <i class='bx bx-user-plus'></i> Nuevo
+            </button>
         </div>
-        <div class="modal-shell-field" style="display: ${rol === 'superadmin' ? 'block' : 'none'};">
-            <label class="modal-shell-label" for="ne-sucursal">
-                <i class='bx bx-map-pin'></i> Sucursal <span style="color:#ef4444;">*</span>
-            </label>
-            <select id="ne-sucursal" class="modal-shell-input">
-                <option value="">⏳ Cargando...</option>
-            </select>
-            <span class="modal-shell-error-text" id="ne-sucursal-err"></span>
-        </div>
+        <span class="modal-shell-error-text" id="ne-cliente-err"></span>
+    </div>
+
+    <!-- Fila: Sucursal (Oculta si no es superadmin) -->
+    <div class="modal-shell-field" style="display: ${rol === 'superadmin' ? 'block' : 'none'};">
+        <label class="modal-shell-label" for="ne-sucursal">
+            <i class='bx bx-map-pin'></i> Sucursal <span style="color:#ef4444;">*</span>
+        </label>
+        <select id="ne-sucursal" class="modal-shell-input">
+            <option value="">⏳ Cargando...</option>
+        </select>
+        <span class="modal-shell-error-text" id="ne-sucursal-err"></span>
     </div>
 
     <!-- Fila: Fecha Inicio + Fecha Fin -->
