@@ -49,19 +49,17 @@ export function mount(container) {
     // 3. Stats
     // -------------------------------------------------------------------------
     const stats = initStats('usuarios-stats-container', [
-        { id: 'total',         label: 'Total Usuarios',   icon: 'bx bx-group',          colorClass: 'blue'   },
-        { id: 'admins',        label: 'Administradores',  icon: 'bx bx-shield-alt-2',   colorClass: 'green'  },
-        { id: 'receps',        label: 'Recepcionistas',   icon: 'bx bx-headphone',      colorClass: 'yellow' },
-        { id: 'superadmins',   label: 'Super Admins',     icon: 'bx bx-crown',          colorClass: 'red'    },
+        { id: 'total',  label: 'Total Usuarios',  icon: 'bx bx-group',        colorClass: 'blue'   },
+        { id: 'admins', label: 'Administradores', icon: 'bx bx-shield-alt-2', colorClass: 'green'  },
+        { id: 'receps', label: 'Recepcionistas',  icon: 'bx bx-headphone',    colorClass: 'yellow' },
     ]);
 
     function actualizarStats(usuarios, totalElements) {
         if (!stats) return;
         stats.updateAll({
-            total:       totalElements,
-            admins:      usuarios.filter(u => u.rol === 'ADMIN').length,
-            receps:      usuarios.filter(u => u.rol === 'RECEPCIONISTA').length,
-            superadmins: usuarios.filter(u => u.rol === 'SUPERADMIN').length,
+            total:  totalElements,
+            admins: usuarios.filter(u => u.rol === 'ADMIN').length,
+            receps: usuarios.filter(u => u.rol === 'RECEPCIONISTA').length,
         });
     }
 
@@ -87,6 +85,20 @@ export function mount(container) {
         const meta = map[rol] || { color: 'gray', label: rol };
         return renderStatusBadge(rol, { color: meta.color, label: meta.label, showDot: true });
     }
+
+    // Cache de sucursales: Map<sucursalId, nombre>
+    // Se carga una sola vez al montar el módulo.
+    let sucursalesMap = new Map();
+    api.get('/sucursales')
+        .then(list => {
+            if (Array.isArray(list)) {
+                list.forEach(s => {
+                    const id = s.sucursalId !== undefined ? s.sucursalId : s.id;
+                    sucursalesMap.set(String(id), s.nombre);
+                });
+            }
+        })
+        .catch(() => {}); // silencioso: si falla, la columna mostrará el ID
 
     // -------------------------------------------------------------------------
     // 5. Modales (pre-inicializados para que el DOM exista antes de la tabla)
@@ -146,6 +158,20 @@ export function mount(container) {
                 label: 'Rol',
                 render: (v) => rolBadge(v)
             },
+            {
+                key: 'sucursalId',
+                label: 'Sucursal',
+                render: (v) => {
+                    if (!v) return `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+                    const nombre = sucursalesMap.get(String(v));
+                    return `
+                        <div class="contact-link">
+                            <i class='bx bx-map-pin' style="color:var(--primary);"></i>
+                            <span>${nombre || `Sede #${v}`}</span>
+                        </div>
+                    `;
+                }
+            },
         ],
         fetchData: async (page) => {
             const searchEl = document.getElementById('usr-search');
@@ -161,6 +187,9 @@ export function mount(container) {
                 const data  = await api.get(url);
                 let items   = Array.isArray(data) ? data : (data.content || []);
                 let total   = data.totalElements !== undefined ? data.totalElements : items.length;
+
+                // Excluir SUPERADMIN de la tabla (no debe gestionarse desde aquí)
+                items = items.filter(u => u.rol !== 'SUPERADMIN');
 
                 // Filtro local por búsqueda de texto si la API no lo soporta
                 if (q) {
