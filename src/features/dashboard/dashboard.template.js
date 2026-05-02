@@ -81,8 +81,15 @@ export const dashboardTemplate = () => `
 <!-- Main Shell -->
 <div class="main-wrapper">
     <!-- Top Navbar -->
+    <!-- Overlay para cerrar sidebar en móvil -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <header class="top-nav">
         <div class="nav-left">
+            <!-- Botón hamburguesa (visible solo en móvil) -->
+            <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Abrir menú">
+                <i class='bx bx-menu'></i>
+            </button>
             <div class="search-bar">
                 <i class='bx bx-search'></i>
                 <input type="text" placeholder="Buscar reservas...">

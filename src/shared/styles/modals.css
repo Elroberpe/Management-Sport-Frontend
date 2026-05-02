@@ -275,3 +275,81 @@
     from { transform: translate(-50%, 20px); opacity: 0; }
     to { transform: translate(-50%, 0); opacity: 1; }
 }
+
+/* ========================================= */
+/*       RESPONSIVE MODALS — FASE 5          */
+/* ========================================= */
+
+/* --- Tablet --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .modal-shell-container {
+        max-width: 90vw;
+    }
+}
+
+/* --- Móvil: Bottom Sheet --- */
+@media (max-width: 767px) {
+    .modal-shell-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-shell-container {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 20px 20px 0 0;
+        animation: modalSlideUpMobile 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .modal-shell-header {
+        padding: 20px 20px 16px;
+        /* Indicador visual de "arrastreable" */
+        position: relative;
+    }
+
+    .modal-shell-header::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .modal-shell-body {
+        padding: 16px 20px;
+    }
+
+    .modal-shell-footer {
+        padding: 16px 20px;
+        /* Espacio extra para el home indicator en iOS */
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .modal-shell-footer .modal-shell-btn {
+        flex: 1; /* botones ocupan todo el ancho en móvil */
+    }
+
+    .modal-shell-toast {
+        bottom: max(20px, env(safe-area-inset-bottom));
+        width: calc(100% - 32px);
+        left: 16px;
+        transform: none;
+        border-radius: 14px;
+    }
+
+    @keyframes modalToastIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+}
+
+@keyframes modalSlideUpMobile {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}

@@ -156,7 +156,6 @@ export function initModalShell(options) {
             });
         }
         }
-    };
     }
 
     return {

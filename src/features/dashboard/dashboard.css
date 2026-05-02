@@ -435,3 +435,203 @@ body.dashboard-mode .app-container { display: block; }
     align-items: center;
     gap: 8px;
 }
+
+/* ========================================= */
+/*   RESPONSIVE DASHBOARD — FASES 2 & 3      */
+/* ========================================= */
+
+/* Botón hamburguesa — oculto por defecto (desktop) */
+.sidebar-toggle-btn {
+    display: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: var(--text-main);
+    font-size: 20px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+.sidebar-toggle-btn:hover { background: #e2e8f0; }
+
+/* Overlay oscuro para cerrar el sidebar en móvil */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    animation: overlayFadeIn 0.25s ease;
+}
+.sidebar-overlay.visible { display: block; }
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ---- TABLET: 768px – 1023px ---- */
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* Sidebar colapsado a solo iconos */
+    .sidebar {
+        width: 64px;
+        overflow: hidden;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar:hover {
+        width: 250px;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+
+    .sidebar-header h2,
+    .sidebar-header span {
+        opacity: 0;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+    }
+
+    .sidebar:hover .sidebar-header h2,
+    .sidebar:hover .sidebar-header span {
+        opacity: 1;
+    }
+
+    .sidebar-nav .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav .nav-item i {
+        margin-right: 0;
+        flex-shrink: 0;
+    }
+
+    /* El texto aparece al hacer hover en el sidebar */
+    .sidebar:hover .sidebar-nav .nav-item {
+        justify-content: flex-start;
+        padding: 12px 16px;
+    }
+    .sidebar:hover .sidebar-nav .nav-item i {
+        margin-right: 12px;
+    }
+
+    .sidebar-footer .nav-item {
+        justify-content: center;
+        padding: 10px 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    .sidebar:hover .sidebar-footer .nav-item {
+        justify-content: flex-start;
+        padding: 10px 16px;
+    }
+    .sidebar-footer .nav-item i { margin-right: 0; }
+    .sidebar:hover .sidebar-footer .nav-item i { margin-right: 12px; }
+
+    .main-wrapper {
+        margin-left: 64px;
+        width: calc(100% - 64px);
+    }
+
+    /* Top nav tablet */
+    .top-nav { padding: 0 20px; }
+    .search-bar input { width: 180px; }
+    .content-area { padding: 20px; }
+
+    /* Stats 2 columnas */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .dashboard-content-grid { grid-template-columns: 1fr; }
+
+    /* Page header */
+    .page-header { flex-wrap: wrap; gap: 12px; }
+}
+
+/* ---- MÓVIL: < 768px ---- */
+@media (max-width: 767px) {
+    /* Sidebar fuera de pantalla */
+    .sidebar {
+        transform: translateX(-250px);
+        transition: transform 0.3s ease;
+        z-index: 999;
+        width: 250px;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 30px rgba(0,0,0,0.2);
+    }
+
+    /* Main wrapper ocupa todo el ancho */
+    .main-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* Top Nav móvil */
+    .top-nav {
+        padding: 0 14px;
+        height: 60px;
+        gap: 8px;
+    }
+
+    .search-bar { display: none; }
+
+    .nav-left { gap: 8px; }
+    .nav-right { gap: 10px; }
+
+    .user-info { display: none; }
+
+    /* Branch selector: texto más corto */
+    #header-sede-label {
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+    }
+
+    /* Mostrar botón hamburguesa */
+    .sidebar-toggle-btn { display: flex; }
+
+    /* Content area */
+    .content-area { padding: 14px 12px; }
+
+    /* Page header: apilado */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .page-title { font-size: 20px; }
+    .page-subtitle { font-size: 13px; }
+
+    /* Stats: 2 columnas */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card { padding: 16px; border-radius: 12px; }
+    .stat-value { font-size: 20px; }
+
+    /* Content grid: 1 columna */
+    .dashboard-content-grid { grid-template-columns: 1fr; gap: 16px; }
+
+    /* Botón de acción primaria: ancho completo en móvil */
+    .btn-action-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}
