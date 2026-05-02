@@ -34,11 +34,10 @@ export function initPerfilModal({ onPerfilActualizado }) {
             });
 
             const session = Auth.getSession();
-            if (!session || !session.usuarioId) {
+            if (!session || !session.username) {
                 modal.close();
                 return;
             }
-            currentUserId = session.usuarioId;
 
             // Bloquear formularios temporalmente mientras carga
             const infoForm = document.getElementById('form-perfil-info');
@@ -48,8 +47,20 @@ export function initPerfilModal({ onPerfilActualizado }) {
             infoForm.style.pointerEvents = 'none';
 
             try {
-                // Obtener info real del usuario
-                const user = await api.get(`/usuarios/${currentUserId}`);
+                let myId = session.usuarioId || session.id;
+                let user;
+
+                if (myId) {
+                    user = await api.get(`/usuarios/${myId}`);
+                } else {
+                    const usuariosList = await api.get('/usuarios');
+                    const allUsers = Array.isArray(usuariosList) ? usuariosList : (usuariosList.content || []);
+                    user = allUsers.find(u => u.username === session.username);
+                    if (!user) throw new Error("No se pudo localizar el perfil del usuario actual.");
+                    myId = user.id;
+                }
+
+                currentUserId = myId;
                 
                 // Setear info
                 document.getElementById('prof-nombre').value = user.nombre || '';
