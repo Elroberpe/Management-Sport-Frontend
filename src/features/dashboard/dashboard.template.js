@@ -106,13 +106,23 @@ export const dashboardTemplate = () => `
         <div class="nav-right">
             <div class="nav-icon"><i class='bx bx-bell'></i><span class="badg"></span></div>
             <div class="nav-icon"><i class='bx bx-question-mark' style="border: 2px solid currentColor; border-radius: 50%; padding: 2px;"></i></div>
-            <div class="user-profile">
+            <div class="user-profile" id="user-profile-wrap" style="position:relative;">
                 <div class="user-info">
                     <strong id="header-user-name">—</strong>
                     <span id="header-user-role">—</span>
                 </div>
-                <div class="user-avatar" style="cursor:pointer;" id="header-avatar-btn" title="Cerrar sesión">
+                <div class="user-avatar" style="cursor:pointer;" id="header-avatar-btn">
                     <img id="header-avatar-img" src="https://i.pravatar.cc/150?img=11" alt="User">
+                </div>
+                
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown" id="profile-dropdown" style="display:none; position:absolute; top:calc(100% + 10px); right:0; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); width:180px; z-index:1000; overflow:hidden;">
+                    <div id="btn-mi-perfil" style="padding:10px 16px; font-size:13px; color:#334155; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; transition:background 0.2s;">
+                        <i class='bx bx-cog' style="font-size:16px; color:#64748b;"></i> Mi Perfil
+                    </div>
+                    <div id="btn-logout" style="padding:10px 16px; font-size:13px; color:#dc2626; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.2s;">
+                        <i class='bx bx-log-out' style="font-size:16px;"></i> Cerrar Sesión
+                    </div>
                 </div>
             </div>
         </div>

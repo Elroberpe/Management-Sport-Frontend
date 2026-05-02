@@ -4,11 +4,14 @@ import { Auth } from '../../core/auth.js';
 import { api } from '../../core/api.js';
 import { Store } from '../../core/store.js';
 
+import { initPerfilModal } from './perfil.modals.js';
+
 export function template() {
     return dashboardTemplate();
 }
 
 let _closeDropdownHandler = null;
+let _closeProfileDropdownHandler = null;
 let _storeUnsubscribe = null;
 
 export function mount() {
@@ -24,7 +27,15 @@ export function mount() {
     document.getElementById('header-user-role').textContent   = session.rolLabel;
     document.getElementById('sidebar-role-label').textContent = session.rolLabel;
     
-    // El avatar puede venir embebido en el JWT en el futuro; por ahora se usa el predeterminado del CSS.
+    // Inicializar Modal de Perfil
+    const perfilModal = initPerfilModal({
+        onPerfilActualizado: (actualizado) => {
+            // Actualizar el header si cambió el nombre
+            document.getElementById('header-user-name').textContent = actualizado.nombre || session.nombre;
+            // Si el backend devuelve un token nuevo, se debería actualizar en Auth,
+            // pero si no, solo actualizamos la UI visualmente.
+        }
+    });
 
     // Cerrar sesión
     const logoutBtn = document.getElementById('sidebar-logout');
@@ -35,10 +46,41 @@ export function mount() {
         });
     }
 
+    // Profile Dropdown Logic
+    const avatarWrap = document.getElementById('user-profile-wrap');
     const avatarBtn = document.getElementById('header-avatar-btn');
-    if (avatarBtn) {
-        avatarBtn.addEventListener('click', async function () {
-            if (confirm('¿Cerrar sesión?')) await Auth.logout();
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (avatarWrap && avatarBtn && profileDropdown) {
+        avatarBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = profileDropdown.style.display === 'block';
+            profileDropdown.style.display = isVisible ? 'none' : 'block';
+        });
+
+        // Handler para clicks fuera del dropdown
+        _closeProfileDropdownHandler = (e) => {
+            if (!avatarWrap.contains(e.target)) {
+                profileDropdown.style.display = 'none';
+            }
+        };
+        document.addEventListener('click', _closeProfileDropdownHandler);
+    }
+
+    // Acciones del Dropdown
+    const btnMiPerfil = document.getElementById('btn-mi-perfil');
+    if (btnMiPerfil) {
+        btnMiPerfil.addEventListener('click', () => {
+            if (profileDropdown) profileDropdown.style.display = 'none';
+            perfilModal.abrir();
+        });
+    }
+
+    const btnLogoutProfile = document.getElementById('btn-logout');
+    if (btnLogoutProfile) {
+        btnLogoutProfile.addEventListener('click', async () => {
+            if (profileDropdown) profileDropdown.style.display = 'none';
+            await Auth.logout();
         });
     }
 
@@ -240,5 +282,9 @@ export function unmount() {
     if (_closeDropdownHandler) {
         document.removeEventListener('click', _closeDropdownHandler);
         _closeDropdownHandler = null;
+    }
+    if (_closeProfileDropdownHandler) {
+        document.removeEventListener('click', _closeProfileDropdownHandler);
+        _closeProfileDropdownHandler = null;
     }
 }

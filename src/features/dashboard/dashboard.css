@@ -190,6 +190,13 @@ body.dashboard-mode .app-container { display: block; }
 .user-info span { font-size: 10px; color: var(--text-muted); font-weight: 600; }
 .user-avatar img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 
+/* Profile Dropdown Styles */
+#btn-mi-perfil:hover, #btn-logout:hover {
+    background-color: #f8fafc !important;
+}
+#btn-mi-perfil:active, #btn-logout:active {
+    background-color: #f1f5f9 !important;
+}
 /* Modules Container */
 .content-area {
     padding: 30px 40px;
