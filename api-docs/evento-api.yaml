@@ -126,6 +126,20 @@ paths:
                 $ref: '#/components/schemas/EventoResponse'
         '400':
           description: "El monto excede el saldo o el evento está cancelado."
+    get:
+      tags:
+        - Pagos
+      summary: "Obtener el historial de pagos de un evento"
+      description: "Devuelve una lista con todos los pagos (adelantos, cuotas, saldo final) realizados para este evento."
+      responses:
+        '200':
+          description: "Lista de pagos obtenida."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PagoResponse'
 
   /eventos/{id}/cancelar:
     parameters:
@@ -272,3 +286,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CreateEventoRequest/properties/horarios/items'
+
+    PagoResponse:
+      type: object
+      properties:
+        id: { type: integer }
+        reservaId: { type: integer, nullable: true }
+        eventoId: { type: integer, nullable: true }
+        fecha: { type: string, format: date }
+        monto: { type: number, format: double }
+        metodoPago: { type: string }
+        estado: { type: string }
+        tipoTransaccion: { type: string }
+        referencia: { type: string, nullable: true }
+        nota: { type: string, nullable: true }

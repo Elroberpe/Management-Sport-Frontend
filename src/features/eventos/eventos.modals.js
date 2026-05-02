@@ -640,8 +640,11 @@ export function initDetalleEventoModal({ onPago }) {
                             return `
                             <tr>
                                 <td>${p.fecha || '—'}</td>
-                                <td>${p.metodoPago || '—'}${tipoBadge}</td>
-                                <td style="text-align:right; font-weight:600; color:${color};">${signo} S/ ${Number(p.monto).toFixed(2)}</td>
+                                <td>
+                                    <div>${p.metodoPago || '—'}${tipoBadge}</div>
+                                    ${p.nota ? `<div style="font-size:10px; color:#64748b; margin-top:3px; font-weight:normal; line-height:1.2;">${p.nota}</div>` : ''}
+                                </td>
+                                <td style="text-align:right; font-weight:600; color:${color}; vertical-align:top;">${signo} S/ ${Number(p.monto).toFixed(2)}</td>
                             </tr>`;
                         }).join('');
                         emptyPagos.style.display = 'none';
