@@ -610,6 +610,15 @@ export function initDetalleEventoModal({ onPago }) {
                             if (onPago) onPago(currentEvento);
                         });
                     }
+
+                    // Setup Tabs
+                    const btns = contentWrapper.querySelectorAll('.evt-tab-btn');
+                    btns.forEach(b => b.onclick = () => {
+                        btns.forEach(x => x.classList.remove('active'));
+                        b.classList.add('active');
+                        contentWrapper.querySelectorAll('.evt-tab-content').forEach(c => c.style.display = 'none');
+                        contentWrapper.querySelector('#' + b.dataset.tab).style.display = 'block';
+                    });
                 }
             } catch (err) {
                 if (container) {
