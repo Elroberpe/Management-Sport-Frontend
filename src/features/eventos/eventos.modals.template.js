@@ -106,8 +106,8 @@ export function eventoNewFormPaso1Template(rol = 'superadmin') {
         </div>
     </div>
 
-    <!-- Fila: Fecha Inicio + Fecha Fin + Monto -->
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+    <!-- Fila: Fecha Inicio + Fecha Fin -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ne-fecha-inicio">
                 <i class='bx bx-calendar'></i> Fecha Inicio <span style="color:#ef4444;">*</span>
@@ -121,13 +121,15 @@ export function eventoNewFormPaso1Template(rol = 'superadmin') {
             </label>
             <input type="date" id="ne-fecha-fin" class="modal-shell-input">
         </div>
-        <div class="modal-shell-field">
-            <label class="modal-shell-label" for="ne-monto">
-                <i class='bx bx-money'></i> Monto Total Pactado <span style="color:#ef4444;">*</span>
-            </label>
-            <input type="number" id="ne-monto" class="modal-shell-input" placeholder="0.00" min="0" step="0.01">
-            <span class="modal-shell-error-text" id="ne-monto-err"></span>
-        </div>
+    </div>
+
+    <!-- Fila: Monto -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ne-monto">
+            <i class='bx bx-money'></i> Monto Total Pactado <span style="color:#ef4444;">*</span>
+        </label>
+        <input type="number" id="ne-monto" class="modal-shell-input" placeholder="0.00" min="0" step="0.01">
+        <span class="modal-shell-error-text" id="ne-monto-err"></span>
     </div>
     `;
 }
