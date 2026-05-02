@@ -87,12 +87,29 @@ export function initCalendario(ctx) {
             eventContent: function(arg) {
                 if (arg.event.extendedProps.type === 'RESERVA') {
                     const r = arg.event.extendedProps.raw;
-                    const meta = ESTADO_STYLE[r.estadoReserva] || ESTADO_STYLE['PENDIENTE'];
-                    let subText = '';
-                    
                     const s = arg.event.start;
                     const e = arg.event.end;
                     const mins = e && s ? (e - s) / 60000 : 60;
+
+                    if (r.eventoId) {
+                        // Es una reserva de Evento Mayor
+                        let bgColor     = '#faf5ff';
+                        let borderColor = '#9333ea';
+                        let textColor   = '#6b21a8';
+                        let badgeBg     = '#f3e8ff';
+                        
+                        const inner = [
+                            `<div class="cal-card" style="position:relative; left:0; right:0; height:100%; border-radius:10px; padding:7px 10px; display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; background:${bgColor}; color:${textColor}; border-left: 4px solid ${borderColor};">`,
+                            `<span class='cc-title' style='font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;'><span>🏆</span><span>Evento</span></span>`,
+                            mins >= 40 ? `<span style='font-size:9px;font-weight:700;background:${badgeBg};color:${textColor};padding:1px 6px;border-radius:6px;display:inline-block;margin-top:2px;'>Bloqueado por Evento</span>` : '',
+                            mins >= 60 ? `<span class='cc-sub' style='font-size:11px;font-weight:700;margin-top:4px;'>${escapeHtml(r.nombreCliente || 'Sin organizador')}</span>` : '',
+                            `</div>`
+                        ].join('');
+                        return { html: inner };
+                    }
+
+                    const meta = ESTADO_STYLE[r.estadoReserva] || ESTADO_STYLE['PENDIENTE'];
+                    let subText = '';
                     
                     if (r.saldoPendiente > 0 && r.estadoReserva !== 'COMPLETADO' && mins >= 60) {
                         subText = `<span class='cc-sub' style='color:#b45309;font-weight:700;'>Debe: S/ ${Number(r.saldoPendiente).toFixed(2)}</span>`;

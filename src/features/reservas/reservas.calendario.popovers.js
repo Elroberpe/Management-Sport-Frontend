@@ -177,11 +177,16 @@ export function createPopoversHandler(ctx) {
 
                 const rowBtns1 = [];
                 const rowBtns2 = [];
+                let alertEvento = '';
                 
-                if (est === 'PENDIENTE' && saldo > 0) rowBtns1.push(`<button class='mp-btn-manage' id='rpop-pago-btn' style='background:#059669;color:#fff;border:none;flex:2;justify-content:center;'><i class='bx bx-credit-card'></i> Añadir Pago</button>`);
-                if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns1.push(`<button class='mp-btn-manage' id='rpop-reprog-btn' style='background:#0284c7;color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-calendar-edit'></i> Reprogramar</button>`);
-                if (est === 'PAGADA'    || est === 'COMPLETADO') rowBtns1.push(`<button class='mp-btn-manage' id='rpop-imprimir-btn' style='background:#f8fafc;color:#475569;border:1px solid #e2e8f0;flex:1;justify-content:center;font-size:11px;'><i class='bx bx-printer'></i> Imprimir</button>`);
-                if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns2.push(`<button class='mp-btn-cancel' id='rpop-cancelar-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;width:100%;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar Reserva</button>`);
+                if (r.eventoId) {
+                    alertEvento = `<div style='background:#fefce8;color:#a16207;padding:8px 12px;margin-bottom:12px;border-radius:6px;font-size:11px;border:1px solid #fef08a;display:flex;gap:6px;align-items:flex-start;'><i class='bx bx-info-circle' style='font-size:14px;margin-top:1px;'></i><div>Esta reserva pertenece a un evento global. Los pagos y ediciones se gestionan desde el módulo de Eventos.</div></div>`;
+                } else {
+                    if (est === 'PENDIENTE' && saldo > 0) rowBtns1.push(`<button class='mp-btn-manage' id='rpop-pago-btn' style='background:#059669;color:#fff;border:none;flex:2;justify-content:center;'><i class='bx bx-credit-card'></i> Añadir Pago</button>`);
+                    if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns1.push(`<button class='mp-btn-manage' id='rpop-reprog-btn' style='background:#0284c7;color:#fff;border:none;flex:1;justify-content:center;'><i class='bx bx-calendar-edit'></i> Reprogramar</button>`);
+                    if (est === 'PAGADA'    || est === 'COMPLETADO') rowBtns1.push(`<button class='mp-btn-manage' id='rpop-imprimir-btn' style='background:#f8fafc;color:#475569;border:1px solid #e2e8f0;flex:1;justify-content:center;font-size:11px;'><i class='bx bx-printer'></i> Imprimir</button>`);
+                    if (est === 'PENDIENTE' || est === 'PAGADA')  rowBtns2.push(`<button class='mp-btn-cancel' id='rpop-cancelar-btn' style='background:#fff1f2;color:#dc2626;border:1px solid #fecaca;width:100%;justify-content:center;'><i class='bx bx-x-circle'></i> Cancelar Reserva</button>`);
+                }
 
                 pop.innerHTML = [
                     `<div class='mp-header'>`,
@@ -190,6 +195,7 @@ export function createPopoversHandler(ctx) {
                         `<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'><button class='mp-header-close' id='rpop-close-btn'>✕</button><span class='legend-item badge-blue'>${eLabel}</span></div>`,
                     `</div>`,
                     `<div class='mp-body'>`,
+                        alertEvento,
                         `<div class='mp-row'><span>👤 Cliente</span><strong>${r.nombreCliente||'—'}</strong></div>`,
                         `<div class='mp-row'><span>🏟️ Cancha</span><strong>${r.nombreCancha||'—'}</strong></div>`,
                         `<div class='mp-row'><span>📅 Fecha</span><strong>${fechaStr}</strong></div>`,
@@ -203,7 +209,7 @@ export function createPopoversHandler(ctx) {
                     `<div class='mp-actions' style='flex-direction:column;gap:6px;'>`,
                         rowBtns1.length ? `<div style='display:flex;gap:6px;'>${rowBtns1.join('')}</div>` : '',
                         rowBtns2.length ? `<div style='display:flex;'>${rowBtns2.join('')}</div>` : '',
-                        `<button class='mp-btn-outline' id='rpop-detalle-btn' style='width:100%;justify-content:center;font-size:11px;color:#475569;border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:7px;cursor:pointer;display:flex;align-items:center;gap:5px;'><i class='bx bx-show'></i> Ver Detalle Completo</button>`,
+                        !r.eventoId ? `<button class='mp-btn-outline' id='rpop-detalle-btn' style='width:100%;justify-content:center;font-size:11px;color:#475569;border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:7px;cursor:pointer;display:flex;align-items:center;gap:5px;'><i class='bx bx-show'></i> Ver Detalle Completo</button>` : '',
                     `</div>`
                 ].join('');
 
