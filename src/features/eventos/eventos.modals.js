@@ -595,7 +595,11 @@ export function initDetalleEventoModal({ onPago }) {
             }
 
             try {
-                currentEvento = await api.get(`/eventos/${eventoId}`);
+                const [eventoData, pagosData] = await Promise.all([
+                    api.get(`/eventos/${eventoId}`),
+                    api.get(`/eventos/${eventoId}/pagos`).catch(() => [])
+                ]);
+                currentEvento = eventoData;
                 
                 // Actualizar HTML de contenido
                 const contentWrapper = document.querySelector('#modal-detalle-evento .modal-shell-body');
@@ -619,6 +623,32 @@ export function initDetalleEventoModal({ onPago }) {
                         contentWrapper.querySelectorAll('.evt-tab-content').forEach(c => c.style.display = 'none');
                         contentWrapper.querySelector('#' + b.dataset.tab).style.display = 'block';
                     });
+
+                    // Render Pagos
+                    const tbody = document.getElementById('evt-tbody-pagos');
+                    const emptyPagos = document.getElementById('evt-empty-pagos');
+                    const pagosActivos = (Array.isArray(pagosData) ? pagosData : (pagosData.content || [])).filter(p => p.estado !== 'ANULADO');
+
+                    if (pagosActivos.length > 0) {
+                        tbody.innerHTML = pagosActivos.map(p => {
+                            const esSalida  = p.tipoTransaccion === 'SALIDA';
+                            const signo     = esSalida ? '−' : '+';
+                            const color     = esSalida ? '#dc2626' : '#059669';
+                            const tipoBadge = esSalida
+                                ? `<span style="font-size:10px; font-weight:700; background:#f3e8ff; color:#7e22ce; padding:2px 6px; border-radius:4px; margin-left:6px;">REEMBOLSO</span>`
+                                : `<span style="font-size:10px; font-weight:700; background:#dbeafe; color:#1d4ed8; padding:2px 6px; border-radius:4px; margin-left:6px;">PAGO</span>`;
+                            return `
+                            <tr>
+                                <td>${p.fecha || '—'}</td>
+                                <td>${p.metodoPago || '—'}${tipoBadge}</td>
+                                <td style="text-align:right; font-weight:600; color:${color};">${signo} S/ ${Number(p.monto).toFixed(2)}</td>
+                            </tr>`;
+                        }).join('');
+                        emptyPagos.style.display = 'none';
+                    } else {
+                        tbody.innerHTML = '';
+                        emptyPagos.style.display = 'block';
+                    }
                 }
             } catch (err) {
                 if (container) {

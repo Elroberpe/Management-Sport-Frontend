@@ -364,7 +364,8 @@ export function eventoDetailTemplate(evento) {
         <!-- Tabs Header -->
         <div class="dr-tabs-header" style="margin:-15px -20px 20px -20px; border-top:none; border-bottom:1px solid #e2e8f0;">
             <button class="dr-tab-btn evt-tab-btn active" data-tab="tab-evt-detalles"><i class='bx bx-detail'></i> Detalles</button>
-            <button class="dr-tab-btn evt-tab-btn" data-tab="tab-evt-canchas"><i class='bx bx-calendar'></i> Cronograma de Canchas</button>
+            <button class="dr-tab-btn evt-tab-btn" data-tab="tab-evt-canchas"><i class='bx bx-calendar'></i> Cronograma</button>
+            <button class="dr-tab-btn evt-tab-btn" data-tab="tab-evt-pagos"><i class='bx bx-credit-card-front'></i> Pagos</button>
         </div>
 
         <!-- TAB 1: Detalles -->
@@ -448,6 +449,23 @@ export function eventoDetailTemplate(evento) {
                 ` : `
                 <p style="font-size:12px; color:#94a3b8; font-style:italic; margin:0;">No hay canchas asignadas.</p>
                 `}
+            </div>
+        </div>
+
+        <!-- TAB 3: Pagos -->
+        <div class="dr-tab-content evt-tab-content" id="tab-evt-pagos" style="display:none;">
+            <div style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                <table class="canchas-table" style="margin:0; font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th>FECHA</th>
+                            <th>MÉTODO</th>
+                            <th style="text-align:right;">MONTO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evt-tbody-pagos"></tbody>
+                </table>
+                <div id="evt-empty-pagos" style="display:none; text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Sin pagos registrados.</div>
             </div>
         </div>
     </div>
