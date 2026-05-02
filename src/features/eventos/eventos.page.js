@@ -4,6 +4,7 @@
 import { eventosTemplate } from './eventos.template.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
+import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
@@ -112,6 +113,8 @@ export function mount(container) {
 
         filterContainer.style.display = 'block';
 
+        const contextoSede = Store.getSucursal();
+
         // Cargar sucursales
         api.get('/sucursales')
             .then(list => {
@@ -122,6 +125,11 @@ export function mount(container) {
                     opt.textContent = s.nombre;
                     sucursalSelect.appendChild(opt);
                 });
+
+                if (contextoSede && contextoSede.sucursalId) {
+                    sucursalSelect.value = contextoSede.sucursalId;
+                    sucursalSelect.disabled = true;
+                }
             })
             .catch(() => {});
 
@@ -233,8 +241,19 @@ export function mount(container) {
             const q      = searchEl   ? searchEl.value.trim()   : '';
             const estado = estadoEl   ? estadoEl.value           : '';
             const tipo   = tipoEl     ? tipoEl.value             : '';
-            const sucId  = (session?.rol === 'superadmin' && sucursalEl)
-                           ? sucursalEl.value : '';
+            
+            const contextoSede = Store.getSucursal();
+            let sucId = '';
+
+            if (session?.rol === 'superadmin') {
+                if (contextoSede && contextoSede.sucursalId) {
+                    sucId = contextoSede.sucursalId;
+                } else if (sucursalEl && sucursalEl.value) {
+                    sucId = sucursalEl.value;
+                }
+            } else if (session?.sucursalId) {
+                sucId = session.sucursalId;
+            }
 
             let url = `/eventos?page=${page}&size=${PAGE_SIZE}&sort=fechaInicio,desc`;
             if (sucId)  url += `&sucursalId=${encodeURIComponent(sucId)}`;
