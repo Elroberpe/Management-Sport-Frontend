@@ -100,8 +100,8 @@ function setSidebarMode(mode) {
     const btnVolver = document.getElementById('btn-volver-sedes');
 
     // Define modules for each context for superadmin
-    const globalModules = ['inicio', 'sucursales', 'canchas', 'clientes', 'pagos', 'usuarios'];
-    const operativoModules = ['inicio', 'reservas', 'canchas', 'mantenimientos', 'clientes', 'pagos', 'usuarios'];
+    const globalModules    = ['inicio', 'sucursales', 'canchas', 'clientes', 'eventos', 'pagos', 'usuarios'];
+    const operativoModules = ['inicio', 'reservas', 'canchas', 'mantenimientos', 'clientes', 'eventos', 'pagos', 'usuarios'];
 
     const navItems = document.querySelectorAll('#sidebar-nav .nav-item[data-roles]');
 
