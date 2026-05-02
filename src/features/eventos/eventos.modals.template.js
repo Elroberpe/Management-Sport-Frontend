@@ -53,14 +53,11 @@ export function horarioRowTemplate(index = 0) {
     `;
 }
 
-// ---------------------------------------------------------------------------
-// Modal A: Crear Evento
-// ---------------------------------------------------------------------------
-export function eventoNewFormTemplate(rol = 'superadmin') {
+export function eventoNewFormPaso1Template(rol = 'superadmin') {
     return `
-    <div style="font-weight: 700; color: var(--primary); margin-bottom: 16px; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-        <i class='bx bx-info-circle'></i> Sección 1: Datos Generales del Evento
-    </div>
+    <p style="color:#64748b; font-size:13px; margin-bottom:16px;">
+        Paso 1 de 2: Define la información general del evento antes de asignar horarios.
+    </p>
 
     <!-- Fila: Nombre + Tipo -->
     <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:12px;">
@@ -132,13 +129,13 @@ export function eventoNewFormTemplate(rol = 'superadmin') {
             <span class="modal-shell-error-text" id="ne-monto-err"></span>
         </div>
     </div>
+    `;
+}
 
-    <!-- Sección 2 -->
-    <div style="font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-        <i class='bx bx-time'></i> Sección 2: Asignación de Canchas y Horarios
-    </div>
-    <p style="color:#64748b; font-size:12px; margin-bottom:16px;">
-        Añade los bloques de horario para bloquear las canchas requeridas por el evento.
+export function eventoNewFormPaso2Template() {
+    return `
+    <p style="color:#64748b; font-size:13px; margin-bottom:16px;">
+        Paso 2 de 2: Añade los bloques de horario para bloquear las canchas requeridas por el evento.
     </p>
 
     <!-- Constructor de Horarios -->

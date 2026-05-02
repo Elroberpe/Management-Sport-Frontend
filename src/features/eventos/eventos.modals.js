@@ -5,7 +5,8 @@ import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
 import {
-    eventoNewFormTemplate,
+    eventoNewFormPaso1Template,
+    eventoNewFormPaso2Template,
     eventoEditFormTemplate,
     eventoReprogramarTemplate,
     eventoPagoTemplate,
@@ -134,45 +135,28 @@ function _initHorariosBuilder(containerId, btnAddId, sucursalId = null) {
 export function initCrearEventoModal({ onCreado }) {
     const session = Auth.getSession();
     let horariosBuilder = null;
+    let eventoData = {}; // Guarda los datos del paso 1 temporalmente
 
-    const modal = initModalShell({
-        id: 'modal-crear-evento',
-        title: 'Crear Nuevo Evento',
-        subtitle: 'Registra un torneo, evento corporativo o especial',
-        icon: 'bx bx-calendar-plus',
+    // Modal Paso 2: Horarios
+    const modalPaso2 = initModalShell({
+        id: 'modal-crear-evento-paso2',
+        title: 'Crear Evento - Paso 2',
+        subtitle: 'Asignación de canchas y horarios',
+        icon: 'bx bx-time',
         confirmText: 'Crear Evento',
-        contentHtml: eventoNewFormTemplate(session?.rol || 'superadmin'),
+        contentHtml: eventoNewFormPaso2Template(),
         onConfirm: async (ctx) => {
-            const nombre      = document.getElementById('ne-nombre').value.trim();
-            const descripcion = document.getElementById('ne-descripcion')?.value.trim();
-            const tipo        = document.getElementById('ne-tipo').value;
-            const clienteId   = parseInt(document.getElementById('ne-cliente').value);
-            const sucursalId  = parseInt(document.getElementById('ne-sucursal').value);
-            const fechaInicio = document.getElementById('ne-fecha-inicio').value;
-            const fechaFin    = document.getElementById('ne-fecha-fin').value;
-            const monto       = parseFloat(document.getElementById('ne-monto').value);
-            const horarios    = horariosBuilder ? horariosBuilder.getHorarios() : [];
+            const horarios = horariosBuilder ? horariosBuilder.getHorarios() : [];
 
-            // Validaciones
-            let hasError = false;
-            if (!nombre) { ctx.showFieldError('ne-nombre', 'El nombre es obligatorio.'); hasError = true; }
-            if (!clienteId) { ctx.showFieldError('ne-cliente', 'Selecciona un cliente.'); hasError = true; }
-            if (!sucursalId) { ctx.showFieldError('ne-sucursal', 'Selecciona una sede.'); hasError = true; }
-            if (!fechaInicio) { ctx.showFieldError('ne-fecha-inicio', 'La fecha de inicio es obligatoria.'); hasError = true; }
-            if (!monto || monto <= 0) { ctx.showFieldError('ne-monto', 'El monto debe ser mayor a 0.'); hasError = true; }
             if (horarios.length === 0 || horarios.some(h => !h.canchaId || !h.fecha || !h.horaInicio || !h.horaFin)) {
                 document.getElementById('ne-horarios-err').textContent = 'Completa todos los campos de cada horario.';
-                hasError = true;
+                return;
             }
-            if (hasError) return;
 
             ctx.setLoading(true);
             try {
                 const payload = {
-                    nombre, descripcion, sucursalId, clienteId,
-                    fechaInicio, fechaFin: fechaFin || fechaInicio,
-                    tipoEvento: tipo,
-                    montoPactado: monto,
+                    ...eventoData,
                     horarios,
                 };
                 const nuevo = await api.post('/eventos', payload);
@@ -186,10 +170,66 @@ export function initCrearEventoModal({ onCreado }) {
         }
     });
 
+    // Modal Paso 1: Datos Generales
+    const modalPaso1 = initModalShell({
+        id: 'modal-crear-evento-paso1',
+        title: 'Crear Evento - Paso 1',
+        subtitle: 'Datos generales del torneo o evento corporativo',
+        icon: 'bx bx-calendar-plus',
+        confirmText: 'Siguiente: Horarios',
+        contentHtml: eventoNewFormPaso1Template(session?.rol || 'superadmin'),
+        onConfirm: async (ctx) => {
+            const nombre      = document.getElementById('ne-nombre').value.trim();
+            const descripcion = document.getElementById('ne-descripcion')?.value.trim();
+            const tipo        = document.getElementById('ne-tipo').value;
+            const clienteId   = parseInt(document.getElementById('ne-cliente').value);
+            const sucursalId  = parseInt(document.getElementById('ne-sucursal').value);
+            const fechaInicio = document.getElementById('ne-fecha-inicio').value;
+            const fechaFin    = document.getElementById('ne-fecha-fin').value;
+            const monto       = parseFloat(document.getElementById('ne-monto').value);
+
+            // Validaciones
+            let hasError = false;
+            if (!nombre) { ctx.showFieldError('ne-nombre', 'El nombre es obligatorio.'); hasError = true; }
+            if (!clienteId) { ctx.showFieldError('ne-cliente', 'Selecciona un cliente.'); hasError = true; }
+            if (!sucursalId) { ctx.showFieldError('ne-sucursal', 'Selecciona una sede.'); hasError = true; }
+            if (!fechaInicio) { ctx.showFieldError('ne-fecha-inicio', 'La fecha de inicio es obligatoria.'); hasError = true; }
+            if (!monto || monto <= 0) { ctx.showFieldError('ne-monto', 'El monto debe ser mayor a 0.'); hasError = true; }
+            if (hasError) return;
+
+            eventoData = {
+                nombre, descripcion, sucursalId, clienteId,
+                fechaInicio, fechaFin: fechaFin || fechaInicio,
+                tipoEvento: tipo,
+                montoPactado: monto,
+            };
+
+            // Cerrar paso 1 y abrir paso 2
+            ctx.close();
+            modalPaso2.open();
+
+            // Asegurar que el contenedor está limpio antes de iniciar el builder
+            const builderContainer = document.getElementById('ne-horarios-container');
+            if (builderContainer) builderContainer.innerHTML = '';
+            
+            // Inicializar constructor con el ID de sucursal seleccionado en el paso 1
+            horariosBuilder = _initHorariosBuilder('ne-horarios-container', 'ne-btn-add-horario', sucursalId);
+        }
+    });
+
     return {
-        ...modal,
+        ...modalPaso1,
         open: async () => {
-            modal.open();
+            modalPaso1.open();
+            
+            // Limpiar campos del paso 1 si se vuelve a abrir
+            document.getElementById('ne-nombre').value = '';
+            const descEl = document.getElementById('ne-descripcion');
+            if (descEl) descEl.value = '';
+            document.getElementById('ne-fecha-inicio').value = '';
+            document.getElementById('ne-fecha-fin').value = '';
+            document.getElementById('ne-monto').value = '';
+
             // Cargar clientes y sucursales en paralelo
             await Promise.all([
                 _cargarClientes(document.getElementById('ne-cliente')),
@@ -202,10 +242,6 @@ export function initCrearEventoModal({ onCreado }) {
                 sel.value = session.sucursalId;
                 sel.disabled = true;
             }
-
-            // Inicializar el constructor de horarios
-            const sucursalId = session?.rol !== 'superadmin' ? session?.sucursalId : null;
-            horariosBuilder = _initHorariosBuilder('ne-horarios-container', 'ne-btn-add-horario', sucursalId);
         }
     };
 }
