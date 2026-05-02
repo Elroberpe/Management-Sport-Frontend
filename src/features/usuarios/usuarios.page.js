@@ -119,17 +119,20 @@ export function mount(container) {
             {
                 key: 'nombre',
                 label: 'Nombre',
-                render: (v, u) => `
+                render: (v, u) => {
+                    const id = u.usuarioId || u.id;
+                    return `
                     <div class="profile-cell">
-                        <div class="avatar-circle" style="background:${getColor(u.usuarioId)}; color:white;">
+                        <div class="avatar-circle" style="background:${getColor(id)}; color:white;">
                             ${getInitials(v)}
                         </div>
                         <div class="cell-info">
                             <strong class="cell-title">${v}</strong>
-                            <span class="cell-subtitle">ID #${u.usuarioId}</span>
+                            <span class="cell-subtitle">ID #${id}</span>
                         </div>
                     </div>
-                `
+                `;
+                }
             },
             {
                 key: 'username',
@@ -218,25 +221,26 @@ export function mount(container) {
             {
                 label: 'Editar',
                 icon: 'bx bx-pencil',
-                onClick: (u) => modalEditar.abrir(u.usuarioId),
+                onClick: (u) => modalEditar.abrir(u.usuarioId || u.id),
             },
             {
                 label: 'Contraseña',
                 icon: 'bx bx-key',
-                onClick: (u) => modalPassword.abrir(u.usuarioId, u.nombre),
+                onClick: (u) => modalPassword.abrir(u.usuarioId || u.id, u.nombre),
             },
             {
                 label: 'Eliminar',
                 icon: 'bx bx-trash',
                 class: 'danger',
                 onClick: async (u) => {
+                    const id = u.usuarioId || u.id;
                     const confirmed = confirm(
                         `¿Estás seguro de que quieres eliminar a "${u.nombre}"?\nEsta acción no se puede deshacer.`
                     );
                     if (!confirmed) return;
 
                     try {
-                        await api.delete(`/usuarios/${u.usuarioId}`);
+                        await api.delete(`/usuarios/${id}`);
                         table.fetch(0);
                     } catch (err) {
                         alert('No se pudo eliminar el usuario: ' + err.message);
