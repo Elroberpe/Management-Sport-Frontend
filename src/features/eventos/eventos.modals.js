@@ -496,8 +496,19 @@ export function initPagoEventoModal({ onPagado }) {
 // Modal E: Cancelar Evento
 // ---------------------------------------------------------------------------
 export function initCancelarEventoModal({ onCancelado }) {
-    let currentEventoId  = null;
-    let montoPagadoActual = 0;
+    let currentEventoId = null;
+    let _simulacion     = null;
+
+    function _setupMetodoVisibility() {
+        const montoEl = document.getElementById('ec-reembolso');
+        const wrapper = document.getElementById('ec-metodo-wrapper');
+        if (!montoEl || !wrapper) return;
+        const toggle = () => {
+            wrapper.style.display = (parseFloat(montoEl.value) || 0) > 0 ? 'block' : 'none';
+        };
+        toggle();
+        montoEl.addEventListener('input', toggle);
+    }
 
     const modal = initModalShell({
         id: 'modal-cancelar-evento',
@@ -506,35 +517,36 @@ export function initCancelarEventoModal({ onCancelado }) {
         icon: 'bx bx-x-circle',
         confirmText: 'Confirmar Cancelación',
         confirmStyle: 'danger',
-        contentHtml: eventoCancelarTemplate(),
+        contentHtml: '<div></div>',
         onConfirm: async (ctx) => {
-            const motivo     = document.getElementById('ec-motivo').value.trim();
-            const reembolso  = parseFloat(document.getElementById('ec-reembolso').value) || 0;
-            const nota       = document.getElementById('ec-nota').value.trim();
+            const motivo = document.getElementById('ec-motivo')?.value.trim();
+            const monto  = parseFloat(document.getElementById('ec-reembolso')?.value) || 0;
+            const metodo = document.getElementById('ec-metodo')?.value;
+            const nota   = document.getElementById('ec-nota')?.value.trim();
 
-            // Validaciones
             let hasError = false;
             if (!motivo) {
                 ctx.showFieldError('ec-motivo', 'El motivo es obligatorio.');
                 hasError = true;
             }
-            if (reembolso < 0) {
-                ctx.showFieldError('ec-reembolso', 'El reembolso no puede ser negativo.');
+            const maximo = _simulacion?.reembolsoMaximoPermitido ?? Infinity;
+            if (monto > maximo) {
+                ctx.showFieldError('ec-reembolso', `No puede superar S/ ${Number(maximo).toFixed(2)}.`);
                 hasError = true;
             }
-            if (reembolso > montoPagadoActual) {
-                ctx.showFieldError('ec-reembolso', `El reembolso no puede superar lo pagado (S/ ${montoPagadoActual.toFixed(2)}).`);
+            if (monto > 0 && !metodo) {
+                ctx.showFieldError('ec-metodo', 'Selecciona el método de devolución.');
                 hasError = true;
             }
             if (hasError) return;
 
+            const body = { motivo, montoReembolso: monto };
+            if (nota)              body.notaReembolso = nota;
+            if (metodo && monto > 0) body.metodoPago  = metodo;
+
             ctx.setLoading(true);
             try {
-                const cancelado = await api.post(`/eventos/${currentEventoId}/cancelar`, {
-                    motivo,
-                    montoReembolso: reembolso,
-                    notaReembolso: nota || undefined,
-                });
+                const cancelado = await api.post(`/eventos/${currentEventoId}/cancelar`, body);
                 ctx.showToast('Evento cancelado correctamente.');
                 ctx.close();
                 if (onCancelado) onCancelado(cancelado);
@@ -547,22 +559,48 @@ export function initCancelarEventoModal({ onCancelado }) {
 
     return {
         ...modal,
-        abrir: (evento) => {
-            currentEventoId   = evento.id || evento.eventoId;
-            montoPagadoActual = Number(evento.montoPagado || 0);
+        abrir: async (evento) => {
+            currentEventoId = evento.id || evento.eventoId;
             modal.open();
 
-            // Mostrar monto pagado como referencia
-            const pagadoEl = document.getElementById('evt-cancel-pagado');
-            if (pagadoEl) pagadoEl.textContent = `S/ ${montoPagadoActual.toFixed(2)}`;
+            // Fase 1 — Loading state mientras se consulta al backend
+            const bodyEl     = document.querySelector('#modal-cancelar-evento .modal-shell-body');
+            const btnConfirm = document.getElementById('modal-cancelar-evento-btn-confirm');
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px;">
+                        <i class="bx bx-loader-alt bx-spin" style="font-size:32px; color:#64748b;"></i>
+                        <p style="color:#64748b; margin-top:12px; font-size:14px;">Calculando penalidades...</p>
+                    </div>`;
+            }
+            if (btnConfirm) btnConfirm.disabled = true;
 
-            // Limpiar campos
-            const motivoEl = document.getElementById('ec-motivo');
-            const reembolsoEl = document.getElementById('ec-reembolso');
-            const notaEl = document.getElementById('ec-nota');
-            if (motivoEl) motivoEl.value = '';
-            if (reembolsoEl) reembolsoEl.value = '0';
-            if (notaEl) notaEl.value = '';
+            // Fase 2 — Simulación en el backend
+            try {
+                _simulacion = await api.get(`/eventos/${currentEventoId}/simular-cancelacion`);
+
+                if (bodyEl) {
+                    bodyEl.innerHTML =
+                        `<div class="modal-shell-alert-error" id="modal-cancelar-evento-err-gen" style="display:none;">
+                            <i class='bx bx-error-circle'></i>
+                            <span id="modal-cancelar-evento-err-gen-msg"></span>
+                        </div>` +
+                        eventoCancelarTemplate(_simulacion);
+                }
+                if (btnConfirm) btnConfirm.disabled = false;
+                _setupMetodoVisibility();
+
+            } catch (err) {
+                if (bodyEl) {
+                    bodyEl.innerHTML = `
+                        <div style="text-align:center; padding:30px 20px;">
+                            <i class="bx bx-error" style="font-size:32px; color:#ef4444;"></i>
+                            <p style="color:#ef4444; margin-top:8px; font-size:13px;">
+                                ${err.message || 'Error al calcular penalidades.'}
+                            </p>
+                        </div>`;
+                }
+            }
         }
     };
 }

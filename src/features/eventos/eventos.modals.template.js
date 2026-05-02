@@ -287,9 +287,48 @@ export function eventoPagoTemplate() {
 // ---------------------------------------------------------------------------
 // Modal E: Cancelar Evento (crítico — diseño danger)
 // ---------------------------------------------------------------------------
-export function eventoCancelarTemplate() {
+export function eventoCancelarTemplate(simulacion = {}) {
+    const {
+        aplicaPenalidad       = false,
+        mensaje               = '',
+        penalidadAplicable    = 0,
+        reembolsoMaximoPermitido = 0,
+    } = simulacion;
+
+    const montoInicial = Number(reembolsoMaximoPermitido).toFixed(2);
+    const showMetodo   = reembolsoMaximoPermitido > 0 ? 'block' : 'none';
+
+    const banner = aplicaPenalidad
+        ? `<div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:10px;
+               padding:12px 16px; margin-bottom:16px; display:flex; gap:10px; align-items:flex-start;">
+               <i class='bx bx-error' style="color:#d97706; font-size:22px; flex-shrink:0; margin-top:2px;"></i>
+               <div style="flex:1;">
+                   <strong style="color:#92400e; font-size:13px;">⚠ Se aplicará una penalidad</strong>
+                   <p style="color:#78350f; font-size:12px; margin:4px 0 8px;">${mensaje}</p>
+                   <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                       <span style="font-size:12px; color:#92400e;">
+                           Penalidad: <strong style="color:#dc2626;">−S/ ${Number(penalidadAplicable).toFixed(2)}</strong>
+                       </span>
+                       <span style="font-size:12px; color:#92400e;">
+                           Reembolso máx.: <strong style="color:#059669;">S/ ${montoInicial}</strong>
+                       </span>
+                   </div>
+               </div>
+           </div>`
+        : `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;
+               padding:12px 16px; margin-bottom:16px; display:flex; gap:10px; align-items:flex-start;">
+               <i class='bx bx-check-circle' style="color:#16a34a; font-size:22px; flex-shrink:0; margin-top:2px;"></i>
+               <div>
+                   <strong style="color:#166534; font-size:13px;">✓ Reembolso completo disponible</strong>
+                   <p style="color:#166534; font-size:12px; margin:4px 0 0;">
+                       El cliente está dentro del tiempo permitido.
+                       Reembolso máximo: <strong>S/ ${montoInicial}</strong>
+                   </p>
+               </div>
+           </div>`;
+
     return `
-    <!-- Advertencia crítica -->
+    <!-- Advertencia irreversible -->
     <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px;
          padding:12px 16px; margin-bottom:16px; display:flex; gap:10px; align-items:flex-start;">
         <i class='bx bx-error' style="color:#dc2626; font-size:22px; flex-shrink:0; margin-top:2px;"></i>
@@ -302,12 +341,8 @@ export function eventoCancelarTemplate() {
         </div>
     </div>
 
-    <!-- Info de pagos recibidos -->
-    <div id="evt-cancel-info" style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px;
-         padding:10px 16px; margin-bottom:16px; font-size:13px; color:#92400e;">
-        <i class='bx bx-info-circle'></i>
-        Monto pagado por el cliente: <strong id="evt-cancel-pagado">S/ 0.00</strong>
-    </div>
+    <!-- Banner dinámico de penalidad -->
+    ${banner}
 
     <!-- Motivo -->
     <div class="modal-shell-field">
@@ -320,22 +355,35 @@ export function eventoCancelarTemplate() {
         <span class="modal-shell-error-text" id="ec-motivo-err"></span>
     </div>
 
-    <!-- Fila: Monto Reembolso + Nota -->
-    <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:12px;">
-        <div class="modal-shell-field">
-            <label class="modal-shell-label" for="ec-reembolso">
-                <i class='bx bx-money-withdraw'></i> Monto a Reembolsar
-            </label>
-            <input type="number" id="ec-reembolso" class="modal-shell-input" placeholder="0.00" min="0" step="0.01" value="0">
-            <span class="modal-shell-error-text" id="ec-reembolso-err"></span>
-        </div>
-        <div class="modal-shell-field">
-            <label class="modal-shell-label" for="ec-nota">
-                <i class='bx bx-note'></i> Nota del Reembolso (Opcional)
-            </label>
-            <input type="text" id="ec-nota" class="modal-shell-input" placeholder="Ej: Devolución a cuenta BCP">
-        </div>
-        </div>
+    <!-- Monto a Reembolsar -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-reembolso">
+            <i class='bx bx-money-withdraw'></i> Monto a Reembolsar
+        </label>
+        <input type="number" id="ec-reembolso" class="modal-shell-input"
+            placeholder="0.00" min="0" step="0.01"
+            max="${montoInicial}" value="${montoInicial}">
+        <span class="modal-shell-error-text" id="ec-reembolso-err"></span>
+    </div>
+
+    <!-- Método de Devolución (visible solo si monto > 0) -->
+    <div class="modal-shell-field" id="ec-metodo-wrapper" style="display:${showMetodo};">
+        <label class="modal-shell-label" for="ec-metodo">
+            <i class='bx bx-credit-card'></i> Método de Devolución <span style="color:#ef4444;">*</span>
+        </label>
+        <select id="ec-metodo" class="modal-shell-input">
+            <option value="">— Seleccionar —</option>
+            ${METODOS_PAGO}
+        </select>
+        <span class="modal-shell-error-text" id="ec-metodo-err"></span>
+    </div>
+
+    <!-- Nota del Reembolso -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ec-nota">
+            <i class='bx bx-note'></i> Nota del Reembolso (Opcional)
+        </label>
+        <input type="text" id="ec-nota" class="modal-shell-input" placeholder="Ej: Devolución a cuenta BCP">
     </div>
     `;
 }
