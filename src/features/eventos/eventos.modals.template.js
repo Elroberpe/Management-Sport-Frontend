@@ -335,6 +335,108 @@ export function eventoCancelarTemplate() {
             </label>
             <input type="text" id="ec-nota" class="modal-shell-input" placeholder="Ej: Devolución a cuenta BCP">
         </div>
+        </div>
+    </div>
+    `;
+}
+
+// ---------------------------------------------------------------------------
+// Modal E: Detalle del Evento
+// ---------------------------------------------------------------------------
+export function eventoDetailTemplate(evento) {
+    const estadoColors = {
+        'PROGRAMADO': { bg: '#dcfce7', text: '#166534', dot: '#22c55e' },
+        'EN_CURSO': { bg: '#fef3c7', text: '#92400e', dot: '#f59e0b' },
+        'FINALIZADO': { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' },
+        'CANCELADO': { bg: '#fee2e2', text: '#991b1b', dot: '#ef4444' }
+    };
+    
+    const e = estadoColors[evento.estado] || { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' };
+    
+    const saldo = Number(evento.saldoPendiente || 0);
+    const saldoColor = saldo > 0 ? (saldo > 100 ? '#dc2626' : '#d97706') : '#16a34a';
+    const saldoText = saldo > 0 ? `S/ ${saldo.toFixed(2)}` : 'Pagado';
+
+    const reservas = Array.isArray(evento.reservasAsociadas) ? evento.reservasAsociadas : [];
+
+    return `
+    <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- SECCIÓN 1: Encabezado -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <h3 style="margin:0; font-size:18px; color:#1e293b; font-weight:700;">${evento.nombre}</h3>
+                <span style="background:${e.bg}; color:${e.text}; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:${e.dot};"></span>
+                    ${evento.estado}
+                </span>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-user' style="color:#64748b;"></i> 
+                    <span>A cargo de: <strong style="color:#1e293b;">${evento.nombreCliente}</strong></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-calendar' style="color:#64748b;"></i> 
+                    <span>Del <strong>${evento.fechaInicio}</strong> al <strong>${evento.fechaFin}</strong></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-trophy' style="color:#64748b;"></i> 
+                    <span>Tipo: <strong>${evento.tipoEvento}</strong></span>
+                </div>
+            </div>
+            
+            ${evento.descripcion ? `<p style="margin:8px 0 0 0; font-size:12px; color:#64748b; background:#f8fafc; padding:8px; border-radius:6px; border-left:3px solid #cbd5e1;">${evento.descripcion}</p>` : ''}
+        </div>
+
+        <!-- SECCIÓN 2: Resumen Financiero -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Pactado</span>
+                    <span style="font-size:15px; color:#1e293b; font-weight:700;">S/ ${Number(evento.montoPactado || 0).toFixed(2)}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0;">
+                    <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Abonado</span>
+                    <span style="font-size:15px; color:#059669; font-weight:700;">S/ ${Number(evento.montoPagado || 0).toFixed(2)}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Saldo Pendiente</span>
+                    <span style="font-size:16px; color:${saldoColor}; font-weight:800;">${saldoText}</span>
+                </div>
+            </div>
+            
+            ${(saldo > 0 && evento.estado !== 'CANCELADO') ? `
+            <div style="margin-top:16px; text-align:center;">
+                <button type="button" class="modal-shell-btn modal-shell-btn-primary" id="det-evento-cobrar-btn" style="width:100%; justify-content:center; padding:10px; font-size:14px; background:#059669;">
+                    <i class='bx bx-credit-card'></i> Cobrar Saldo
+                </button>
+            </div>
+            ` : ''}
+        </div>
+
+        <!-- SECCIÓN 3: Cronograma de Canchas -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <h4 style="margin:0; font-size:13px; color:#334155; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Cronograma de Canchas</h4>
+            
+            ${reservas.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                ${reservas.map(r => `
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="font-size:12px; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:4px;"><i class='bx bx-map' style="color:#64748b;"></i> ${r.nombreCancha}</span>
+                        <span style="font-size:11px; color:#64748b; display:flex; align-items:center; gap:4px;"><i class='bx bx-calendar'></i> ${r.fecha}</span>
+                    </div>
+                    <div style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; color:#475569; display:flex; align-items:center; gap:4px;">
+                        <i class='bx bx-time'></i> ${r.horario || (r.horaInicio + ' - ' + r.horaFin)}
+                    </div>
+                </div>
+                `).join('')}
+            </div>
+            ` : `
+            <p style="font-size:12px; color:#94a3b8; font-style:italic; margin:0;">No hay canchas asignadas.</p>
+            `}
+        </div>
     </div>
     `;
 }

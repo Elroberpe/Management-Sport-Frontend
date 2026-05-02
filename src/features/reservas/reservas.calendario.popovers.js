@@ -209,14 +209,23 @@ export function createPopoversHandler(ctx) {
                     `<div class='mp-actions' style='flex-direction:column;gap:6px;'>`,
                         rowBtns1.length ? `<div style='display:flex;gap:6px;'>${rowBtns1.join('')}</div>` : '',
                         rowBtns2.length ? `<div style='display:flex;'>${rowBtns2.join('')}</div>` : '',
-                        !r.eventoId ? `<button class='mp-btn-outline' id='rpop-detalle-btn' style='width:100%;justify-content:center;font-size:11px;color:#475569;border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:7px;cursor:pointer;display:flex;align-items:center;gap:5px;'><i class='bx bx-show'></i> Ver Detalle Completo</button>` : '',
+                        `<button class='mp-btn-outline' id='rpop-detalle-btn' style='width:100%;justify-content:center;font-size:11px;color:#475569;border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:7px;cursor:pointer;display:flex;align-items:center;gap:5px;'><i class='bx bx-show'></i> Ver Detalle Completo</button>`,
                     `</div>`
                 ].join('');
 
                 pop.querySelector('#rpop-close-btn').addEventListener('click', cerrarPopover);
                 
                 const detBtn = pop.querySelector('#rpop-detalle-btn');
-                if (detBtn) detBtn.addEventListener('click', () => { cerrarPopover(); modals.abrirDetalleReserva(r.id); });
+                if (detBtn) {
+                    detBtn.addEventListener('click', () => { 
+                        cerrarPopover(); 
+                        if (r.eventoId && modals.abrirDetalleEvento) {
+                            modals.abrirDetalleEvento(r.eventoId);
+                        } else {
+                            modals.abrirDetalleReserva(r.id);
+                        }
+                    });
+                }
                 
                 const pagoBtn = pop.querySelector('#rpop-pago-btn');
                 if (pagoBtn) pagoBtn.addEventListener('click', () => { cerrarPopover(); modals.abrirModalPago(r.id, saldo); });

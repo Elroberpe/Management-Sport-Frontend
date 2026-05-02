@@ -16,6 +16,7 @@ import {
     initReprogramarEventoModal,
     initPagoEventoModal,
     initCancelarEventoModal,
+    initDetalleEventoModal,
 } from './eventos.modals.js';
 
 const ESTADOS_FINALES = ['FINALIZADO', 'CANCELADO'];
@@ -145,6 +146,7 @@ export function mount(container) {
     const modalReprogramar = initReprogramarEventoModal({ onReprogramado: () => table.fetch(0) });
     const modalPago        = initPagoEventoModal({ onPagado: () => table.fetch(0) });
     const modalCancelar    = initCancelarEventoModal({ onCancelado: () => table.fetch(0) });
+    const modalDetalle     = initDetalleEventoModal({ onPago: (e) => modalPago.abrir(e) });
 
     // -------------------------------------------------------------------------
     // 6. Tabla
@@ -284,6 +286,11 @@ export function mount(container) {
             }
         },
         actions: [
+            {
+                label: 'Ver Detalle',
+                icon: 'bx bx-show',
+                onClick: (e) => modalDetalle.abrir(e.id || e.eventoId),
+            },
             {
                 label: 'Editar',
                 icon: 'bx bx-pencil',

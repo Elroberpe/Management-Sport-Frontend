@@ -8,6 +8,7 @@ import { initClienteModal } from '../clientes/clientes.modals.js';
 import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
+import { initDetalleEventoModal, initPagoEventoModal } from '../eventos/eventos.modals.js';
 
 let reservasMountCleanup = null;
 
@@ -49,6 +50,9 @@ export function mount(container) {
         initClienteModal: initClienteModal
     });
 
+    var modalPagoEvento = initPagoEventoModal({ onPagado: () => { tabla.fetchHistoricalReservas(0); calendario.cargarSemana(); } });
+    var modalDetalleEvento = initDetalleEventoModal({ onPago: (e) => modalPagoEvento.abrir(e) });
+
     // ─── 2. Inicializar Tabla Histórica ─────────────────────────────────────
     var tabla = initTabla({
         api:              api,
@@ -61,7 +65,8 @@ export function mount(container) {
             abrirModalReprogramar:  modals.abrirModalReprogramar,
             abrirModalCancelar:     modals.abrirModalCancelar,
             abrirModalReembolso:    modals.abrirModalReembolso,
-            imprimirReciboReserva:  modals.imprimirReciboReserva
+            imprimirReciboReserva:  modals.imprimirReciboReserva,
+            abrirDetalleEvento:     (id) => modalDetalleEvento.abrir(id)
         }
     });
 
@@ -77,7 +82,8 @@ export function mount(container) {
             abrirModalPago:         modals.abrirModalPago,
             abrirModalReprogramar:  modals.abrirModalReprogramar,
             abrirModalCancelar:     modals.abrirModalCancelar,
-            imprimirReciboReserva:  modals.imprimirReciboReserva
+            imprimirReciboReserva:  modals.imprimirReciboReserva,
+            abrirDetalleEvento:     (id) => modalDetalleEvento.abrir(id)
         }
     });
 

@@ -14,6 +14,7 @@ import {
     eventoPagoTemplate,
     eventoCancelarTemplate,
     horarioRowTemplate,
+    eventoDetailTemplate,
 } from './eventos.modals.template.js';
 
 // ---------------------------------------------------------------------------
@@ -562,6 +563,59 @@ export function initCancelarEventoModal({ onCancelado }) {
             if (motivoEl) motivoEl.value = '';
             if (reembolsoEl) reembolsoEl.value = '0';
             if (notaEl) notaEl.value = '';
+        }
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Modal E: Detalle del Evento
+// ---------------------------------------------------------------------------
+export function initDetalleEventoModal({ onPago }) {
+    let currentEvento = null;
+
+    const modal = initModalShell({
+        id: 'modal-detalle-evento',
+        title: 'Detalles del Evento',
+        subtitle: 'Resumen financiero y cronograma de canchas asignadas.',
+        icon: 'bx bx-info-circle',
+        confirmText: 'Cerrar',
+        contentHtml: '<div id="mde-content" style="padding:20px; text-align:center;"><i class="bx bx-loader-alt bx-spin" style="font-size:24px; color:#64748b;"></i><p>Cargando información del evento...</p></div>',
+        onConfirm: (ctx) => {
+            ctx.close();
+        }
+    });
+
+    return {
+        ...modal,
+        abrir: async (eventoId) => {
+            modal.open();
+            const container = document.getElementById('mde-content');
+            if (container) {
+                container.innerHTML = '<div style="padding:20px; text-align:center;"><i class="bx bx-loader-alt bx-spin" style="font-size:24px; color:#64748b;"></i><p>Cargando información del evento...</p></div>';
+            }
+
+            try {
+                currentEvento = await api.get(`/eventos/${eventoId}`);
+                
+                // Actualizar HTML de contenido
+                const contentWrapper = document.querySelector('#modal-detalle-evento .modal-shell-body');
+                if (contentWrapper) {
+                    contentWrapper.innerHTML = eventoDetailTemplate(currentEvento);
+                    
+                    // Add listener to 'Cobrar Saldo' button if it was rendered
+                    const btnCobrar = document.getElementById('det-evento-cobrar-btn');
+                    if (btnCobrar) {
+                        btnCobrar.addEventListener('click', () => {
+                            modal.close();
+                            if (onPago) onPago(currentEvento);
+                        });
+                    }
+                }
+            } catch (err) {
+                if (container) {
+                    container.innerHTML = `<div style="padding:20px; text-align:center;"><i class="bx bx-error" style="font-size:24px; color:#ef4444;"></i><p>${err.message || 'Error al cargar el evento.'}</p></div>`;
+                }
+            }
         }
     };
 }

@@ -147,7 +147,14 @@ export function initTabla(ctx) {
             return api.get(`/reservas?${params.toString()}`);
         },
         actions: [
-            { label: 'Ver Detalle', icon: 'bx bx-show', onClick: (r) => modals.abrirDetalleReserva(r.id) },
+            { 
+                label: 'Ver Detalle', 
+                icon: 'bx bx-show', 
+                onClick: (r) => {
+                    if (r.eventoId) modals.abrirDetalleEvento(r.eventoId);
+                    else modals.abrirDetalleReserva(r.id);
+                } 
+            },
             { 
                 label: 'Añadir Pago', 
                 icon: 'bx bx-credit-card', 
