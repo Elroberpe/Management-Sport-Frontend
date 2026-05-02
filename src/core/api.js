@@ -10,6 +10,18 @@ const BASE_URL = 'http://localhost:8080/api/v1';
 
 // Flag para evitar múltiples intentos de refresh simultáneos
 let _isRefreshing = false;
+let _refreshSubscribers = [];
+
+// Ejecuta las llamadas en cola con el nuevo token
+function onRefreshed(token) {
+    _refreshSubscribers.forEach(cb => cb(token));
+    _refreshSubscribers = [];
+}
+
+// Agrega llamadas a la cola de espera
+function addRefreshSubscriber(cb) {
+    _refreshSubscribers.push(cb);
+}
 
 export const api = {
     async get(endpoint) {
@@ -34,27 +46,35 @@ export const api = {
 
     /**
      * Realiza una petición HTTP autenticada.
-     * Si recibe 401, intenta renovar el token una sola vez y reintenta.
+     * Si recibe 401 o 403, pausa las llamadas (cola), renueva el token, 
+     * y luego reintenta transparentemente.
      * @param {string} endpoint  - ruta relativa ej: '/canchas'
      * @param {string} method    - GET, POST, PUT, PATCH, DELETE
      * @param {object|null} data - cuerpo JSON opcional
      * @param {boolean} _retry   - flag interno para evitar loop de refresh
      */
     async request(endpoint, method, data = null, _retry = false) {
-        const url = `${BASE_URL}${endpoint}`;
+        // 1. Si está refrescando, poner en cola hasta que termine (salvo que sea un retry)
+        if (_isRefreshing && !_retry) {
+            return new Promise((resolve) => {
+                addRefreshSubscriber(() => {
+                    resolve(this.request(endpoint, method, data, true));
+                });
+            });
+        }
 
+        const url = `${BASE_URL}${endpoint}`;
         const headers = {
             'Content-Type': 'application/json',
         };
 
-        // Inyectar Bearer token si existe
+        // 2. Inyectar Bearer token actual
         const token = Auth.getAccessToken();
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
         const options = { method, headers };
-
         if (data !== null && data !== undefined) {
             options.body = JSON.stringify(data);
         }
@@ -62,34 +82,46 @@ export const api = {
         try {
             const response = await fetch(url, options);
 
-            // --- Manejo de 401: token expirado ---
-            if (response.status === 401 && !_retry && !_isRefreshing) {
+            // 3. Manejo de Error 401 / 403 (Token Expirado)
+            if ((response.status === 401 || response.status === 403) && !_retry) {
+                
+                // Si justo en el medio del vuelo otro req disparó el refresh
+                if (_isRefreshing) {
+                    return new Promise((resolve) => {
+                        addRefreshSubscriber(() => {
+                            resolve(this.request(endpoint, method, data, true));
+                        });
+                    });
+                }
+
                 _isRefreshing = true;
 
+                // 4. Intento de Rescate (Refresh Token)
                 const refreshed = await Auth.refreshSession();
-                _isRefreshing = false;
 
                 if (refreshed) {
-                    // Reintentar el request original con el nuevo token
-                    console.info('[API] Token renovado. Reintentando request...');
+                    _isRefreshing = false;
+                    // Llamar a todos los requests en pausa para que reintenten
+                    onRefreshed(Auth.getAccessToken());
+                    // Reintentar este mismo request original
                     return this.request(endpoint, method, data, true);
                 } else {
-                    // Refresh falló → logout automático
-                    console.warn('[API] Refresh falló. Cerrando sesión.');
+                    // 5. Refresh Falló: Forzar Logout
+                    _isRefreshing = false;
+                    _refreshSubscribers = []; // Vaciar cola
                     await Auth.logout();
-                    throw new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
+                    throw new Error('Sesión expirada por seguridad. Por favor inicia sesión de nuevo.');
                 }
             }
 
+            // Manejo de otros errores estándar
             if (!response.ok) {
-                // Para respuestas 204 No Content (ej. DELETE), no hay body
                 if (response.status === 204) return null;
-
                 const errorData = await response.json().catch(() => null);
                 throw new Error((errorData && errorData.message) || `Error HTTP: ${response.status}`);
             }
 
-            // Respuesta exitosa sin body (ej: logout 200 sin JSON)
+            // Respuesta exitosa sin body
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 return null;
