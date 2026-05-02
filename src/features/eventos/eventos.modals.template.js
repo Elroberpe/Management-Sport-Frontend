@@ -56,37 +56,49 @@ export function horarioRowTemplate(index = 0) {
 // ---------------------------------------------------------------------------
 // Modal A: Crear Evento
 // ---------------------------------------------------------------------------
-export function eventoNewFormTemplate() {
+export function eventoNewFormTemplate(rol = 'superadmin') {
     return `
+    <div style="font-weight: 700; color: var(--primary); margin-bottom: 16px; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+        <i class='bx bx-info-circle'></i> Sección 1: Datos Generales del Evento
+    </div>
+
     <!-- Fila: Nombre + Tipo -->
     <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:12px;">
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ne-nombre">
-                <i class='bx bx-calendar-event'></i> Nombre del Evento <span style="color:#ef4444;">*</span>
+                <i class='bx bx-calendar-event'></i> Título del Evento <span style="color:#ef4444;">*</span>
             </label>
-            <input type="text" id="ne-nombre" class="modal-shell-input" placeholder="Ej: Torneo Verano 2024">
+            <input type="text" id="ne-nombre" class="modal-shell-input" placeholder="Ej: Torneo Relámpago de Verano">
             <span class="modal-shell-error-text" id="ne-nombre-err"></span>
         </div>
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ne-tipo">
-                <i class='bx bx-category'></i> Tipo <span style="color:#ef4444;">*</span>
+                <i class='bx bx-category'></i> Tipo de Evento <span style="color:#ef4444;">*</span>
             </label>
             <select id="ne-tipo" class="modal-shell-input">${TIPOS_EVENTO}</select>
         </div>
     </div>
 
-    <!-- Fila: Cliente + Sucursal -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <!-- Descripción -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ne-descripcion">
+            <i class='bx bx-text'></i> Descripción (Opcional)
+        </label>
+        <textarea id="ne-descripcion" class="modal-shell-input" rows="2" placeholder="Ej: Torneo de 8 equipos..." style="resize:vertical; min-height:60px; font-family:inherit;"></textarea>
+    </div>
+
+    <!-- Fila: Cliente + Sucursal (Oculta si no es superadmin) -->
+    <div style="display:grid; grid-template-columns:1fr ${rol === 'superadmin' ? '1fr' : '0'}; gap:12px;">
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ne-cliente">
-                <i class='bx bx-user'></i> Cliente <span style="color:#ef4444;">*</span>
+                <i class='bx bx-user'></i> Cliente (Organizador) <span style="color:#ef4444;">*</span>
             </label>
             <select id="ne-cliente" class="modal-shell-input">
                 <option value="">⏳ Cargando clientes...</option>
             </select>
             <span class="modal-shell-error-text" id="ne-cliente-err"></span>
         </div>
-        <div class="modal-shell-field">
+        <div class="modal-shell-field" style="display: ${rol === 'superadmin' ? 'block' : 'none'};">
             <label class="modal-shell-label" for="ne-sucursal">
                 <i class='bx bx-map-pin'></i> Sucursal <span style="color:#ef4444;">*</span>
             </label>
@@ -114,18 +126,23 @@ export function eventoNewFormTemplate() {
         </div>
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ne-monto">
-                <i class='bx bx-money'></i> Costo Total <span style="color:#ef4444;">*</span>
+                <i class='bx bx-money'></i> Monto Total Pactado <span style="color:#ef4444;">*</span>
             </label>
             <input type="number" id="ne-monto" class="modal-shell-input" placeholder="0.00" min="0" step="0.01">
             <span class="modal-shell-error-text" id="ne-monto-err"></span>
         </div>
     </div>
 
+    <!-- Sección 2 -->
+    <div style="font-weight: 700; color: var(--primary); margin-top: 24px; margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+        <i class='bx bx-time'></i> Sección 2: Asignación de Canchas y Horarios
+    </div>
+    <p style="color:#64748b; font-size:12px; margin-bottom:16px;">
+        Añade los bloques de horario para bloquear las canchas requeridas por el evento.
+    </p>
+
     <!-- Constructor de Horarios -->
     <div class="modal-shell-field">
-        <label class="modal-shell-label">
-            <i class='bx bx-time'></i> Horarios <span style="color:#ef4444;">*</span>
-        </label>
         <div id="ne-horarios-container">
             <!-- Las filas se inyectan dinámicamente -->
         </div>
@@ -133,7 +150,7 @@ export function eventoNewFormTemplate() {
             style="margin-top:8px; padding:6px 14px; border-radius:8px; border:1px dashed #94a3b8;
                    background:transparent; color:#64748b; cursor:pointer; font-size:13px; font-weight:600;
                    display:flex; align-items:center; gap:6px; transition:all 0.2s;">
-            <i class='bx bx-plus'></i> Añadir Horario
+            <i class='bx bx-plus'></i> Añadir Bloque de Horario
         </button>
         <span class="modal-shell-error-text" id="ne-horarios-err"></span>
     </div>

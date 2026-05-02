@@ -141,16 +141,17 @@ export function initCrearEventoModal({ onCreado }) {
         subtitle: 'Registra un torneo, evento corporativo o especial',
         icon: 'bx bx-calendar-plus',
         confirmText: 'Crear Evento',
-        contentHtml: eventoNewFormTemplate(),
+        contentHtml: eventoNewFormTemplate(session?.rol || 'superadmin'),
         onConfirm: async (ctx) => {
-            const nombre     = document.getElementById('ne-nombre').value.trim();
-            const tipo       = document.getElementById('ne-tipo').value;
-            const clienteId  = parseInt(document.getElementById('ne-cliente').value);
-            const sucursalId = parseInt(document.getElementById('ne-sucursal').value);
+            const nombre      = document.getElementById('ne-nombre').value.trim();
+            const descripcion = document.getElementById('ne-descripcion')?.value.trim();
+            const tipo        = document.getElementById('ne-tipo').value;
+            const clienteId   = parseInt(document.getElementById('ne-cliente').value);
+            const sucursalId  = parseInt(document.getElementById('ne-sucursal').value);
             const fechaInicio = document.getElementById('ne-fecha-inicio').value;
-            const fechaFin   = document.getElementById('ne-fecha-fin').value;
-            const monto      = parseFloat(document.getElementById('ne-monto').value);
-            const horarios   = horariosBuilder ? horariosBuilder.getHorarios() : [];
+            const fechaFin    = document.getElementById('ne-fecha-fin').value;
+            const monto       = parseFloat(document.getElementById('ne-monto').value);
+            const horarios    = horariosBuilder ? horariosBuilder.getHorarios() : [];
 
             // Validaciones
             let hasError = false;
@@ -168,7 +169,7 @@ export function initCrearEventoModal({ onCreado }) {
             ctx.setLoading(true);
             try {
                 const payload = {
-                    nombre, sucursalId, clienteId,
+                    nombre, descripcion, sucursalId, clienteId,
                     fechaInicio, fechaFin: fechaFin || fechaInicio,
                     tipoEvento: tipo,
                     montoPactado: monto,
