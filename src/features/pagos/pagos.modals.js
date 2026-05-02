@@ -1,5 +1,4 @@
 export function initModals({ api, addGlobalListener, onPagoAnulado }) {
-    const BASE_URL = 'http://localhost:8080/api/v1';
     let _pagoActivo = null;
 
     // Helpers utilitarios repetidos para mantener módulos desacoplados
@@ -104,21 +103,18 @@ export function initModals({ api, addGlobalListener, onPagoAnulado }) {
 
     document.getElementById('btn-anular-submit').onclick = function() {
         const motivo = (document.getElementById('anular-motivo').value || '').trim();
-        if (!motivo) return document.getElementById('anular-err-motivo').textContent = 'Obligatorio.';
-        
+        const errEl  = document.getElementById('anular-err-motivo');
+        if (!motivo) {
+            errEl.textContent = 'El motivo es obligatorio.';
+            return;
+        }
+        errEl.textContent = '';
+
         this.disabled = true;
         document.getElementById('anular-submit-text').style.display = 'none';
         document.getElementById('anular-submit-loader').style.display = 'flex';
 
-        fetch(BASE_URL + '/pagos/' + _pagoActivo.id + '/anular', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ motivo })
-        })
-        .then(res => {
-            if (res.ok) return null;
-            return res.json().then(e => { throw new Error(e.mensaje || e.message); });
-        })
+        api.patch(`/pagos/${_pagoActivo.id}/anular`, { motivo })
         .then(() => {
             cerrarModalAnular();
             onPagoAnulado(_pagoActivo.id, motivo);
