@@ -60,9 +60,11 @@ export function usuarioNewFormTemplate(rolActual = 'admin') {
         </div>
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="nu-sucursal">
-                <i class='bx bx-map-pin'></i> ID de Sucursal
+                <i class='bx bx-map-pin'></i> Sucursal
             </label>
-            <input type="number" id="nu-sucursal" class="modal-shell-input" placeholder="Dejar vacío si no aplica" min="1">
+            <select id="nu-sucursal" class="modal-shell-input">
+                <option value="">⏳ Cargando sucursales...</option>
+            </select>
             <span class="modal-shell-error-text" id="nu-sucursal-err"></span>
         </div>
     </div>

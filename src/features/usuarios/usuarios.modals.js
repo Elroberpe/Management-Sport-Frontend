@@ -13,6 +13,35 @@ import {
 // ---------------------------------------------------------------------------
 // Modal: Crear Nuevo Usuario
 // ---------------------------------------------------------------------------
+// Helper: cargar sucursales en un <select>
+// Reutiliza el mismo endpoint y patrón que dashboard.page.js
+// ---------------------------------------------------------------------------
+async function _cargarSucursalesEnSelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.innerHTML = '<option value="">-- Sin Sede Asignada --</option>';
+
+    try {
+        const sucursales = await api.get('/sucursales');
+        const activas = Array.isArray(sucursales)
+            ? sucursales.filter(s => s.activo !== false)
+            : [];
+
+        activas.forEach(s => {
+            const id  = s.sucursalId !== undefined ? s.sucursalId : s.id;
+            const opt = document.createElement('option');
+            opt.value       = id;
+            opt.textContent = s.nombre;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.warn('[UsuariosModal] No se pudieron cargar las sucursales:', err.message);
+        select.innerHTML = '<option value="">⚠️ Error al cargar sedes</option>';
+    }
+}
+
+// ---------------------------------------------------------------------------
 export function initCrearUsuarioModal({ onUsuarioCreado }) {
     const session = Auth.getSession();
     const rolActual = session?.rol || 'admin';
@@ -70,7 +99,15 @@ export function initCrearUsuarioModal({ onUsuarioCreado }) {
         }
     });
 
-    return modal;
+    // Envolver open() para cargar sucursales al abrir el modal
+    return {
+        ...modal,
+        open: () => {
+            modal.open();
+            // Cargar sucursales de forma asíncrona al abrir
+            _cargarSucursalesEnSelect('nu-sucursal');
+        }
+    };
 }
 
 // ---------------------------------------------------------------------------
