@@ -26,7 +26,8 @@ export function initModalShell(options) {
         confirmStyle = 'primary',
         cancelText = 'Cancelar',
         onConfirm = null,
-        onClose = null
+        onClose = null,
+        hideFooter = false
     } = options;
 
     // 1. Eliminar si ya existe uno con el mismo ID (evitar duplicados en SPA)
@@ -56,6 +57,7 @@ export function initModalShell(options) {
                     ${contentHtml}
                 </div>
 
+                ${hideFooter ? '' : `
                 <!-- Footer -->
                 <div class="modal-shell-footer">
                     <button class="modal-shell-btn modal-shell-btn-secondary" id="${id}-btn-cancel">${cancelText}</button>
@@ -64,6 +66,7 @@ export function initModalShell(options) {
                         <span class="btn-loader" style="display:none;"><div class="modal-shell-spinner"></div> Cargando...</span>
                     </button>
                 </div>
+                `}
             </div>
         </div>
     `;
@@ -78,8 +81,9 @@ export function initModalShell(options) {
     const btnConfirm = document.getElementById(`${id}-btn-confirm`);
     const errGen = document.getElementById(`${id}-err-gen`);
     const errGenMsg = document.getElementById(`${id}-err-gen-msg`);
-    const btnText = btnConfirm.querySelector('.btn-text');
-    const btnLoader = btnConfirm.querySelector('.btn-loader');
+    
+    const btnText = btnConfirm ? btnConfirm.querySelector('.btn-text') : null;
+    const btnLoader = btnConfirm ? btnConfirm.querySelector('.btn-loader') : null;
 
     // 5. Funciones de control
     function open() {
@@ -93,9 +97,10 @@ export function initModalShell(options) {
     }
 
     function setLoading(on) {
+        if (!btnConfirm) return;
         btnConfirm.disabled = on;
-        btnText.style.display = on ? 'none' : 'inline';
-        btnLoader.style.display = on ? 'flex' : 'none';
+        if (btnText) btnText.style.display = on ? 'none' : 'inline';
+        if (btnLoader) btnLoader.style.display = on ? 'flex' : 'none';
     }
 
     function resetErrors() {
@@ -134,11 +139,12 @@ export function initModalShell(options) {
     }
 
     // 6. Listeners
-    btnClose.onclick = close;
-    btnCancel.onclick = close;
-    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+    if (btnClose) btnClose.onclick = close;
+    if (btnCancel) btnCancel.onclick = close;
+    if (overlay) overlay.onclick = (e) => { if (e.target === overlay) close(); };
 
-    btnConfirm.onclick = async () => {
+    if (btnConfirm) {
+        btnConfirm.onclick = async () => {
         if (onConfirm) {
             resetErrors();
             await onConfirm({
@@ -149,7 +155,9 @@ export function initModalShell(options) {
                 showToast
             });
         }
+        }
     };
+    }
 
     return {
         open,
