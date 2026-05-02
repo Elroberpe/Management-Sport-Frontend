@@ -186,15 +186,39 @@ export function initCalendario(ctx) {
         const events = [];
         reservasSemana.forEach(r => {
             if (r.estadoReserva === 'CANCELADO' || r.estadoReserva === 'REEMBOLSADO') return;
-            if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
             if (filtroEstado && r.estadoReserva !== filtroEstado) return;
 
-            events.push({
-                id: 'R_' + r.id,
-                start: `${r.fecha}T${r.horaInicio}`,
-                end: `${r.fecha}T${r.horaFin}`,
-                extendedProps: { type: 'RESERVA', raw: r }
-            });
+            if (r.reservasAsociadas && r.reservasAsociadas.length > 0) {
+                r.reservasAsociadas.forEach((sub, idx) => {
+                    if (canchaCalId && String(sub.canchaId) !== String(canchaCalId)) return;
+                    
+                    const rawHijo = {
+                        ...r,
+                        canchaId: sub.canchaId,
+                        nombreCancha: sub.nombreCancha || r.nombreCancha,
+                        fecha: sub.fecha,
+                        horaInicio: sub.horaInicio,
+                        horaFin: sub.horaFin,
+                        horario: sub.horario
+                    };
+
+                    events.push({
+                        id: 'R_' + r.id + '_sub_' + idx,
+                        start: `${sub.fecha}T${sub.horaInicio}`,
+                        end: `${sub.fecha}T${sub.horaFin}`,
+                        extendedProps: { type: 'RESERVA', raw: rawHijo }
+                    });
+                });
+            } else {
+                if (canchaCalId && String(r.canchaId) !== String(canchaCalId)) return;
+                
+                events.push({
+                    id: 'R_' + r.id,
+                    start: `${r.fecha}T${r.horaInicio}`,
+                    end: `${r.fecha}T${r.horaFin}`,
+                    extendedProps: { type: 'RESERVA', raw: r }
+                });
+            }
         });
 
         mantenimientosSemana.forEach(m => {
