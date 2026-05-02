@@ -154,7 +154,7 @@ export function mount(container) {
     const table = initTable({
         containerId: 'eventos-table-container',
         pageSize: PAGE_SIZE,
-        actionsStyle: 'inline',
+        actionsStyle: 'dropdown',
         columns: [
             {
                 key: 'nombre',
