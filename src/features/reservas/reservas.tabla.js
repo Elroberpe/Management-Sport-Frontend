@@ -142,13 +142,13 @@ export function initTabla(ctx) {
             { 
                 label: 'Añadir Pago', 
                 icon: 'bx bx-credit-card', 
-                show: (r) => r.estadoReserva === 'PENDIENTE' && r.saldoPendiente > 0,
+                show: (r) => r.estadoReserva === 'PENDIENTE' && r.saldoPendiente > 0 && !r.eventoId,
                 onClick: (r) => modals.abrirModalPago(r.id, r.saldoPendiente)
             },
             { 
                 label: 'Reprogramar', 
                 icon: 'bx bx-calendar-edit', 
-                show: (r) => ['PENDIENTE', 'PAGADA'].includes(r.estadoReserva),
+                show: (r) => ['PENDIENTE', 'PAGADA'].includes(r.estadoReserva) && !r.eventoId,
                 onClick: (r) => modals.abrirModalReprogramar(r)
             },
             { 
@@ -161,14 +161,14 @@ export function initTabla(ctx) {
                 label: 'Registrar Reembolso', 
                 icon: 'bx bx-money-withdraw', 
                 class: 'warning',
-                show: (r) => r.saldoPendiente < 0,
+                show: (r) => r.saldoPendiente < 0 && !r.eventoId,
                 onClick: (r) => modals.abrirModalReembolso(r)
             },
             { 
                 label: 'Cancelar Reserva', 
                 icon: 'bx bx-x-circle', 
                 class: 'danger',
-                show: (r) => ['PENDIENTE', 'PAGADA'].includes(r.estadoReserva),
+                show: (r) => ['PENDIENTE', 'PAGADA'].includes(r.estadoReserva) && !r.eventoId,
                 onClick: (r) => modals.abrirModalCancelar(r)
             }
         ]
