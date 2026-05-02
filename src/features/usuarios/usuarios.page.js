@@ -98,7 +98,11 @@ export function mount(container) {
                 });
             }
         })
-        .catch(() => {}); // silencioso: si falla, la columna mostrará el ID
+        .catch(() => {})
+        .finally(() => {
+            // Cargar tabla DESPUÉS de tener el mapa de sucursales
+            table.fetch(0);
+        });
 
     // -------------------------------------------------------------------------
     // 5. Modales (pre-inicializados para que el DOM exista antes de la tabla)
@@ -277,11 +281,6 @@ export function mount(container) {
         icon: 'bx bx-user-plus',
         onClick: () => modalCrear.open(),
     });
-
-    // -------------------------------------------------------------------------
-    // 9. Carga inicial
-    // -------------------------------------------------------------------------
-    table.fetch(0);
 
     // Guardar cleanup
     mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch (e) {} });
