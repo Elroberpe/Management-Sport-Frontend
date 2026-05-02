@@ -188,8 +188,8 @@ export function eventoEditFormTemplate() {
             style="resize:vertical; min-height:60px; font-family:inherit;"></textarea>
     </div>
 
-    <!-- Fila: Fecha Inicio + Fecha Fin + Monto -->
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+    <!-- Fila: Fecha Inicio + Fecha Fin -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div class="modal-shell-field">
             <label class="modal-shell-label" for="ee-fecha-inicio">
                 <i class='bx bx-calendar'></i> Fecha Inicio
@@ -202,12 +202,14 @@ export function eventoEditFormTemplate() {
             </label>
             <input type="date" id="ee-fecha-fin" class="modal-shell-input">
         </div>
-        <div class="modal-shell-field">
-            <label class="modal-shell-label" for="ee-monto">
-                <i class='bx bx-money'></i> Costo Total
-            </label>
-            <input type="number" id="ee-monto" class="modal-shell-input" placeholder="0.00" min="0" step="0.01">
-        </div>
+    </div>
+
+    <!-- Fila: Monto -->
+    <div class="modal-shell-field">
+        <label class="modal-shell-label" for="ee-monto">
+            <i class='bx bx-money'></i> Costo Total
+        </label>
+        <input type="number" id="ee-monto" class="modal-shell-input" placeholder="0.00" min="0" step="0.01">
     </div>
     `;
 }
