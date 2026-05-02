@@ -20,7 +20,7 @@ async function _cargarSucursalesEnSelect(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
 
-    select.innerHTML = '<option value="">-- Sin Sede Asignada --</option>';
+    select.innerHTML = '';
 
     try {
         const sucursales = await api.get('/sucursales');
