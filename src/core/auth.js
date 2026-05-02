@@ -9,9 +9,9 @@ import { AuthApi } from '../features/auth/auth.api.js';
 // Permisos por rol (fuente de verdad en el frontend para navegación)
 // ---------------------------------------------------------------------------
 const ROLE_PERMISSIONS = {
-    superadmin:    ['inicio', 'sucursales', 'canchas', 'mantenimientos', 'reservas', 'clientes', 'pagos', 'usuarios'],
-    admin:         ['inicio', 'canchas', 'mantenimientos', 'reservas', 'clientes', 'pagos', 'usuarios'],
-    recepcionista: ['inicio', 'reservas', 'clientes'],
+    superadmin:    ['inicio', 'sucursales', 'canchas', 'mantenimientos', 'reservas', 'clientes', 'pagos', 'usuarios', 'eventos'],
+    admin:         ['inicio', 'canchas', 'mantenimientos', 'reservas', 'clientes', 'pagos', 'usuarios', 'eventos'],
+    recepcionista: ['inicio', 'reservas', 'clientes', 'eventos'],
 };
 
 // ---------------------------------------------------------------------------

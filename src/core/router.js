@@ -19,7 +19,8 @@ export class Router {
             '#/dashboard/clientes':   () => import('../features/clientes/clientes.page.js'),
             '#/dashboard/pagos':       () => import('../features/pagos/pagos.page.js'),
             '#/dashboard/sucursales':  () => import('../features/sucursales/sucursales.page.js'),
-            '#/dashboard/usuarios':    () => import('../features/usuarios/usuarios.page.js')
+            '#/dashboard/usuarios':    () => import('../features/usuarios/usuarios.page.js'),
+            '#/dashboard/eventos':     () => import('../features/eventos/eventos.page.js')
         };
         
         window.addEventListener('hashchange', () => this.handleRoute());

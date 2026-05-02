@@ -28,6 +28,9 @@ export const dashboardTemplate = () => `
             <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
                 <i class='bx bx-group'></i> Clientes
             </a>
+            <a href="#/dashboard/eventos" class="nav-item" data-module="eventos" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-calendar-event'></i> Eventos
+            </a>
             <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
                 <i class='bx bx-wallet'></i> Pagos
             </a>
@@ -55,6 +58,9 @@ export const dashboardTemplate = () => `
             </a>
             <a href="#/dashboard/clientes" class="nav-item" data-module="clientes" data-roles="superadmin,admin,recepcionista">
                 <i class='bx bx-group'></i> Clientes
+            </a>
+            <a href="#/dashboard/eventos" class="nav-item" data-module="eventos" data-roles="superadmin,admin,recepcionista">
+                <i class='bx bx-calendar-event'></i> Eventos
             </a>
             <a href="#/dashboard/pagos" class="nav-item" data-module="pagos" data-roles="superadmin,admin">
                 <i class='bx bx-wallet'></i> Pagos
