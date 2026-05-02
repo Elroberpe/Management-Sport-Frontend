@@ -105,7 +105,16 @@ export function initTabla(ctx) {
                 label: 'Estado',
                 render: (v) => renderStatusBadge(v)
             },
-            { key: 'montoTotal', label: 'Total', render: (v) => `<div style="text-align:right; font-weight:600;">S/ ${Number(v||0).toFixed(2)}</div>` },
+            { 
+                key: 'tipo', 
+                label: 'Tipo', 
+                render: (v, item) => {
+                    if (item.eventoId) {
+                        return `<span style="background:#f3e8ff; color:#7e22ce; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class='bx bx-trophy'></i> Evento</span>`;
+                    }
+                    return `<span style="background:#f1f5f9; color:#64748b; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;">Regular</span>`;
+                }
+            },
             { 
                 key: 'saldoPendiente', 
                 label: 'Saldo', 
