@@ -1,7 +1,8 @@
 import { initTable } from '../../shared/components/table.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
+import { PagoService } from './pagos.service.js';
 
-export function initTabla({ api, Store, addCleanup, addGlobalListener, modals }) {
+export function initTabla({ Store, addCleanup, addGlobalListener, modals }) {
     
     const fmtMoney = n => 'S/ ' + Number(n || 0).toFixed(2);
     const fmtFecha = isoStr => {
@@ -101,14 +102,13 @@ export function initTabla({ api, Store, addCleanup, addGlobalListener, modals })
             const toISO = d => d.toISOString().split('T')[0];
             const desde = new Date(); desde.setDate(desde.getDate() - parseInt(periodo));
             const hasta = toISO(new Date());
-            const desdeISO = toISO(desde);
 
-            let url = `/pagos?desde=${desdeISO}&hasta=${hasta}&page=${page}&size=20&sort=fecha,desc`;
-            if (metodo) url += `&metodo=${metodo}`;
-            if (search) url += `&query=${encodeURIComponent(search)}`;
-            if (sucursal && sucursal.sucursalId) url += `&sucursalId=${sucursal.sucursalId}`;
+            const params = { desde: toISO(desde), hasta, page, size: 20, sort: 'fecha,desc' };
+            if (metodo) params.metodo = metodo;
+            if (search) params.query = search;
+            if (sucursal && sucursal.sucursalId) params.sucursalId = sucursal.sucursalId;
 
-            const data = await api.get(url);
+            const data = await PagoService.listar(params);
             const items = Array.isArray(data) ? data : (data.content || []);
             actualizarStats(items, data.totalElements);
             return data;

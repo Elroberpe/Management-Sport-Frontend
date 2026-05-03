@@ -3,7 +3,6 @@ import { pagosModalsTemplate } from './pagos.modals.template.js';
 import { initTabla } from './pagos.tabla.js';
 import { initModals } from './pagos.modals.js';
 import { Store } from '../../core/store.js';
-import { api } from '../../core/api.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
 import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 
@@ -43,14 +42,12 @@ export function mount(container) {
 
     // 1. Inicializar Modales
     const modals = initModals({
-        api,
         addGlobalListener,
         onPagoAnulado: (id, motivo) => tabla.marcarAnulado(id, motivo)
     });
 
     // 2. Inicializar Tabla
     const tabla = initTabla({
-        api,
         Store,
         addCleanup,
         addGlobalListener,

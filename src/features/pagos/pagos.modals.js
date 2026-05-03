@@ -1,4 +1,6 @@
-export function initModals({ api, addGlobalListener, onPagoAnulado }) {
+import { PagoService } from './pagos.service.js';
+
+export function initModals({ addGlobalListener, onPagoAnulado }) {
     let _pagoActivo = null;
 
     // Helpers utilitarios repetidos para mantener módulos desacoplados
@@ -35,7 +37,7 @@ export function initModals({ api, addGlobalListener, onPagoAnulado }) {
         document.getElementById('dp-content').style.display = 'none';
         document.getElementById('modal-detalle-pago').style.display = 'flex';
 
-        api.get(`/pagos/${id}`)
+        PagoService.obtener(id)
             .then(p => {
                 _pagoActivo = p;
                 rellenarDetalle(p);
@@ -114,7 +116,7 @@ export function initModals({ api, addGlobalListener, onPagoAnulado }) {
         document.getElementById('anular-submit-text').style.display = 'none';
         document.getElementById('anular-submit-loader').style.display = 'flex';
 
-        api.patch(`/pagos/${_pagoActivo.id}/anular`, { motivo })
+        PagoService.anular(_pagoActivo.id, motivo)
         .then(() => {
             cerrarModalAnular();
             onPagoAnulado(_pagoActivo.id, motivo);
