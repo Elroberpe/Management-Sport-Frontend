@@ -9,6 +9,7 @@ import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
+import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
 import {
     initCrearUsuarioModal,
     initEditarUsuarioModal,
@@ -66,15 +67,7 @@ export function mount(container) {
     // -------------------------------------------------------------------------
     // 4. Helpers visuales
     // -------------------------------------------------------------------------
-    const AVATAR_COLORS = ['#1a8f3b', '#2563eb', '#9333ea', '#ea580c', '#0891b2', '#d97706', '#e11d48'];
-
-    function getInitials(nombre) {
-        return (nombre || '??').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-    }
-
-    function getColor(id) {
-        return AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
-    }
+    // getAvatarColor y getInitials importados desde shared/utils/avatar.js
 
     function rolBadge(rol) {
         const map = {
@@ -127,7 +120,7 @@ export function mount(container) {
                     const id = u.usuarioId || u.id;
                     return `
                     <div class="profile-cell">
-                        <div class="avatar-circle" style="background:${getColor(id)}; color:white;">
+                        <div class="avatar-circle" style="background:${getAvatarColor(id)}; color:white;">
                             ${getInitials(v)}
                         </div>
                         <div class="cell-info">

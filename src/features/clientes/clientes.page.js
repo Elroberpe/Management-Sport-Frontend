@@ -5,6 +5,7 @@ import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initClienteModal, initEditClienteModal } from './clientes.modals.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
+import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
 
 let mountCleanup = null;
 
@@ -43,15 +44,6 @@ export function mount(container) {
     });
 
     const PAGE_SIZE = 20;
-    const AVATAR_COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
-
-    function getInitials(nombre) {
-        return (nombre || '??').split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
-    }
-    
-    function getColor(id) {
-        return AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
-    }
 
     // 2. Inicializar Componentes Reutilizables
     const stats = initStats('clientes-stats-container', [
@@ -86,7 +78,7 @@ export function mount(container) {
                 label: 'Nombre del Cliente',
                 render: (v, c) => `
                     <div class="profile-cell">
-                        <div class="avatar-circle" style="background:${getColor(c.clienteId || c.id)}; color:white;">
+                        <div class="avatar-circle" style="background:${getAvatarColor(c.clienteId || c.id)}; color:white;">
                             ${getInitials(v)}
                         </div>
                         <div class="cell-info">

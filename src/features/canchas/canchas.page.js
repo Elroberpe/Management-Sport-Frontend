@@ -9,6 +9,7 @@ import { renderStatusBadge } from '../../shared/components/status-badge.js';
 import { CanchaService } from './canchas.service.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
+import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
 
 let mountCleanup = null;
 
@@ -48,7 +49,7 @@ export function mount(container) {
     }
 
     /* ---- State ---- */
-    const COLORS = ['#1a8f3b','#2563eb','#9333ea','#ea580c','#0891b2','#d97706','#e11d48'];
+    // COLORS movido a shared/utils/avatar.js → getAvatarColor(id)
     let vistaActual = 'tabla';
     let todasCanchas = [];
 
@@ -77,8 +78,8 @@ export function mount(container) {
     function renderGrilla(canchas) {
         grillaIn.innerHTML = '';
         canchas.forEach(c => {
-            const color = COLORS[(c.canchaId || c.id) % COLORS.length];
-            const initials = c.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+            const color = getAvatarColor(c.canchaId || c.id);
+            const initials = getInitials(c.nombre);
 
             const card = document.createElement('div');
             card.className = 'cancha-grid-card';
@@ -114,8 +115,8 @@ export function mount(container) {
                 label: 'Nombre de Cancha',
                 render: (v, c) => `
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:36px; height:36px; border-radius:50%; background:${COLORS[(c.canchaId || c.id) % COLORS.length]}; color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;">
-                            ${(v||'C').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                        <div style="width:36px; height:36px; border-radius:50%; background:${getAvatarColor(c.canchaId || c.id)}; color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;">
+                            ${getInitials(v || 'C')}
                         </div>
                         <div>
                             <strong style="color:#1e293b; display:block;">${v}</strong>
