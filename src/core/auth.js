@@ -90,6 +90,7 @@ function _saveSession(tokens) {
     const rol     = _extractRole(payload);
 
     const user = {
+        id:              payload?.id || payload?.usuarioId || payload?.userId || 1,
         username:        payload?.sub || 'Usuario',
         nombre:          payload?.nombre || payload?.name || payload?.sub || 'Usuario',
         rol:             rol,
