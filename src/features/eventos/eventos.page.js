@@ -2,7 +2,8 @@
 // Orquestador principal del módulo de Gestión de Eventos
 
 import { eventosTemplate } from './eventos.template.js';
-import { api } from '../../core/api.js';
+import { EventoService } from './eventos.service.js';
+import { UsuarioService } from '../usuarios/usuarios.service.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initTable } from '../../shared/components/table.js';
@@ -117,7 +118,7 @@ export function mount(container) {
         const contextoSede = Store.getSucursal();
 
         // Cargar sucursales
-        api.get('/sucursales')
+        UsuarioService.listarSucursales()
             .then(list => {
                 if (!Array.isArray(list)) return;
                 list.filter(s => s.activo !== false).forEach(s => {
@@ -257,11 +258,13 @@ export function mount(container) {
                 sucId = session.sucursalId;
             }
 
-            let url = `/eventos?page=${page}&size=${PAGE_SIZE}&sort=fechaInicio,desc`;
-            if (sucId)  url += `&sucursalId=${encodeURIComponent(sucId)}`;
-
             try {
-                const data  = await api.get(url);
+                const data  = await EventoService.listar({
+                    page,
+                    size: PAGE_SIZE,
+                    sort: 'fechaInicio,desc',
+                    sucursalId: sucId || undefined
+                });
                 let items   = Array.isArray(data) ? data : (data.content || []);
                 let total   = data.totalElements !== undefined ? data.totalElements : items.length;
 
