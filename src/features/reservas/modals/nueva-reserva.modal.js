@@ -2,7 +2,6 @@ import { initModalShell } from '../../../shared/components/modal-shell.js';
 import { ReservaService } from '../reservas.service.js';
 import { ClienteService } from '../../clientes/clientes.service.js';
 import { UsuarioService } from '../../usuarios/usuarios.service.js';
-import { Auth } from '../../../core/auth.js';
 import { reservaNewFormTemplate } from '../reservas.modals.template.js';
 import { escapeHtml, generarSlots } from './reservas.modals.utils.js';
 
@@ -34,14 +33,11 @@ export function initNuevaReservaModal(ctx) {
 
             if (hasError) return;
 
-            const session = Auth.getSession() || {};
-
             mCtx.setLoading(true);
             try {
                 const nueva = await ReservaService.crear({
                     canchaId: parseInt(cid),
                     clienteId: parseInt(cli),
-                    usuarioId: session.id || 1,
                     fecha: fec,
                     horaInicio: ini + ':00',
                     horaFin: fin + ':00'
