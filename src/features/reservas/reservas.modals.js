@@ -1,5 +1,8 @@
 // src/features/reservas/reservas.modals.js
 import { initModalShell } from '../../shared/components/modal-shell.js';
+import { ReservaService } from './reservas.service.js';
+import { ClienteService } from '../clientes/clientes.service.js';
+import { UsuarioService } from '../usuarios/usuarios.service.js';
 import { 
     reservaNewFormTemplate, 
     reservaDetailTemplate, 
@@ -10,7 +13,7 @@ import {
 } from './reservas.modals.template.js';
 
 export function initModals(ctx) {
-    const { api, sucursalFiltro, sedeActiva, addGlobalListener, Store } = ctx;
+    const { sucursalFiltro, sedeActiva, addGlobalListener, Store } = ctx;
 
     let _cargarSemana = () => {};
     let _fetchHistorical = () => {};
@@ -49,7 +52,7 @@ export function initModals(ctx) {
 
             ctx.setLoading(true);
             try {
-                const nueva = await api.post('/reservas', {
+                const nueva = await ReservaService.crear({
                     canchaId: parseInt(cid),
                     clienteId: parseInt(cli),
                     fecha: fec,
@@ -139,7 +142,7 @@ export function initModals(ctx) {
             const q = nrClienteIn.value.trim();
             if (q.length < 2) { nrClienteLst.style.display = 'none'; return; }
             debounce = setTimeout(() => {
-                api.get(`/clientes?nombre=${encodeURIComponent(q)}&size=6`).then(data => {
+                ClienteService.listar({ nombre: q, size: 6 }).then(data => {
                     const arr = data.content || data || [];
                     nrClienteLst.innerHTML = arr.map(c => `
                         <li data-id="${c.id || c.clienteId}" data-nombre="${escapeHtml(c.nombre)}">
@@ -174,9 +177,9 @@ export function initModals(ctx) {
 
     function cargarSucursalesNR() {
         const nrSucursal = document.getElementById('nr-sucursal');
-        api.get('/sucursales').then(data => {
+        UsuarioService.listarSucursales().then(data => {
             nrSucursal.innerHTML = '<option value="">— Seleccionar sede —</option>';
-            (data.content || data).forEach(s => {
+            (Array.isArray(data) ? data : []).forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id || s.sucursalId;
                 opt.textContent = s.nombre;
@@ -188,7 +191,7 @@ export function initModals(ctx) {
     function cargarCanchasNR(sid) {
         const nrCancha = document.getElementById('nr-cancha');
         if (!sid) { nrCancha.disabled = true; return; }
-        api.get(`/canchas?sucursalId=${sid}&size=50`).then(data => {
+        ReservaService.listarCanchas({ sucursalId: sid, size: 50 }).then(data => {
             const arr = (data.content || data).filter(c => c.estadoCancha !== 'INACTIVA');
             nrCancha.innerHTML = '<option value="">— Seleccionar cancha —</option>';
             arr.forEach(c => {
@@ -281,11 +284,9 @@ export function initModals(ctx) {
         document.getElementById('dr-content').style.display = 'none';
 
         try {
-            // Bug fix: GET /reservas/{id} NO incluye pagos en su response.
-            // Hay que llamar a GET /reservas/{id}/pagos por separado.
             const [reserva, pagos] = await Promise.all([
-                api.get(`/reservas/${id}`),
-                api.get(`/reservas/${id}/pagos`)
+                ReservaService.obtener(id),
+                ReservaService.obtenerPagos(id)
             ]);
             _drData = reserva;
             renderDR(reserva, pagos);
@@ -420,7 +421,7 @@ export function initModals(ctx) {
 
             mCtx.setLoading(true);
             try {
-                await api.patch(`/reservas/${id}/cancelar`, body);
+                await ReservaService.cancelar(id, body);
                 mCtx.showToast('Reserva cancelada correctamente');
                 mCtx.close();
                 _cargarSemana();
@@ -491,7 +492,7 @@ export function initModals(ctx) {
 
             mCtx.setLoading(true);
             try {
-                await api.post(`/reservas/${id}/reembolsos`, body);
+                await ReservaService.reembolsar(id, body);
                 mCtx.showToast('Reembolso registrado correctamente');
                 mCtx.close();
                 _fetchHistorical(0);
@@ -547,7 +548,7 @@ export function initModals(ctx) {
             const id = _rpData.id || _rpData.reservaId;
             mCtx.setLoading(true);
             try {
-                await api.post(`/reservas/${id}/reprogramar`, {
+                await ReservaService.reprogramar(id, {
                     nuevaFecha:      fecha,
                     nuevaHoraInicio: inicio + ':00',
                     nuevaHoraFin:    fin    + ':00'
@@ -704,7 +705,7 @@ export function initModals(ctx) {
 
             ctx.setLoading(true);
             try {
-                await api.post(`/reservas/${_drId}/pagos`, { monto: parseFloat(mon), metodoPago: met });
+                await ReservaService.agregarPago(_drId, { monto: parseFloat(mon), metodoPago: met });
                 ctx.showToast('Pago registrado');
                 ctx.close();
                 abrirDetalleReserva(_drId);

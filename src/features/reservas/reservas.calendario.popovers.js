@@ -1,5 +1,8 @@
+import { ReservaService } from './reservas.service.js';
+import { api } from '../../core/api.js'; // Para mantenimientos (sin servicio propio aún)
+
 export function createPopoversHandler(ctx) {
-    const { api, modals, cargarSemana, addGlobalListener } = ctx;
+    const { modals, cargarSemana, addGlobalListener } = ctx;
     let _activePop = null;
 
     /* ──────────── POPOVER UTILS ──────────── */
@@ -147,7 +150,7 @@ export function createPopoversHandler(ctx) {
         _posicionarPopover(pop, anchorEl);
         pop.querySelector('#rpop-close-btn').addEventListener('click', cerrarPopover);
 
-        api.get(`/reservas/${reservaId}`)
+        ReservaService.obtener(reservaId)
             .then(r => {
                 if (_activePop !== pop) return;
                 

@@ -5,7 +5,6 @@ import { initTabla } from './reservas.tabla.js';
 import { initCalendario } from './reservas.calendario.js';
 import { initActionButton } from '../../shared/components/action-button.js';
 import { initClienteModal } from '../clientes/clientes.modals.js';
-import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initDetalleEventoModal, initPagoEventoModal } from '../eventos/eventos.modals.js';
@@ -30,7 +29,6 @@ export function mount(container) {
 
     // ─── 1. Inicializar Modales ─────────────────────────────────────────────
     var modals = initModals({
-        api:              api,
         sucursalFiltro:   sucursalFiltro,
         sedeActiva:       sedeActiva,
         addCleanup:       addCleanup,
@@ -44,7 +42,6 @@ export function mount(container) {
 
     // ─── 2. Inicializar Tabla Histórica ─────────────────────────────────────
     var tabla = initTabla({
-        api:              api,
         sucursalFiltro:   sucursalFiltro,
         addCleanup:       addCleanup,
         addGlobalListener:addGlobalListener,
@@ -61,7 +58,6 @@ export function mount(container) {
 
     // ─── 3. Inicializar Calendario ──────────────────────────────────────────
     var calendario = initCalendario({
-        api:              api,
         sucursalFiltro:   sucursalFiltro,
         addCleanup:       addCleanup,
         addGlobalListener:addGlobalListener,

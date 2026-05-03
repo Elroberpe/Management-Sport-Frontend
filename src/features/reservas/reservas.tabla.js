@@ -1,11 +1,13 @@
 import { initTable } from '../../shared/components/table.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
+import { ReservaService } from './reservas.service.js';
+import { ClienteService } from '../clientes/clientes.service.js';
 
 /**
  * Inicializa la tabla histórica de reservas usando el componente reutilizable.
  */
 export function initTabla(ctx) {
-    const { api, sucursalFiltro, addCleanup, addGlobalListener, modals } = ctx;
+    const { sucursalFiltro, addCleanup, addGlobalListener, modals } = ctx;
 
     // Referencia para la página actual (compatible con el resto del módulo)
     const currentPageRef = { value: 0 };
@@ -42,7 +44,7 @@ export function initTabla(ctx) {
         rhClienteId.value = '';
         if (q.length < 2) { rhClienteList.style.display = 'none'; return; }
         clienteDebounce = setTimeout(() => {
-            api.get(`/clientes?nombre=${encodeURIComponent(q)}&size=5`)
+            ClienteService.listar({ nombre: q, size: 5 })
                 .then(data => {
                     const arr = Array.isArray(data) ? data : (data.content || []);
                     rhClienteList.innerHTML = arr.length === 0 ? '<li style="color:#94a3b8;">No hay resultados</li>' : 
@@ -68,8 +70,9 @@ export function initTabla(ctx) {
     /* ──────────── SELECT CANCHAS ──────────── */
     const rhCanchaSel = document.getElementById('rh-cancha');
     function poblarCanchasSelect() {
-        const endpoint = `/canchas?size=100${sucursalFiltro ? `&sucursalId=${sucursalFiltro}` : ''}`;
-        api.get(endpoint).then(data => {
+        const params = { size: 100 };
+        if (sucursalFiltro) params.sucursalId = sucursalFiltro;
+        ReservaService.listarCanchas(params).then(data => {
             const arr = Array.isArray(data) ? data : (data.content || []);
             arr.forEach(c => {
                 const opt = document.createElement('option');
@@ -130,21 +133,34 @@ export function initTabla(ctx) {
         ],
         fetchData: (page) => {
             currentPageRef.value = page;
-            const params = new URLSearchParams({ page, size: 20, sort: 'fecha,desc' });
-            
+            const params = { page, size: 20, sort: 'fecha,desc' };
+
             const fDesde = document.getElementById('rh-desde').value;
             const fHasta = document.getElementById('rh-hasta').value;
-            if (fDesde) params.append('fechaDesde', fDesde);
-            if (fHasta) params.append('fechaHasta', fHasta);
-            
-            getSelectedStates().forEach(est => params.append('estado', est));
-            if (rhClienteId.value) params.append('clienteId', rhClienteId.value);
-            
-            const canId = rhCanchaSel.value;
-            if (canId) params.append('canchaId', canId);
-            else if (sucursalFiltro) params.append('sucursalId', sucursalFiltro);
+            if (fDesde) params.fechaDesde = fDesde;
+            if (fHasta) params.fechaHasta = fHasta;
 
-            return api.get(`/reservas?${params.toString()}`);
+            getSelectedStates().forEach(est => {
+                // URLSearchParams no soporta arrays directamente,
+                // por eso construimos la URL manualmente para múltiples 'estado'
+                if (!params._estadoArr) params._estadoArr = [];
+                params._estadoArr.push(est);
+            });
+
+            if (rhClienteId.value) params.clienteId = rhClienteId.value;
+
+            const canId = rhCanchaSel.value;
+            if (canId) params.canchaId = canId;
+            else if (sucursalFiltro) params.sucursalId = sucursalFiltro;
+
+            // Construir URL manualmente para soportar múltiples params 'estado'
+            const urlParams = new URLSearchParams();
+            Object.entries(params).forEach(([k, v]) => {
+                if (k !== '_estadoArr') urlParams.append(k, v);
+            });
+            if (params._estadoArr) params._estadoArr.forEach(e => urlParams.append('estado', e));
+
+            return ReservaService.listar(Object.fromEntries(urlParams.entries()));
         },
         actions: [
             { 

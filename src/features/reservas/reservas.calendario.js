@@ -11,6 +11,8 @@
 import { DIAS_ES, MESES_ES, ESTADO_STYLE, getLunes, toISO, formatHora, escapeHtml } from './reservas.calendario.utils.js';
 import { renderBottomStats } from './reservas.calendario.stats.js';
 import { createPopoversHandler } from './reservas.calendario.popovers.js';
+import { ReservaService } from './reservas.service.js';
+import { api } from '../../core/api.js'; // Necesario para /mantenimientos (sin servicio propio aún)
 
 /**
  * Inicializa el módulo de calendario semanal.
@@ -28,16 +30,16 @@ import { createPopoversHandler } from './reservas.calendario.popovers.js';
  * @returns {{ cargarSemana }}
  */
 export function initCalendario(ctx) {
-    const { api, sucursalFiltro, addGlobalListener, modals } = ctx;
+    const { sucursalFiltro, addGlobalListener, modals } = ctx;
 
-    /* ──────────── Estado ──────────── */
+    /* ──────────────────── Estado ──────────────────── */
     let semanaOffset         = 0;
     let reservasSemana       = [];
     let mantenimientosSemana = [];
     let filtroEstado         = '';
     let canchaCalId          = null;
 
-    const popovers = createPopoversHandler({ api, modals, cargarSemana, addGlobalListener });
+    const popovers = createPopoversHandler({ modals, cargarSemana, addGlobalListener });
 
     /* ──────────── DOM refs ──────────── */
     const loading      = document.getElementById('cal-loading');
@@ -270,15 +272,18 @@ export function initCalendario(ctx) {
         const fDesde = toISO(lunes);
         const fHasta = toISO(domMs);
 
-        let endpointRes  = `/reservas?fechaDesde=${fDesde}&fechaHasta=${fHasta}&size=500`;
-        if (sucursalFiltro) endpointRes += `&sucursalId=${sucursalFiltro}`;
+        const reservasParams = { fechaDesde: fDesde, fechaHasta: fHasta, size: 500 };
+        if (sucursalFiltro) reservasParams.sucursalId = sucursalFiltro;
 
-        let endpointMant = `/mantenimientos?fechaDesde=${fDesde}&fechaHasta=${fHasta}&estadoMantenimiento=PROGRAMADO&estadoMantenimiento=EN_PROCESO&estadoMantenimiento=COMPLETADO&size=100`;
-        if (sucursalFiltro) endpointMant += `&sucursalId=${sucursalFiltro}`;
+        const mantParams = { fechaDesde: fDesde, fechaHasta: fHasta, size: 100 };
+        if (sucursalFiltro) mantParams.sucursalId = sucursalFiltro;
+
+        // Usamos api directamente para mantenimientos (sin servicio propio aún)
+        const mantUrl = `/mantenimientos?fechaDesde=${fDesde}&fechaHasta=${fHasta}&estadoMantenimiento=PROGRAMADO&estadoMantenimiento=EN_PROCESO&estadoMantenimiento=COMPLETADO&size=100${sucursalFiltro ? '&sucursalId=' + sucursalFiltro : ''}`;
 
         Promise.all([
-            api.get(endpointRes).catch(() => ({ content: [] })),
-            api.get(endpointMant).catch(() => ({ content: [] }))
+            ReservaService.listar(reservasParams).catch(() => ({ content: [] })),
+            api.get(mantUrl).catch(() => ({ content: [] }))
         ]).then(resultados => {
             const allRes  = Array.isArray(resultados[0]) ? resultados[0] : (resultados[0].content || []);
             const allMant = Array.isArray(resultados[1]) ? resultados[1] : (resultados[1].content || []);
@@ -333,8 +338,9 @@ export function initCalendario(ctx) {
 
     /* ──────────── Selector de cancha del calendario ──────────── */
     function poblarSelectorCanchasCalendario() {
-        const endpoint = `/canchas?size=100${sucursalFiltro ? `&sucursalId=${sucursalFiltro}` : ''}`;
-        api.get(endpoint)
+        const params = { size: 100 };
+        if (sucursalFiltro) params.sucursalId = sucursalFiltro;
+        ReservaService.listarCanchas(params)
             .then(data => {
                 const arr = Array.isArray(data) ? data : (data.content || []);
                 calCanchaSel.innerHTML = '';
