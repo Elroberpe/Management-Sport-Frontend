@@ -1,5 +1,5 @@
 // src/features/clientes/clientes.modals.js
-import { api } from '../../core/api.js';
+import { ClienteService } from './clientes.service.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
 import { clientesNewFormTemplate, clientesEditFormTemplate } from './clientes.modals.template.js';
 
@@ -33,7 +33,7 @@ export function initClienteModal({ onClienteCreado }) {
             ctx.setLoading(true);
             try {
                 const payload = { tipoDocumento: tipoDoc, numDocumento: numDoc, nombre, email, telefono };
-                const nuevoCliente = await api.post('/clientes', payload);
+                const nuevoCliente = await ClienteService.crear(payload);
                 
                 ctx.showToast(`Cliente "${nuevoCliente.nombre}" creado con éxito.`);
                 ctx.close();
@@ -80,7 +80,7 @@ export function initEditClienteModal({ onClienteActualizado }) {
             ctx.setLoading(true);
             try {
                 const payload = { nombre, email, telefono };
-                const clienteActualizado = await api.put(`/clientes/${currentClienteId}`, payload);
+                const clienteActualizado = await ClienteService.actualizar(currentClienteId, payload);
                 
                 ctx.showToast(`Cliente "${clienteActualizado.nombre}" actualizado con éxito.`);
                 ctx.close();
@@ -105,7 +105,7 @@ export function initEditClienteModal({ onClienteActualizado }) {
             
             // Cargar datos frescos
             try {
-                const c = await api.get(`/clientes/${clienteId}`);
+                const c = await ClienteService.obtener(clienteId);
                 document.getElementById('ec-tipo-doc').value = c.tipoDocumento || 'DNI';
                 document.getElementById('ec-num-doc').value = c.documento || c.numDocumento || '';
                 document.getElementById('ec-nombre').value = c.nombre || '';

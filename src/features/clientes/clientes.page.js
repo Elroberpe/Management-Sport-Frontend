@@ -1,5 +1,5 @@
 import { clientesTemplate } from './clientes.template.js';
-import { api } from '../../core/api.js';
+import { ClienteService } from './clientes.service.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
 import { initActionButton } from '../../shared/components/action-button.js';
@@ -106,44 +106,31 @@ export function mount(container) {
         fetchData: async (page) => {
             const searchEl = document.getElementById('cli-search');
             const tipoEl = document.getElementById('cli-filter-tipo');
-            
+
             const q = searchEl ? searchEl.value.trim() : '';
             const tipo = tipoEl ? tipoEl.value : '';
 
-            // 1. Petición a la API usando parámetros soportados (nombre/documento)
-            let url = `/clientes?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
-            
+            const params = { page, size: PAGE_SIZE, sort: 'nombre,asc' };
             if (q) {
-                // Heurística: si es numérico buscamos por documento, si no por nombre
-                // Según cliente-api.yaml, los parámetros son 'nombre' y 'documento'
-                if (/^\d+$/.test(q)) {
-                    url += `&documento=${encodeURIComponent(q)}`;
-                } else {
-                    url += `&nombre=${encodeURIComponent(q)}`;
-                }
+                // Heurística: numérico → documento, texto → nombre
+                if (/^\d+$/.test(q)) params.documento = q;
+                else params.nombre = q;
             }
 
             try {
-                const data = await api.get(url);
+                const data = await ClienteService.listar(params);
                 let items = Array.isArray(data) ? data : (data.content || []);
                 let total = data.totalElements !== undefined ? data.totalElements : items.length;
-                
-                // 2. Filtro LOCAL para Tipo de Documento (ya que la API no lo soporta)
+
+                // Filtro local por tipo de documento (API no lo soporta)
                 if (tipo) {
                     items = items.filter(c => c.tipoDocumento === tipo);
-                    // Actualizamos el total para la vista actual
                     total = items.length;
                 }
 
                 actualizarStats(items, total);
-                
-                // Retornamos el objeto con los items ya filtrados localmente
-                return {
-                    ...data,
-                    content: items,
-                    totalElements: total,
-                    items: items // Por compatibilidad con initTable
-                };
+
+                return { ...data, content: items, totalElements: total, items };
             } catch (err) {
                 console.error('Error al cargar clientes:', err);
                 return { content: [], totalElements: 0 };
@@ -169,7 +156,7 @@ export function mount(container) {
                 onClick: async (c) => {
                     if (!confirm(`¿Eliminar a ${c.nombre}?`)) return;
                     try {
-                        await api.delete(`/clientes/${c.clienteId || c.id}`);
+                        await ClienteService.eliminar(c.clienteId || c.id);
                         table.fetch(0);
                     } catch (err) {
                         alert('No se pudo eliminar: ' + err.message);
