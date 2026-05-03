@@ -5,8 +5,9 @@
 //   - Logout automático si el refresh también falla
 
 import { Auth } from './auth.js';
+import { CONFIG } from './config.js';
 
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = CONFIG.API_BASE_URL;
 
 // Flag para evitar múltiples intentos de refresh simultáneos
 let _isRefreshing = false;
