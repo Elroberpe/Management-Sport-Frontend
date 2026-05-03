@@ -2,7 +2,7 @@
 // Orquestador principal del módulo de Gestión de Usuarios
 
 import { usuariosTemplate } from './usuarios.template.js';
-import { api } from '../../core/api.js';
+import { UsuarioService } from './usuarios.service.js';
 import { Auth } from '../../core/auth.js';
 import { initTable } from '../../shared/components/table.js';
 import { initStats } from '../../shared/components/stats.js';
@@ -72,7 +72,7 @@ export function mount(container) {
     // Cache de sucursales: Map<sucursalId, nombre>
     // Se carga una sola vez al montar el módulo.
     let sucursalesMap = new Map();
-    api.get('/sucursales')
+    UsuarioService.listarSucursales()
         .then(list => {
             if (Array.isArray(list)) {
                 list.forEach(s => {
@@ -170,11 +170,8 @@ export function mount(container) {
             const q   = searchEl ? searchEl.value.trim() : '';
             const rol = rolEl    ? rolEl.value            : '';
 
-            let url = `/usuarios?page=${page}&size=${PAGE_SIZE}&sort=nombre,asc`;
-            if (rol) url += `&rol=${encodeURIComponent(rol)}`;
-
             try {
-                const data  = await api.get(url);
+                const data = await UsuarioService.listar({ page, size: PAGE_SIZE, sort: 'nombre,asc', ...(rol ? { rol } : {}) });
                 let items   = Array.isArray(data) ? data : (data.content || []);
                 let total   = data.totalElements !== undefined ? data.totalElements : items.length;
 
@@ -227,7 +224,7 @@ export function mount(container) {
                     if (!confirmed) return;
 
                     try {
-                        await api.delete(`/usuarios/${id}`);
+                        await UsuarioService.eliminar(id);
                         table.fetch(0);
                     } catch (err) {
                         alert('No se pudo eliminar el usuario: ' + err.message);

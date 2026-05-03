@@ -1,7 +1,7 @@
 // src/features/usuarios/usuarios.modals.js
 // Lógica de los 3 modales: Crear Usuario, Editar Usuario, Cambiar Contraseña
 
-import { api } from '../../core/api.js';
+import { UsuarioService } from './usuarios.service.js';
 import { Auth } from '../../core/auth.js';
 import { initModalShell } from '../../shared/components/modal-shell.js';
 import {
@@ -23,10 +23,7 @@ async function _cargarSucursalesEnSelect(selectId) {
     select.innerHTML = '';
 
     try {
-        const sucursales = await api.get('/sucursales');
-        const activas = Array.isArray(sucursales)
-            ? sucursales.filter(s => s.activo !== false)
-            : [];
+        const activas = await UsuarioService.listarSucursales();
 
         activas.forEach(s => {
             const id  = s.sucursalId !== undefined ? s.sucursalId : s.id;
@@ -87,7 +84,7 @@ export function initCrearUsuarioModal({ onUsuarioCreado }) {
                 const payload = { nombre, username, email, password, rol };
                 if (sucursalId) payload.sucursalId = sucursalId;
 
-                const nuevoUsuario = await api.post('/usuarios', payload);
+                const nuevoUsuario = await UsuarioService.crear(payload);
 
                 ctx.showToast(`Usuario "${nuevoUsuario.nombre}" creado con éxito.`);
                 ctx.close();
@@ -143,7 +140,7 @@ export function initEditarUsuarioModal({ onUsuarioActualizado }) {
             ctx.setLoading(true);
             try {
                 const payload = { nombre, username, email, rol };
-                const actualizado = await api.put(`/usuarios/${currentUsuarioId}`, payload);
+                const actualizado = await UsuarioService.actualizar(currentUsuarioId, payload);
 
                 ctx.showToast(`Usuario "${actualizado.nombre}" actualizado con éxito.`);
                 ctx.close();
@@ -166,7 +163,7 @@ export function initEditarUsuarioModal({ onUsuarioActualizado }) {
             modal.open();
 
             try {
-                const u = await api.get(`/usuarios/${usuarioId}`);
+                const u = await UsuarioService.obtener(usuarioId);
                 document.getElementById('eu-nombre').value   = u.nombre   || '';
                 document.getElementById('eu-username').value = u.username  || '';
                 document.getElementById('eu-email').value    = u.email     || '';
@@ -210,9 +207,7 @@ export function initCambiarPasswordModal() {
 
             ctx.setLoading(true);
             try {
-                // El YAML define el body como { passwordActual, passwordNueva }
-                // Usamos newPassword según lo especificado en los objetivos del módulo
-                await api.patch(`/usuarios/${currentUsuarioId}/password`, { newPassword: nueva });
+                await UsuarioService.cambiarPassword(currentUsuarioId, nueva);
 
                 ctx.showToast(`Contraseña de "${currentUsuarioNombre}" actualizada con éxito.`);
                 ctx.close();
