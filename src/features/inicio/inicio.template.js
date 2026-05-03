@@ -32,7 +32,7 @@ export const inicioTemplate = () => `
         <div class="stat-icon bg-light-green"><i class='bx bx-building-house text-green'></i></div>
         <span class="trend neutral-text">EN VIVO</span>
         <p class="stat-label">SEDES ACTIVAS</p>
-        <h2 class="stat-value">12</h2>
+        <h2 class="stat-value" id="kpi-sedes-activas"><div class="spinner-circle" style="width:20px;height:20px;border-width:3px;border-top-color:#10b981;"></div></h2>
     </div>
 </div>
 
