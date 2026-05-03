@@ -13,5 +13,5 @@ export const CONFIG = {
      */
     API_BASE_URL: (window.__APP_CONFIG__ && window.__APP_CONFIG__.apiUrl)
         ? window.__APP_CONFIG__.apiUrl
-        : 'http://localhost:8080/api/v1',
+        : 'https://management-sport-api.onrender.com/api/v1', //'http://localhost:8080/api/v1',
 };

@@ -2,7 +2,7 @@
 // Capa de acceso a la API de autenticación.
 // Usa /api/auth (distinto de /api/v1 del resto de la app).
 
-const AUTH_BASE = 'http://localhost:8080/api/auth';
+const AUTH_BASE = 'https://management-sport-api.onrender.com/api/auth';     //'http://localhost:8080/api/auth';
 
 export const AuthApi = {
 
