@@ -10,6 +10,7 @@ import { initActionButton } from '../../shared/components/action-button.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
 import { renderStatusBadge } from '../../shared/components/status-badge.js';
 import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
+import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 import {
     initCrearUsuarioModal,
     initEditarUsuarioModal,
@@ -23,19 +24,8 @@ export function template() {
 }
 
 export function mount(container) {
-    // 1. Limpieza de montaje previo
-    if (mountCleanup) {
-        mountCleanup();
-        mountCleanup = null;
-    }
-
-    const cleanups = [];
-    const addCleanup = (fn) => cleanups.push(fn);
-    const addGlobalListener = (target, eventName, handler) => {
-        if (!target) return;
-        target.addEventListener(eventName, handler);
-        addCleanup(() => target.removeEventListener(eventName, handler));
-    };
+    const { addCleanup, addGlobalListener, getUnmount } = createPageLifecycle(mountCleanup);
+    mountCleanup = null;
 
     // -------------------------------------------------------------------------
     // 2. Header
@@ -276,7 +266,7 @@ export function mount(container) {
     });
 
     // Guardar cleanup
-    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch (e) {} });
+    mountCleanup = getUnmount();
 }
 
 export function unmount() {

@@ -9,6 +9,7 @@ import { api } from '../../core/api.js';
 import { Auth } from '../../core/auth.js';
 import { Store } from '../../core/store.js';
 import { initDetalleEventoModal, initPagoEventoModal } from '../eventos/eventos.modals.js';
+import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 
 let reservasMountCleanup = null;
 
@@ -18,22 +19,10 @@ export function template() {
 
 export function mount(container) {
     // Limpiar montaje previo
-    if (reservasMountCleanup) {
-        reservasMountCleanup();
-        reservasMountCleanup = null;
-    }
+    const { addCleanup, addGlobalListener, getUnmount } = createPageLifecycle(reservasMountCleanup);
+    reservasMountCleanup = null;
 
-    var session     = Auth ? Auth.getSession() : null;
-    var mountCleanups = [];
-
-    function addCleanup(fn) { mountCleanups.push(fn); }
-
-    function addGlobalListener(target, eventName, handler) {
-        target.addEventListener(eventName, handler);
-        addCleanup(function() { target.removeEventListener(eventName, handler); });
-    }
-
-    // Determinar filtro por sucursal
+    var session = Auth ? Auth.getSession() : null;
     var sedeActiva = (session && session.rol === 'superadmin')
         ? Store.getSucursal()
         : (session ? { sucursalId: session.sucursalId, nombre: session.sucursalNombre } : null);
@@ -106,9 +95,7 @@ export function mount(container) {
     calendario.cargarSemana();
 
     // ─── 7. Registrar cleanup global ────────────────────────────────────────
-    reservasMountCleanup = function() {
-        mountCleanups.forEach(function(fn) { try { fn(); } catch(e) {} });
-    };
+    reservasMountCleanup = getUnmount();
 
     // ─── 8. Abrir reserva automáticamente si hay un ID guardado ──────────────
     var autoOpenId = sessionStorage.getItem('pitchpro_open_reserva_id');

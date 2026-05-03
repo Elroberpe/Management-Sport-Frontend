@@ -10,6 +10,7 @@ import { CanchaService } from './canchas.service.js';
 import { initCanchasModals } from './canchas.modals.js';
 import { initQuickSchedule } from './canchas.quick-schedule.js';
 import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
+import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 
 let mountCleanup = null;
 
@@ -18,19 +19,8 @@ export function template() {
 }
 
 export function mount(container) {
-    // 1. Limpieza de montaje previo
-    if (mountCleanup) {
-        mountCleanup();
-        mountCleanup = null;
-    }
-
-    const cleanups = [];
-    const addCleanup = (fn) => cleanups.push(fn);
-    const addGlobalListener = (target, eventName, handler) => {
-        if (!target) return;
-        target.addEventListener(eventName, handler);
-        addCleanup(() => target.removeEventListener(eventName, handler));
-    };
+    const { addCleanup, addGlobalListener, getUnmount } = createPageLifecycle(mountCleanup);
+    mountCleanup = null; // será reasignado al final
 
     const session = Auth ? Auth.getSession() : null;
     const sedeActiva = (session && session.rol === 'superadmin')
@@ -234,8 +224,8 @@ export function mount(container) {
     // Carga inicial
     setVista('tabla');
 
-    // Guardar cleanup para unmount
-    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
+    // Guardar unmount para el siguiente ciclo
+    mountCleanup = getUnmount();
 }
 
 export function unmount() {

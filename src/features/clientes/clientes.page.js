@@ -6,6 +6,7 @@ import { initActionButton } from '../../shared/components/action-button.js';
 import { initClienteModal, initEditClienteModal } from './clientes.modals.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
 import { getAvatarColor, getInitials } from '../../shared/utils/avatar.js';
+import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 
 let mountCleanup = null;
 
@@ -14,19 +15,8 @@ export function template() {
 }
 
 export function mount(container) {
-    // 1. Limpieza de montaje previo
-    if (mountCleanup) {
-        mountCleanup();
-        mountCleanup = null;
-    }
-
-    const cleanups = [];
-    const addCleanup = (fn) => cleanups.push(fn);
-    const addGlobalListener = (target, eventName, handler) => {
-        if (!target) return;
-        target.addEventListener(eventName, handler);
-        addCleanup(() => target.removeEventListener(eventName, handler));
-    };
+    const { addCleanup, addGlobalListener, getUnmount } = createPageLifecycle(mountCleanup);
+    mountCleanup = null;
 
     const header = initPageHeader({
         containerId: 'clientes-header-container',
@@ -217,7 +207,7 @@ export function mount(container) {
     table.fetch(0);
 
     // Guardar cleanup para unmount
-    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
+    mountCleanup = getUnmount();
 }
 
 export function unmount() {

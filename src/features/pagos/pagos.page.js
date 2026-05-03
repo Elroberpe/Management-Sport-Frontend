@@ -5,6 +5,7 @@ import { initModals } from './pagos.modals.js';
 import { Store } from '../../core/store.js';
 import { api } from '../../core/api.js';
 import { initPageHeader } from '../../shared/components/page-header.js';
+import { createPageLifecycle } from '../../shared/utils/lifecycle.js';
 
 let mountCleanup = null;
 
@@ -14,18 +15,8 @@ export function template() {
 
 export function mount(container) {
     // Limpiar montajes previos
-    if (mountCleanup) {
-        mountCleanup();
-        mountCleanup = null;
-    }
-
-    const cleanups = [];
-    function addCleanup(fn) { cleanups.push(fn); }
-    function addGlobalListener(target, eventName, handler) {
-        if (!target) return;
-        target.addEventListener(eventName, handler);
-        addCleanup(() => target.removeEventListener(eventName, handler));
-    }
+    const { addCleanup, addGlobalListener, getUnmount } = createPageLifecycle(mountCleanup);
+    mountCleanup = null;
 
     const header = initPageHeader({
         containerId: 'pagos-header-container',
@@ -79,7 +70,7 @@ export function mount(container) {
         tabla.cargarPagos();
     });
 
-    mountCleanup = () => cleanups.forEach(fn => { try { fn(); } catch(e){} });
+    mountCleanup = getUnmount();
 }
 
 export function unmount() {
