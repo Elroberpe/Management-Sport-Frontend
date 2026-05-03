@@ -1879,4 +1879,59 @@
     color: #94a3b8;
     margin-right: 8px;
     font-size: 11px;
+}
+
+/* ========================================= */
+/*      RESPONSIVENESS PARA CALENDARIO       */
+/* ========================================= */
+
+@media (max-width: 1024px) {
+    .calendar-bottom-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px;
+    }
+    
+    .ch-center {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .ch-right {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .ch-right .select-wrap {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .ch-right select {
+        width: 100%;
+    }
+
+    .calendar-bottom-row {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-panel {
+        overflow-x: auto;
+    }
+
+    #fullcalendar-container {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ch-right .select-wrap {
+        min-width: 100%;
+    }
 }
